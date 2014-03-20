@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+
+<h2>SOS.m2</h2>
+<h4>A sum of squares package for Macaulay 2</h4>
+
+
+<a name="description"></a><h3>Description</h3>
+<div class="jpar">
+
+<code>SOS</code> is a Macaulay2 package for computing sum of squares
+(SOS) decompositions of polynomials with rational coefficients. The
+algorithm uses an interior point method to solve the underlying
+semidefinite program and tries to compute an exact decomposition from
+the numerical solution. <br><br>
+
+<a href="M2_package.pdf"> Presentation </a> <br><br>
+
+<strong>Note:</strong> since an efficient SDP solver is an art in
+itself and beyond the scope of this project, the package
+<code>simpleSDP</code> just implements a very simple method which is
+not expected to work well on big problems.
+
+</div>
+
+<a name="packages"></a><h3>Packages</h3>
+
+<ul>
+<li> <a href="./M2_Code/SOS.zip"><code>SOS</code></a>, computation of rational sum of squares decompositions; depends on the following three packages:</li>
+<li> <a href="./M2_Code/simpleSDP.m2"><code>simpleSDP</code></a>, a simple interior point solver</li>
+<li> <a href="./M2_Code/LDL.m2"><code>LDL</code></a>, LDL' factorization for rational matrices</li>
+<li> <a href="./M2_Code/BlkDiag.m2"><code>BlkDiag</code></a>, for creating block-diagonal matrices</li>
+</ul>
+
+<a name="installation"></a><h3>Installation</h3> 
+<div class="jpar"> To
+use the SOS package you need a working installation of
+<a href="http://www.math.uiuc.edu/Macaulay2/">Macaulay 2</a> with version number at least 0.9.94. 
+<br><br>
+Steps to install:
+
+<ol>
+<li> Download the packages <a href="./M2_Code/SOS.zip"><code>SOS</code></a>,
+<a href="./M2_Code/simpleSDP.m2"><code>simpleSDP</code></a>,  
+<a href="./M2_Code/LDL.m2"><code>LDL</code></a>, and
+<a href="./M2_Code/BlkDiag.m2"><code>BlkDiag</code></a> to your working directory</li> 
+<li> Unzip the SOS package </li>
+<li> Do one of the following:
+<ul> 
+<li> Launch Macaulay2 in your download directory and use the <code>installPackage</code> 
+command to install the packages, e.g., 
+
+<pre> 
+i1 : installPackage "LDL" 
+--installing package LDL in ../.Macaulay2/encap/LDL-1.5/ 
+... 
+</pre>
+
+Since <a href="./M2_Code/SOS.zip"><code>SOS</code></a> is depending on the packages
+<a href="./M2_Code/simpleSDP.m2"><code>simpleSDP</code></a>, 
+<a href="./M2_Code/LDL.m2"><code>LDL</code></a>, and
+<a href="./M2_Code/BlkDiag.m2"><code>BlkDiag</code></a>, it should be installed at last.
+
+</li>
+<li> If you do not want to install the packages permanently, include the download directory to
+Macaulay 2's <code>path</code> list.</li></ul>
+</div>
+
+<a name="example"></a><h3>Examples</h3> 
+
+<ul> 
+<li> <strong> Computing a SOS decomposition </strong> <br>
+The following example demonstrates how to use the function
+<code>getSOS</code> of the <code>SOS</code> package to compute a SOS
+decomposition of a polynomial.
+
+<pre>
+i1 : loadPackage"SOS";
+
+i2 : S = QQ[x,y];
+
+i3 : f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
+
+i4 : (g,d) = getSOS f
+
+.
+.   
+.
+
+         2  2    2  1  2         2           7
+o4 = ((- -*x  + y , -*x  + x*y, x ), (5, 2, --))
+         5          2                       10
+
+</pre>
+
+We can check with the <code>sumSOS</code> command whether the found
+decomposition matches the original polynomial
+
+<pre>
+
+i5 : sumSOS(g,d)
+
+       4     3      2 2     4
+o5 = 2x  + 2x y - 2x y  + 5y
+
+o5 : QQ [x, y]
+
+</pre></li>
+
+<li> <strong> SOS with parameters </strong><br> If the coefficients of
+the polynomial are linearly parameterized, we can also search for
+parameters which render a polynomial to be a SOS. In the following
+example, the variable <code>a</code> will be treated as a free
+parameter.
+
+<pre>
+
+i6 : S = QQ[x,a];
+
+i7 : f = (a-1)*x^4+1/2*a*x+1;
+
+i8 : (g,d,aval) = getSOS (f,{a})
+
+.
+.
+.
+
+
+         2  2   1         2    5            21  211
+o9 = ({- -*x  + -*x + 1, x  + --*x, x}, {1, --, ---}, | 2 |)
+         5      2             21            25  420
+
+o9 : Sequence
+
+</pre>
+The last output argument contains the vector of parameters, i.e,
+<code>a=2</code>.</li>
+
+<li> <strong> SOS with parameter optimization </strong><br>
+Semidefinite programming also allows to optimize a linear functional
+of the decision variables. As an example we compute a lower bound of a
+polynomial by minimizing its constant term. Since there is a tradeoff
+between rounding and optimality, we specify the required rounding
+precision as an optional input argument.
+
+<pre>
+
+i10 : S = QQ[x,t]
+
+o10 = S
+
+o10 : PolynomialRing
+
+i11 : f = x^4 - 2*x + t;
+
+i12 : (g,d,tVal) = getSOS (f,{t},t,rndTol=>3)
+
+.
+.
+.
+
+          1  2   4          10  2       2    5   9   19
+o12 = ({- -*x  - -*x + 1, - --*x  + x, x }, {-, --, ---}, | 5/4 |)
+          2      5           9               4  20  144
+
+
+</pre>
+
+</li></ul>
+
+</body>
+</html>
