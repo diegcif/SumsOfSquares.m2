@@ -62,7 +62,10 @@ choosemonp = args -> (
      -- Find points within the polytope:
      lexponents := cpf2_(positions(cpf2, i-> 
 	       max flatten entries (polytope * ((T * transpose matrix {i-shift})||1)) <=0))/2;
-     lmSOS := apply(lexponents, i-> product(n,j->(ring f)_(genpos#j)^(i#j)));
+     lmSOS := apply(lexponents, i-> product(n,j->(
+        assert (denominator i#j==1);
+         (ring f)_(genpos#j)^(numerator i#j)
+         )));
      stdio << "#points inside Newton polytope: " << #lmSOS << endl;
      
      -- Workaround: cast generators back from ringf to ring f!!!!
