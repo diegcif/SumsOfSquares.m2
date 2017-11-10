@@ -16,7 +16,7 @@ newPackage(
     	DebuggingMode => false 
     	)
 
-export {blkDiag}
+export {"blkDiag"}
 
 blkDiag = args -> (
      args = sequence args;

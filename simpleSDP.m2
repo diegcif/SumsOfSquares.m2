@@ -33,7 +33,7 @@ newPackage(
         DebuggingMode => true
         )
 
-export {solveSDP, untilObjNegative}
+export {"solveSDP", "untilObjNegative"}
 
 solveSDP = method(
      TypicalValue => Matrix,

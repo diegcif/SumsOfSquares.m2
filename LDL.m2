@@ -24,7 +24,7 @@ newPackage(
         DebuggingMode => true
         )
 
-export {ldl}
+export {"ldl"}
 
 ldl = args -> (
      args = sequence args;

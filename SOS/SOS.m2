@@ -1,4 +1,4 @@
-export {findSOS,getSOS,rndTol,sumSOS,createSOSModel}
+export {"findSOS","getSOS","rndTol","sumSOS","createSOSModel"}
 
 load "./findSOS.m2"
 load "./createSOSModel.m2";
