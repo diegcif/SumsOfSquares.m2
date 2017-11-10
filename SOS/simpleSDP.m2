@@ -22,28 +22,30 @@
 --    $Id: simpleSDP.m2,v 1.5 2013-01-19 14:31:23 hpeyrl Exp $
 
 
-export {"solveSDP", "untilObjNegative"}
+export {"solveSDP", "untilObjNegative", "workingPrecision"}
 
 solveSDP = method(
      TypicalValue => Matrix,
-     Options => {untilObjNegative => false}
+     Options => {untilObjNegative => false, workingPrecision => 53}
      )
 
 solveSDP(Matrix, Matrix, Matrix) := o -> (C,A,b) -> solveSDP(C, sequence A, b)
 
 solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
-     C = promote(C,RR);
+     prec := o.workingPrecision;
+     R := RR_prec;
+     C = promote(C,R);
      n := numgens target C;
      
      -- try to find strictly feasible starting point --
      lambda := min eigenvalues (C, Hermitian=>true);
      if lambda > 0 then (
-	  y := map(RR^#A,RR^1,(i,j)-> 0);
+	  y := map(R^#A,R^1,(i,j)-> 0);
 	  ) else (
 	  stdio << "Computing strictly feasible solution..." << endl; 
-	  y =  map(RR^#A,RR^1,i->0) || matrix{{lambda*1.1}};
-	  obj :=  map(RR^#A,RR^1,i->0) || matrix{{-1_RR}};
-	  y = solveSDP(C,append(A,id_(RR^n)), obj, y, untilObjNegative=>true);
+	  y =  map(R^#A,R^1,i->0) || matrix{{lambda*1.1}};
+	  obj :=  map(R^#A,R^1,i->0) || matrix{{-1_R}};
+	  y = solveSDP(C,append(A,id_(R^n)), obj, y, untilObjNegative=>true);
 	  y = transpose matrix {take (flatten entries y,numgens target y - 1)};   
 	  );
      stdio << "Computing an optimal solution..." << endl;
@@ -53,15 +55,17 @@ solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
 solveSDP(Matrix, Matrix, Matrix, Matrix) := o -> (C,A,b,y) -> solveSDP(C, sequence A,b,y)
 
 solveSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y) -> (
-     C = promote(C,RR);
-     A = apply(0..#A-1, i -> promote(A_i,RR));
-     b = promote(b,RR);
+     prec := o.workingPrecision;
+     R := RR_prec;
+     C = promote(C,R);
+     A = apply(0..#A-1, i -> promote(A_i,R));
+     b = promote(b,R);
      n := numgens target C;	       	    	      	   
-     y = promote(y,RR);
+     y = promote(y,R);
 
      m := numgens target y;
-     mu := 1_RR;
-     theta := 10_RR;
+     mu := 1_R;
+     theta := 10_R;
      iter := 1;
      NewtonIterMAX := 40;
 
@@ -74,9 +78,9 @@ solveSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y) -> (
 	       S := C - sum toList apply(0..m-1, i-> y_(i,0) * A_i);
 	       Sinv :=  solve(S, id_(target S));
 	       -- compute Hessian:
-	       H := map(RR^m,RR^m,(i,j) -> trace(Sinv*A_i*Sinv*A_j));
+	       H := map(R^m,R^m,(i,j) -> trace(Sinv*A_i*Sinv*A_j));
 	       -- compute gradient:
-	       g := map(RR^m,RR^1,(i,j) -> b_(i,0)/mu + trace(Sinv*A_i));
+	       g := map(R^m,R^1,(i,j) -> b_(i,0)/mu + trace(Sinv*A_i));
 	       
 	       -- compute damped Newton step:
 	       dy := -g//H;
@@ -102,15 +106,16 @@ solveSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y) -> (
 
 backtrack = args -> (
      S0 := args#0;
+     R := ring S0;
      dS := args#1;
-     alpha := 1_RR;
+     alpha := 1_R;
      BacktrackIterMAX := 100;
      S :=  matrix( alpha * entries dS) + S0;
      
      cnt := 1;     
      while min eigenvalues(S,Hermitian=>true) <= 0 do (
 	  cnt = cnt + 1;
-	  alpha = alpha / sqrt(2.);
+	  alpha = alpha / sqrt(2_R);
 	  S = S0 + matrix( alpha * entries dS);
 	  if cnt > BacktrackIterMAX then error ("line search did not converge.");
 	  );
