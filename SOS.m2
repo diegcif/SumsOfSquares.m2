@@ -15,3 +15,11 @@ load "./SOS/SOS.m2"
 
 
 
+TEST ///
+
+ 	 R = QQ[x,y];
+         p = 4*x^4+y^4;
+	 (g,d) = getSOS(p)
+	 assert( p  == sumSOS(g,d) )
+	 ///
+	    
