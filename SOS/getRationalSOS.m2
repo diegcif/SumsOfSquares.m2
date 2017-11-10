@@ -11,7 +11,7 @@
 --    Author: Helfried Peyrl
 --    $Id: getRationalSOS.m2,v 1.2 2013-01-19 14:36:09 hpeyrl Exp $
 
-needsPackage "LDL";
+needs "./LDL.m2";
      
 getRationalSOS = (Q,A,b,d,GramIndex,LinSpaceIndex) -> (
 

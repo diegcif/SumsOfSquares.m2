@@ -13,7 +13,7 @@
 -- Author: Helfried Peyrl
 -- $Id: getSOS.m2,v 1.4 2013-01-19 14:36:09 hpeyrl Exp $
 
-needsPackage "LDL";
+needs "./LDL.m2";
 
 getSOS = args -> (
      needs "./findSOS.m2";

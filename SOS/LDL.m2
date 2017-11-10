@@ -14,16 +14,6 @@
 --    $Id: LDL.m2,v 1.3 2013-01-19 14:39:21 hpeyrl Exp $
 
 
-newPackage(
-        "LDL",
-        Version => "1.4", 
-        Date => "November 29, 2006",
-        Authors => {{Name => "Helfried Peyrl", 
-                  Email => "peyrl@control.ee.ethz.ch"}},
-        Headline => "LDL' factorization of a positive semidefinite matrix",
-        DebuggingMode => true
-        )
-
 export {"ldl"}
 
 ldl = args -> (
@@ -71,11 +61,6 @@ ldl = args -> (
 
 
 beginDocumentation()
-document { 
-        Key => LDL,
-        Headline => "LDL' factorization of a positive semidefinite matrix",
-        EM "LDL", " is a package for LDL' factorization of a positive semidefinite matrix."
-        }
 document {
         Key => {ldl},
         Headline => "LDL' factorization of a positive semidefinite matrix",
