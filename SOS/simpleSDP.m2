@@ -22,17 +22,6 @@
 --    $Id: simpleSDP.m2,v 1.5 2013-01-19 14:31:23 hpeyrl Exp $
 
 
-newPackage(
-        "simpleSDP",
-        Version => "1.5", 
-        Date => "Januar 14, 2013",
-        Authors => {{Name => "Helfried Peyrl", 
-                  Email => "peyrl@control.ee.ethz.ch"},
-	     {Name => "Johan Löfberg"}},
-        Headline => "Simple SDP solver",
-        DebuggingMode => true
-        )
-
 export {"solveSDP", "untilObjNegative"}
 
 solveSDP = method(
@@ -130,11 +119,6 @@ backtrack = args -> (
 
 
 beginDocumentation()
-document { 
-     Key => simpleSDP,
-     Headline => "A package for solving SDPs",
-     EM "simpleSDP", " is a package for solving semidefinite programs."
-     }
 document {
      Key => {solveSDP},
      Headline => "A numerical SDP solver",

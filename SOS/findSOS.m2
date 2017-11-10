@@ -13,9 +13,9 @@
 -- Author: Helfried Peyrl
 -- $Id: findSOS.m2,v 1.6 2013-01-19 14:36:09 hpeyrl Exp $
 
-needsPackage "simpleSDP";
-needsPackage "LDL";
-needsPackage "BlkDiag";
+load "./simpleSDP.m2";
+load "./LDL.m2";
+load "./BlkDiag.m2";
 
 opts = {rndTol => -3}
 
