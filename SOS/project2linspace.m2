@@ -1,14 +1,13 @@
 -- xp = project2linspace(A,b,x0)
 -- 
--- PROJECT2LINSPACE   projects a rational point x0 to the linear subspace 
---    given by Ax=b
+-- PROJECT2LINSPACE   projects a rational point x0 onto the 
+--                    affine subspace given by Ax=b
 --
 -- input:  (A,b,x0)
--- output: xp: projetion of x0
+-- output: xp: projection of x0
 --
 -- Authors: Helfried Peyrl, Pablo Parrilo
 -- $Id: project2linspace.m2,v 1.1 2007/03/12 14:08:13 hpeyrl Exp $
-
 
 project2linspace = (A,b,x0) -> (     
      -- cast into QQ (necessary class to compute inverse)

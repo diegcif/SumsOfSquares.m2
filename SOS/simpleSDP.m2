@@ -139,7 +139,13 @@ document {
 	  "A" => Sequence => {"consisting of m symmetric n by n matrices over ", TT "RR"},
 	  "b" => Matrix => {"an m by 1 matrix over ", TT "RR"},
 	  "y0" => Matrix => {"an m by 1 matrix over ", TT "RR"}},
-     Outputs => { "y" => Matrix => {"an m by 1 matrix over ", TT "RR"}}
+     Outputs => { "y" => Matrix => {"an m by 1 matrix over ", TT "RR"}},
+     EXAMPLE lines ///
+          C = matrix {{1,0},{0,2}}
+          A = (matrix {{0,1},{1,0}})
+	  b = matrix {{1}}
+          y = solveSDP(C,A,b)
+          ///
      }
  
 

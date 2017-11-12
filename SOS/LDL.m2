@@ -2,7 +2,7 @@
 -- 
 -- LDL   LDL' factorization of a positive semidefinte matrix.
 --    (L,D,P,err) = ldl(A) returns a lower triangular matrix L with ones in
---    the diagonal, a diagonal matrix D, and a permuation matrix P such that
+--    the diagonal, a diagonal matrix D, and a permutation matrix P such that
 --    L'*D*L = P'*A*P. If A is positive semidefinite err=0, else err!=0.
 --  
 --    References: 

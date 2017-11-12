@@ -6,9 +6,9 @@
 --    Q is a positive semidefinite matrix and mon denotes the vector of
 --    monomials. ok is of boolean 
 -- input:  f:          polynomial for SOS decomp.
--- output: (ok,Q,mon): ok: boolean: successful decomposition possible?
---                     Q: dual variable
---                     mon: vector of moniomials
+-- output: (ok,Q,mon):  ok: boolean: successful decomposition possible?
+--                       Q: Gram matrix representing SOS decomposition
+--                     mon: vector of monomials
 --
 -- Author: Helfried Peyrl
 -- $Id: findSOS.m2,v 1.6 2013-01-19 14:36:09 hpeyrl Exp $
@@ -23,9 +23,8 @@ findSOS = opts >> o -> args -> (
      needs "./createSOSModel.m2";
      needs "./project2linspace.m2";
      needs "./getRationalSOS.m2";
-     needs "./norm2.m2"; 
      
-     stdio << "findSOS by H. Peyrl and P. A. Parrilo 2007-2013" << endl;
+     stdio << "findSOS by H. Peyrl and P.A. Parrilo 2007-2013" << endl;
      
      args = sequence args;
      -- f := args#0;

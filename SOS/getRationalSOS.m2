@@ -2,7 +2,7 @@
 -- 
 -- GETRATIONALSOS compute rational SOS decomposition for given precision.
 --    (Qp,ok) = getRationalSOS(Q,A,b,d) returns the projection of the
---    rounded matrix Q to the affine subspace A*q=b. ok is true if Qp is
+--    rounded matrix Q onto the affine subspace A*q=b. ok is true if Qp is
 --    positive semidefinite. d denotes the rounding precision
 --
 --    GramIndex and LinSpaceIndex are hash tables for the correspondence
