@@ -71,8 +71,9 @@ document {
         Inputs => { "A" => Matrix => {"over ", TT "QQ", " or ", TT "ZZ." } },
         Outputs => { "L" => Matrix => {"a lower triangular matrix over ", TT "QQ."},
 	"D" => Matrix => {"a diagonal matrix over ", TT "QQ."},
-	"P" => Matrix => {"a permuation matrix over ", TT "QQ."},
-	"err" => ZZ => {"which is 0 when the factorization was successful."}},
+	"P" => Matrix => {"a permutation matrix over ", TT "QQ."},
+	"err" => ZZ => {"which is 0 when the factorization was successful, i.e., if ", TT "A", 
+	    " is positive semidefinite."}},
         --SourceCode => {ldl},
         EXAMPLE lines ///
           A = matrix {{5,3,5},{3,2,4},{5,4,10}}

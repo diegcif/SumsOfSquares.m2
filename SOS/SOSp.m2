@@ -30,8 +30,8 @@ document {
 	  "Q" => Matrix => {"the rational n by n Gram matrix of the polynomial ", TT "f"},
 	  "mon" => Matrix => {"a n by 1 matrix of monomials"}},
      EXAMPLE lines ///
-     R = QQ[x,y]
-     f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y
+     R = QQ[x,y];
+     f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
      (ok,Q,mon) = findSOS f
      transpose(mon)*Q*mon - f
           ///
@@ -50,8 +50,8 @@ document {
      Outputs => { "g" => Sequence => {"of polynomials with coefficients in ", TT "QQ"},
 	       "d" => Sequence => {"of scalar weights in ", TT "QQ"}},
      EXAMPLE lines ///
-     R = QQ[x,y]
-     f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y
+     R = QQ[x,y];
+     f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
      (g,d) = getSOS f
      sumSOS(g,d) - f
      ///

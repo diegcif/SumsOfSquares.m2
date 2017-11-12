@@ -1,15 +1,15 @@
 -- (y) = simpleSDP(C,A,b,y0)
 -- 
--- SIMPLESDP   SIMPLESDP is a very simple, and primitive SDP solver using
+-- SIMPLESDP   SIMPLESDP is a very simple and primitive SDP solver using
 --    a pure dual interior point method based on a damped Newton steps.
---    y = simplesdp(C,A,b,y0) solves the minimzation problem
+--    y = simplesdp(C,A,b,y0) solves the minimization problem
 --        
---             min sum (y_i *b_i)
---       s.t.  C - sum (y_i*A_i) >=0,
+--             min sum( y_i * b_i )
+--       s.t.  C - sum( y_i * A_i ) >=0,
 --
 --    where the y_i denote the decision variables with corresponding 
 --    weight b_i. C and A_i are symmetric matrices. y0 is an optional
---    arguement defining a starting point.
+--    argument defining a starting point.
 --
 --    y0, y, b are vectors, C is a matrix, and A is a list of matrices.
 -- 
