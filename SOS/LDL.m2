@@ -66,7 +66,7 @@ document {
         Headline => "LDL' factorization of a positive semidefinite matrix",
 	"If ", TT "A", " is a positive semidefinite matrix, ", EM "ldl", " returns a lower 
 	triangular matrix ", TT "L", " with ones in the diagonal, a diagonal matrix ",
-	TT "D", " and a permuation matrix ", TT "P", " such that ", TT "L'*D*L = P'*A*P.",
+	TT "D", " and a permutation matrix ", TT "P", " such that ", TT "L'*D*L = P'*A*P.",
         Usage => "(L,D,P,err) = ldl A",
         Inputs => { "A" => Matrix => {"over ", TT "QQ", " or ", TT "ZZ." } },
         Outputs => { "L" => Matrix => {"a lower triangular matrix over ", TT "QQ."},
@@ -81,8 +81,17 @@ document {
         }
    
 TEST ///
-    A = matrix {{5,3,5},{3,2,4},{5,4,10}};
-    (L,D,P,err) = ldl(A);
+
+--  Simple example
+    A = matrix {{5,3,5},{3,2,4},{5,4,10}}
+    (L,D,P,err) = ldl(A)
     assert(L*D*transpose L == transpose P * A * P)
+    
+--  Random low-rank matrix
+    V = random(QQ^12,QQ^8)
+    A = V * transpose V 
+    (L,D,P,err) = ldl(A)
+    assert(L*D*transpose L == transpose P * A * P)
+
 ///
 
