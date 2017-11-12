@@ -4,7 +4,6 @@ load "./findSOS.m2"
 load "./createSOSModel.m2";
 load "./project2linspace.m2";
 load "./getRationalSOS.m2";
-load "./norm2.m2";
 load "./choosemonp.m2";
 load "./getSOS.m2";
 load "./sumSOS.m2";
@@ -29,7 +28,13 @@ document {
      Inputs => { "f" => PolynomialRing => {"a polynomial with coefficients in ", TT "QQ"}},
      Outputs => { "ok" => Boolean => {"indicates whether a rational SOS decomposition was found"},
 	  "Q" => Matrix => {"the rational n by n Gram matrix of the polynomial ", TT "f"},
-	  "mon" => Matrix => {"a n by 1 matrix of monomials"}}
+	  "mon" => Matrix => {"a n by 1 matrix of monomials"}},
+     EXAMPLE lines ///
+     R = QQ[x,y]
+     f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y
+     (ok,Q,mon) = findSOS f
+     transpose(mon)*Q*mon - f
+          ///
      }
 document {
      Key => {getSOS},
@@ -43,7 +48,13 @@ document {
      Usage => "(g,d) = getSOS f",
      Inputs => { "f" => PolynomialRing => {"a polynomial with coefficients in ", TT "QQ"}},
      Outputs => { "g" => Sequence => {"of polynomials with coefficients in ", TT "QQ"},
-	       "d" => Sequence => {"of scalar weights in ", TT "QQ"}}     
+	       "d" => Sequence => {"of scalar weights in ", TT "QQ"}},
+     EXAMPLE lines ///
+     R = QQ[x,y]
+     f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y
+     (g,d) = getSOS f
+     sumSOS(g,d) - f
+     ///
      }
 document {
      Key => {sumSOS},
@@ -55,7 +66,13 @@ document {
      Usage => "f = getSOS (g,d)",
      Outputs => { "f" => PolynomialRing => {"a polynomial with coefficients in ", TT "QQ"}},
      Inputs => { "g" => Sequence => {"of polynomials with coefficients in ", TT "QQ"},
-	       "d" => Sequence => {"of scalar weights in ", TT "QQ"}}     
+	       "d" => Sequence => {"of scalar weights in ", TT "QQ"}},
+     EXAMPLE lines ///
+     R = QQ[x,y];
+     f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
+     (g,d) = getSOS f
+     sumSOS(g,d) - f
+     ///
      }
 
 

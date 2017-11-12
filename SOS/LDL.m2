@@ -75,13 +75,13 @@ document {
 	"err" => ZZ => {"which is 0 when the factorization was successful."}},
         --SourceCode => {ldl},
         EXAMPLE lines ///
-          A = matrix{{5,3,5},{3,2,4},{5,4,10}}
+          A = matrix {{5,3,5},{3,2,4},{5,4,10}}
 	  (L,D,P,err) = ldl(A)
 	  ///
         }
    
 TEST ///
-    A = matrix{{5,3,5},{3,2,4},{5,4,10}};
+    A = matrix {{5,3,5},{3,2,4},{5,4,10}};
     (L,D,P,err) = ldl(A);
     assert(L*D*transpose L == transpose P * A * P)
 ///

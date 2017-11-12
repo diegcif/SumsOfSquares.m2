@@ -14,7 +14,7 @@
 --    
 --    where y_i are free parameters.
 -- 
---    The linear subspace of all X such that (*) holds is determined by
+--    The affine subspace of all X such that (*) holds is determined by
 --   
 --       A x = b,
 --
