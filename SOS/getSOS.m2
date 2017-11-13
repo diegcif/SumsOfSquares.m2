@@ -20,7 +20,7 @@ getSOS = args -> (
           
      if #args!=1 then (ok,Q,mon,pVec) := findSOS args else (ok,Q,mon) = findSOS args;
           
-     (L,D,P,err) := ldl(Q);
+     (L,D,P,err) := LDLdecomposition(Q);
      if err != 0 then error ("Gram Matrix is not positive semidefinite");
      n := #entries Q;
      g := toList flatten entries (transpose mon * transpose inverse P * L);

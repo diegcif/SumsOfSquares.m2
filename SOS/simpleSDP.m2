@@ -126,7 +126,7 @@ backtrack = args -> (
 beginDocumentation()
 document {
      Key => {solveSDP},
-     Headline => "A numerical SDP solver",
+     Headline => "A simple numerical SDP solver",
      EM "solveSDP", " is a pure dual interior point solver for semidefinite ",
      "programs of the form", BR{}, BR{}, TT "min sum b", SUB "i", TT " y", SUB "i", BR{}, 
      TT "s.t. C - sum y", SUB "i", TT " A", SUB "i", " > 0,", BR{}, BR{},
@@ -140,10 +140,11 @@ document {
 	  "b" => Matrix => {"an m by 1 matrix over ", TT "RR"},
 	  "y0" => Matrix => {"an m by 1 matrix over ", TT "RR"}},
      Outputs => { "y" => Matrix => {"an m by 1 matrix over ", TT "RR"}},
+     
      EXAMPLE lines ///
-          C = matrix {{1,0},{0,2}}
-          A = (matrix {{0,1},{1,0}})
-	  b = matrix {{1}}
+          C = matrix {{1,0},{0,2}};
+          A = (matrix {{0,1},{1,0}});
+	  b = matrix {{1}};
           y = solveSDP(C,A,b)
           ///
      }

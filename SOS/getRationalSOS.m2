@@ -27,7 +27,7 @@ getRationalSOS = (Q,A,b,d,GramIndex,LinSpaceIndex) -> (
      Q = map(QQ^ndim,QQ^ndim, (i,j) -> if i>=j then xp_(LinSpaceIndex#{i+1,j+1},0) 
      	  else xp_(LinSpaceIndex#{j+1,i+1},0));
 
-     t = timing((L,D,P,Qpsd) := ldl(Q););
+     t = timing((L,D,P,Qpsd) := LDLdecomposition(Q););
      stdio << "Time needed for LDL decomposition: " << t#0 << endl;
      if Qpsd == 0 then (true, Q) else (false,Q)
      )

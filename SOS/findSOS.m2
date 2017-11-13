@@ -66,7 +66,7 @@ findSOS = opts >> o -> args -> (
 	  lambda := min eigenvalues (promote (C,RR), Hermitian=>true);
 	  if lambda >=0 then (
 	       stdio << "SDP solving maybe not necessary. Checking...." << endl;
-	       (L,D,P,CnotPSD) := ldl(C);
+	       (L,D,P,CnotPSD) := LDLdecomposition(C);
 	       if CnotPSD == 0 then return (true,C,mon);
 	       );
 	  obj = map(RR^(#Ai+#Bi),RR^1,i->0) || matrix{{-1_RR}};
