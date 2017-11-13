@@ -30,11 +30,18 @@ document {
 	  "Q" => Matrix => {"the rational n by n Gram matrix of the polynomial ", TT "f"},
 	  "mon" => Matrix => {"a n by 1 matrix of monomials"}},
      EXAMPLE lines ///
+     -- Find SOS decomposition of a given polynomial
      R = QQ[x,y];
      f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
      (ok,Q,mon) = findSOS f
      transpose(mon)*Q*mon - f
           ///
+     EXAMPLE lines ///	  
+     -- Parametric SOS problem, finds SOS lower bound of dehomogenized Motzkin poly
+     R = QQ[x,z,gam];
+     f = x^4+x^2+z^6-3*x^2*z^2-gam;
+     (g,d,tval) = getSOS (f,{gam},-gam,rndTol=>12)  
+                ///
      }
 document {
      Key => {getSOS},
@@ -58,7 +65,7 @@ document {
      }
 document {
      Key => {sumSOS},
-     Headline => "Expansion of a weighted SOS",
+     Headline => "Computes the expansion of a weighted SOS",
      EM "sumSOS", " expands a weighted SOS decomposition: ", BR{}, BR{},
      TT "f = sum d", SUB "i", TT " g", SUB "i", SUP "2", ",", BR{},BR{},
      "where g", SUB "i", " are polynomials in ", TT "QQ[x]", " and w", SUB "i", 
