@@ -19,7 +19,5 @@ Special thanks: Diego Cifuentes, Anton Leykin.
 
 
 [1] Peyrl, Helfried, and Pablo A. Parrilo. 
-["Computing sum of squares decompositions with rational coefficients"],
-(https://www.sciencedirect.com/science/article/pii/S0304397508006452) 
-*Theoretical Computer Science* 409.2 (2008):269-281.
+"[Computing sum of squares decompositions with rational coefficients](https://www.sciencedirect.com/science/article/pii/S0304397508006452)", *Theoretical Computer Science* 409.2 (2008):269-281.
 
