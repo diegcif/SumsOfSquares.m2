@@ -8,7 +8,8 @@ newPackage(
 		  Email => "parrilo@mit.edu"}},
         Headline => "Sum of Squares Package",
         DebuggingMode => true,
-	AuxiliaryFiles => true
+        Configuration => {"CSDPexec"=>"csdp"},
+        AuxiliaryFiles => true
         )
 
 load "./SOS/SOSp.m2"
