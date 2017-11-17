@@ -27,7 +27,6 @@ export {"solveSDP", "untilObjNegative", "workingPrecision"}
 csdpexec=((options SOS).Configuration)#"CSDPexec"
 
 solveSDP = method(
-     TypicalValue => Matrix,
      Options => {untilObjNegative => false, workingPrecision => 53, Algorithm=>"M2"}
      )
 
@@ -43,14 +42,14 @@ solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
         (y,X,Z) = solveCSDP(C,A,b)
     else
         error "unknown algorithm";
-    return y;
+    return (y,X);
 )
 
 solveSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y0) -> (
     if o.Algorithm != "M2" then
         return solveSDP(C,A,b,o);
-    y := simpleSDP(C,A,b,y0,o);
-    return y;
+    y := simpleSDP(C,A,b,y0,untilObjNegative=>o.untilObjNegative);
+    return (y,null);
 )
 
 --##############################
@@ -218,28 +217,41 @@ readSDPA = (fname,n) -> (
 
 beginDocumentation()
 document {
-     Key => {solveSDP},
+     Key => {solveSDP,(solveSDP,Matrix,Matrix,Matrix),(solveSDP,Matrix,Matrix,Matrix,Matrix),(solveSDP,Matrix,Sequence,Matrix),(solveSDP,Matrix,Sequence,Matrix,Matrix)},
      Headline => "solve a semidefinite program",
      "This method solves a semidefinite program of the form ",
      BR{}, BR{}, TT "min sum b", SUB "i", TT " y", SUB "i", BR{}, 
      TT "s.t. C - sum y", SUB "i", TT " A", SUB "i", " > 0,", BR{}, BR{},
      "where ", TT "y", " denotes the decision variables and ", TT "C", " and ",
      TT "A", SUB "i", " are symmetric n by n matrices. A strictly feasible ",
-     "initial point ", TT "y0", " may be provided by the user. If no initial point ",
-     "is given, simpleSDP tries to find one.",
-     Usage => "y = solveSDP(C,A,b,y0)",
+     "initial point ", TT "y0", " may be provided by the user. ",
+     "The default algorithm is a dual interior point method implemented in M2, but an interface to ",
+     TO2 {[solveSDP,Algorithm],"CSDP"},
+     " is also available. ",
+     Usage => "(y,X) = solveSDP(C,A,b),\n (y,X) = solveSDP(C,A,b,y0),",
      Inputs => { "C" => Matrix => {"a symmetric n by n matrix, over ", TT "RR"},
 	  "A" => Sequence => {"consisting of m symmetric n by n matrices over ", TT "RR"},
 	  "b" => Matrix => {"an m by 1 matrix over ", TT "RR"},
 	  "y0" => Matrix => {"an m by 1 matrix over ", TT "RR", " (optional)"}},
-     Outputs => { "y" => Matrix => {"an m by 1 matrix over ", TT "RR"}},
+     Outputs => { "y" => {"an m by 1 ",TO matrix,", primal solution"},
+                  "X" => {"an n by n ",TO matrix,", dual solution (not available if ", TT "Algorithm=>\"M2\"", " )"} },
      
      EXAMPLE lines ///
           C = matrix {{1,0},{0,2}};
           A = (matrix {{0,1},{1,0}});
 	  b = matrix {{1}};
-          y = solveSDP(C,A,b)
+          (y,X) = solveSDP(C,A,b);
+          y
           ///
+     }
+document {
+     Key => {[solveSDP,Algorithm]},
+     Headline => "semidefinite programming solver",
+     "The following SDP solvers are available:",
+     UL{
+	   {"\"M2\"", " -- use a simple dual interior point method implemented in Macaulay2"},
+	   {"\"CSDP\"", " -- use the CSDP solver, available at ", TT "https://projects.coin-or.org/Csdp/" },
+	   },
      }
  
 
@@ -253,7 +265,7 @@ TEST ///
      A = (A1,A2);
      y0 = matrix{{7},{9}};
      b = matrix{{1},{1}};
-     y = solveSDP(C,A,b,y0);
+     (y,X) = solveSDP(C,A,b,y0);
      yopt = matrix{{2.},{2.}};
      
     assert ( sqrt( sum apply(toList (0..#entries y-1), i-> (y_(i,0)-yopt_(i,0))^2)) <

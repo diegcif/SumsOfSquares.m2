@@ -59,7 +59,7 @@ findSOS = opts >> o -> args -> (
 		    	 map(QQ^#p,QQ^#p, (j,k) -> if j==k and j==i then 1_QQ else 0_QQ),
 	       	    	 map(QQ^#p,QQ^#p, (j,k) -> if j==k and j==i then -1_QQ else 0_QQ)));
 	       );
-          y := - solveSDP(C, Bi | Ai, obj);
+          (y,nul) := - solveSDP(C, Bi | Ai, obj);
      ) else (
           -- compute a feasible solution --
      	  stdio << "Solving SOS feasibility problem..." << endl;
@@ -71,7 +71,7 @@ findSOS = opts >> o -> args -> (
 	       );
 	  obj = map(RR^(#Ai+#Bi),RR^1,i->0) || matrix{{-1_RR}};
 	  y0 := map(RR^(#Ai+#Bi),RR^1,i->0) || matrix{{lambda*1.1}};
-	  y = - solveSDP(C, append (Bi | Ai, id_(QQ^ndim)), obj, y0);
+	  (y,nul) = - solveSDP(C, append (Bi | Ai, id_(QQ^ndim)), obj, y0);
      );
 
      -- round and project --
