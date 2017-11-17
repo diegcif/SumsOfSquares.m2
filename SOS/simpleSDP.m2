@@ -252,6 +252,8 @@ document {
 	   {"\"M2\"", " -- use a simple dual interior point method implemented in Macaulay2"},
 	   {"\"CSDP\"", " -- use the CSDP solver, available at ", TT "https://projects.coin-or.org/Csdp/" },
 	   },
+     "The CSDP executable can be specified when loading the package, as follows ",BR{},
+     TT "loadPackage(SOS,Configuration=>{\"CSDPexec\"=>\"csdp\"})",
      }
  
 
