@@ -5,17 +5,6 @@
 -- Author: Helfried Peyrl
 -- $Id$
 
-newPackage(
-	"BlkDiag",
-    	Version => "1.0", 
-    	Date => "April 27, 2007",
-    	Authors => {
-	     {Name => "Helfried Peyrl", Email => "peyrl@control.ee.ethz.ch"}
-	     },
-    	Headline => "Creating block diagonal matrices",
-    	DebuggingMode => false 
-    	)
-
 export {"blkDiag"}
 
 blkDiag = args -> (
