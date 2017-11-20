@@ -17,7 +17,7 @@ load "./simpleSDP.m2";
 load "./LDL.m2";
 load "./BlkDiag.m2";
 
-opts = {rndTol => -3}
+opts = {rndTol => -3, Solver => "M2"}
 
 findSOS = opts >> o -> args -> (
      needs "./createSOSModel.m2";
@@ -59,7 +59,7 @@ findSOS = opts >> o -> args -> (
 		    	 map(QQ^#p,QQ^#p, (j,k) -> if j==k and j==i then 1_QQ else 0_QQ),
 	       	    	 map(QQ^#p,QQ^#p, (j,k) -> if j==k and j==i then -1_QQ else 0_QQ)));
 	       );
-      sol := solveSDP(C, Bi | Ai, obj);
+      sol := solveSDP(C, Bi | Ai, obj, Solver=>o.Solver);
       y := -sol_0;
      )else (
       -- compute a feasible solution --
@@ -72,7 +72,7 @@ findSOS = opts >> o -> args -> (
            );
       obj = map(RR^(#Ai+#Bi),RR^1,i->0) || matrix{{-1_RR}};
       y0 := map(RR^(#Ai+#Bi),RR^1,i->0) || matrix{{lambda*1.1}};
-      sol = solveSDP(C, append (Bi | Ai, id_(QQ^ndim)), obj, y0);
+      sol = solveSDP(C, append (Bi | Ai, id_(QQ^ndim)), obj, y0, Solver=>o.Solver);
       y = -sol_0;
      );
 

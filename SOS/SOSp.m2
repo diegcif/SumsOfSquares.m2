@@ -29,6 +29,7 @@ document {
      Outputs => { "ok" => Boolean => {"indicates whether a rational SOS decomposition was found"},
 	  "Q" => Matrix => {"the rational n by n Gram matrix of the polynomial ", TT "f"},
 	  "mon" => Matrix => {"a n by 1 matrix of monomials"}},
+     SeeAlso => {getSOS,Solver},
      BR{},
      "Find a SOS decomposition of a given polynomial:",
      EXAMPLE lines ///
@@ -51,6 +52,7 @@ document {
      Inputs => { "f" => PolynomialRing => {"a polynomial with coefficients in ", TT "QQ"}},
      Outputs => { "g" => Sequence => {"of polynomials with coefficients in ", TT "QQ"},
 	       "d" => Sequence => {"of scalar weights in ", TT "QQ"}},
+     SeeAlso => {findSOS,Solver},
      EXAMPLE lines ///
      R = QQ[x,y];
      f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
@@ -85,4 +87,9 @@ document {
      ///
      }
 
+document {
+     Key => {rndTol},
+     Headline => "rounding tolerance",
+     "Minimal rounding precision in x binary digits.",
+     }
 

@@ -22,12 +22,12 @@
 --    $Id: simpleSDP.m2,v 1.5 2013-01-19 14:31:23 hpeyrl Exp $
 
 
-export {"solveSDP", "untilObjNegative", "workingPrecision"}
+export {"solveSDP", "untilObjNegative", "workingPrecision", "Solver"}
 
 csdpexec=((options SOS).Configuration)#"CSDPexec"
 
 solveSDP = method(
-     Options => {untilObjNegative => false, workingPrecision => 53, Algorithm=>"M2"}
+     Options => {untilObjNegative => false, workingPrecision => 53, Solver=>"M2"}
      )
 
 solveSDP(Matrix, Matrix, Matrix) := o -> (C,A,b) -> solveSDP(C, sequence A, b)
@@ -36,9 +36,9 @@ solveSDP(Matrix, Matrix, Matrix, Matrix) := o -> (C,A,b,y) -> solveSDP(C, sequen
 
 solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
     y:=null; X:=null; Z:= null;
-    if o.Algorithm == "M2" then
+    if o.Solver == "M2" then
         y = simpleSDP(C,A,b,untilObjNegative=>o.untilObjNegative)
-    else if o.Algorithm == "CSDP" then
+    else if o.Solver == "CSDP" then
         (y,X,Z) = solveCSDP(C,A,b)
     else
         error "unknown algorithm";
@@ -46,7 +46,7 @@ solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
 )
 
 solveSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y0) -> (
-    if o.Algorithm != "M2" then
+    if o.Solver != "M2" then
         return solveSDP(C,A,b,o);
     y := simpleSDP(C,A,b,y0,untilObjNegative=>o.untilObjNegative);
     return (y,null);
@@ -226,7 +226,7 @@ document {
      TT "A", SUB "i", " are symmetric n by n matrices. A strictly feasible ",
      "initial point ", TT "y0", " may be provided by the user. ",
      "The default algorithm is a dual interior point method implemented in M2, but an interface to ",
-     TO2 {[solveSDP,Algorithm],"CSDP"},
+     TO2 {[solveSDP,Solver],"CSDP"},
      " is also available. ",
      Usage => "(y,X) = solveSDP(C,A,b),\n (y,X) = solveSDP(C,A,b,y0),",
      Inputs => { "C" => Matrix => {"a symmetric n by n matrix, over ", TT "RR"},
@@ -234,7 +234,7 @@ document {
 	  "b" => Matrix => {"an m by 1 matrix over ", TT "RR"},
 	  "y0" => Matrix => {"an m by 1 matrix over ", TT "RR", " (optional)"}},
      Outputs => { "y" => {"an m by 1 ",TO matrix,", primal solution"},
-                  "X" => {"an n by n ",TO matrix,", dual solution (not available if ", TT "Algorithm=>\"M2\"", " )"} },
+                  "X" => {"an n by n ",TO matrix,", dual solution (not available if ", TT "Solver=>\"M2\"", " )"} },
      
      EXAMPLE lines ///
           C = matrix {{1,0},{0,2}};
@@ -245,7 +245,7 @@ document {
           ///
      }
 document {
-     Key => {[solveSDP,Algorithm]},
+     Key => {Solver,[solveSDP,Solver]},
      Headline => "semidefinite programming solver",
      "The following SDP solvers are available:",
      UL{

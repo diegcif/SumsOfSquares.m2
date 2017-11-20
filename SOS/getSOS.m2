@@ -15,10 +15,16 @@
 
 needs "./LDL.m2";
 
-getSOS = args -> (
+opts = {rndTol => -3, Solver => "M2"}
+
+--getSOS = args -> (
+getSOS = opts >> o -> args -> (
      needs "./findSOS.m2";
           
-     if #args!=1 then (ok,Q,mon,pVec) := findSOS args else (ok,Q,mon) = findSOS args;
+     if #args!=1 then (ok,Q,mon,pVec) := findSOS(args,o) 
+     else (ok,Q,mon) = findSOS(args,o);
+
+     if not ok then error "failed to compute decomposition";
           
      (L,D,P,err) := LDLdecomposition(Q);
      if err != 0 then error ("Gram Matrix is not positive semidefinite");
