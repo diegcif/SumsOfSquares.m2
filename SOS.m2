@@ -10,9 +10,7 @@ newPackage(
 		  Email => "parrilo@mit.edu",
           HomePage => "http://www.mit.edu/~parrilo/"},
          {Name => "Contributing Author: Diego Cifuentes",
-          HomePage => "http://www.mit.edu/~diegcif/"},
-         {Name => "Contributing Author: Anton Leykin",
-          HomePage => "http://people.math.gatech.edu/~aleykin3/"}
+          HomePage => "http://www.mit.edu/~diegcif/"}
         },
         Headline => "Sum of Squares Package",
         DebuggingMode => true,

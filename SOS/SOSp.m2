@@ -1,4 +1,4 @@
-export {"findSOS","getSOS","rndTol","sumSOS","createSOSModel"}
+export {"findSOS","getSOS","rndTol","sumSOS"}
 
 load "./findSOS.m2"
 load "./createSOSModel.m2";
@@ -18,7 +18,7 @@ document {
 document {
      Key => {findSOS},
      Headline => "Computation of a SOS decomposition of a polynomial",
-     EM "findSOS", " uses the SDP solver ", TO{"solveSDP"}, " to compute an SOS ",
+     EM "findSOS", " uses ", TO{"solveSDP"}, " to compute an SOS ",
      "decomposition of a polynomial. It tries to obtain an exact solution by rounding ",
      "the numerical result and checking positive definiteness of the Gram matrix ",
      "afterwards. If successful the polynomial ", TT"f", " can be written as", BR{}, BR{},    

@@ -59,19 +59,21 @@ findSOS = opts >> o -> args -> (
 		    	 map(QQ^#p,QQ^#p, (j,k) -> if j==k and j==i then 1_QQ else 0_QQ),
 	       	    	 map(QQ^#p,QQ^#p, (j,k) -> if j==k and j==i then -1_QQ else 0_QQ)));
 	       );
-          (y,nul) := - solveSDP(C, Bi | Ai, obj);
-     ) else (
-          -- compute a feasible solution --
-     	  stdio << "Solving SOS feasibility problem..." << endl;
-	  lambda := min eigenvalues (promote (C,RR), Hermitian=>true);
-	  if lambda >=0 then (
-	       stdio << "SDP solving maybe not necessary. Checking...." << endl;
-	       (L,D,P,CnotPSD) := LDLdecomposition(C);
-	       if CnotPSD == 0 then return (true,C,mon);
-	       );
-	  obj = map(RR^(#Ai+#Bi),RR^1,i->0) || matrix{{-1_RR}};
-	  y0 := map(RR^(#Ai+#Bi),RR^1,i->0) || matrix{{lambda*1.1}};
-	  (y,nul) = - solveSDP(C, append (Bi | Ai, id_(QQ^ndim)), obj, y0);
+      sol := solveSDP(C, Bi | Ai, obj);
+      y := -sol_0;
+     )else (
+      -- compute a feasible solution --
+      stdio << "Solving SOS feasibility problem..." << endl;
+      lambda := min eigenvalues (promote (C,RR), Hermitian=>true);
+      if lambda >=0 then (
+           stdio << "SDP solving maybe not necessary. Checking...." << endl;
+           (L,D,P,CnotPSD) := LDLdecomposition(C);
+           if CnotPSD == 0 then return (true,C,mon);
+           );
+      obj = map(RR^(#Ai+#Bi),RR^1,i->0) || matrix{{-1_RR}};
+      y0 := map(RR^(#Ai+#Bi),RR^1,i->0) || matrix{{lambda*1.1}};
+      sol = solveSDP(C, append (Bi | Ai, id_(QQ^ndim)), obj, y0);
+      y = -sol_0;
      );
 
      -- round and project --

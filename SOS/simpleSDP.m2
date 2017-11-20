@@ -110,7 +110,7 @@ simpleSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y) -> (
 	       g := map(R^m,R^1,(i,j) -> b_(i,0)/mu + trace(Sinv*A_i));
 	       
 	       -- compute damped Newton step:
-	       dy := -g//H;
+           try dy := -g//H else error "Newton step has no solution";
 	       alpha := backtrack(S, -sum toList apply(0..m-1, i -> matrix(dy_(i,0) * entries A_i)));
 	       y = y + transpose matrix {alpha* (flatten entries dy)};
 	       lambda := (transpose dy*H*dy)_(0,0);
@@ -128,7 +128,7 @@ simpleSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y) -> (
 	       if lambda < 0.4 then break;
 	       ); 
 	  );
-     y	        	
+     return y;	        	
      )     
 
 backtrack = args -> (

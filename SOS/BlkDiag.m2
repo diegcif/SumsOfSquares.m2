@@ -23,3 +23,21 @@ blkDiag = args -> (
 	  );
      return B;
      )
+
+beginDocumentation()
+document {
+     Key => {blkDiag},
+     Headline => "construct a block diagonal matrix",
+     "This method returns the block diagonal matrix with blocks ",
+     TT "A1,A2,...,An.",
+     Usage => "D = blkDiag(A1,A2,...,An)",
+     Inputs => { "Ai" => {"square matrices"} },
+     Outputs => { "D" => {"block diagonal matrix"} },
+     
+     EXAMPLE lines ///
+          A1 = matrix {{0,1},{1,0}};
+          A2 = matrix {{1,2},{2,2}};
+          A3 = matrix {{3}};
+          blkDiag(A1,A2,A3)
+          ///
+     }
