@@ -160,6 +160,7 @@ solveCSDP = (C,A,b) -> (
     fout := getFileName();
     fout2 := getFileName();
     writeSDPA(fin,C,A,b);
+    print("Executing CSDP on file " | fin);
     r := run(csdpexec | " " | fin | " " | fout);
     if r == 32512 then error "csdp executable not found";
     r = run("cat " | fout | " | tr -d + > " | fout2);
