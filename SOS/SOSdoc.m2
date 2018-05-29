@@ -12,61 +12,6 @@ document {
     }
 
 document {
-     Key => {findSOS},
-     Headline => "Computation of a SOS decomposition of a polynomial",
-     EM "findSOS", " computes an SOS ",
-     "decomposition of a polynomial. It tries to obtain an exact solution by rounding ",
-     "the numerical result and checking positive definiteness of the Gram matrix ",
-     "afterwards. If successful the polynomial ", TT"f", " can be written as", BR{}, BR{},    
-     TT "f = mon' * Q * mon", ",", BR{}, BR{}, "where ", TT"Q", " is a rational, positive ",
-     "semidefinite matrix, and ", TT"mon", " is a vector of monomials.",     
-     Usage => "(ok,Q,mon) = findSOS f",
-     Inputs => { "f" => PolynomialRing => {"a polynomial with coefficients in ", TT "QQ"}},
-     Outputs => { "ok" => Boolean => {"indicates whether a rational SOS decomposition was found"},
-      "Q" => Matrix => {"the rational n by n Gram matrix of the polynomial ", TT "f"},
-      "mon" => Matrix => {"a n by 1 matrix of monomials"}},
-     SeeAlso => {getSOS,Solver},
-     BR{},
-     "Find a SOS decomposition of a given polynomial:",
-     EXAMPLE lines ///
-     R = QQ[x,y];
-     f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
-     (ok,Q,mon) = findSOS f
-     transpose(mon)*Q*mon - f
-          ///
-     }
-
-document {
-     Key => {getSOS},
-     Headline => "SOS decomposition of a polynomial",
-     EM "getSOS", " computes a rational SOS decomposition ",
-     "of a polynomial: ", BR{}, BR{},
-     TT "f = sum d", SUB "i", TT " g", SUB "i", SUP "2", ",", BR{},BR{},
-     "where the g", SUB "i", " are polynomials in ", TT "QQ[x]", " and the d", SUB "i", 
-     " are weights in ", TT "QQ", ". The function yields an error if such a decomposition ",
-     "could not be obtained.",
-     Usage => "(g,d) = getSOS f",
-     Inputs => { "f" => PolynomialRing => {"a polynomial with coefficients in ", TT "QQ"}},
-     Outputs => { "g" => Sequence => {"of polynomials with coefficients in ", TT "QQ"},
-           "d" => Sequence => {"of scalar weights in ", TT "QQ"}},
-     SeeAlso => {findSOS,Solver},
-     EXAMPLE lines ///
-     R = QQ[x,y];
-     f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
-     (g,d) = getSOS f
-     sumSOS(g,d) - f
-     ///,
-     BR{},
-     EM "getSOS", " can also solve parametric SOS problems that depend affinely of some decision variables. 
-     For instance, we can find an SOS lower bound for the dehomogenized Motzkin polynomial:",
-     EXAMPLE lines ///      
-     R = QQ[x,z,gam];
-     f = x^4+x^2+z^6-3*x^2*z^2-gam;
-     (g,d,tval) = getSOS (f,{gam},-gam,rndTol=>12)  
-                ///
-     }
-
-document {
      Key => {sumSOS},
      Headline => "Computes the expansion of a weighted SOS",
      EM "sumSOS", " expands a weighted SOS decomposition: ", BR{}, BR{},
@@ -177,6 +122,105 @@ document {
      TT "loadPackage(SOS,Configuration=>{\"CSDPexec\"=>\"csdp\"})",
      }
 
+doc /// --getSOS
+    Key
+        getSOS
+    Headline
+        SOS decomposition of a polynomial
+    Usage
+        (g,d) = getSOS f
+        (g,d,tval) = getSOS(f,p,objFun)
+    Inputs
+        f:RingElement
+          a polynomial with coefficients in $\QQ$
+        p:List
+          of parameters (optional)
+        objFun:RingElement
+          a polynomial with coefficients in $\QQ$ (optional)
+    Outputs
+        g:Sequence
+          of polynomials with coefficients in $\QQ$
+        d:Sequence
+          of scalar weights in $\QQ$
+        tval:List
+          of parameter values
+    Consequences
+    Description
+      Text
+        This method computes a rational SOS decomposition of a polynomial:
+        $$f = \sum_i d_i g_i^2$$
+        where the $g_i$ are polynomials in $\QQ[x]$ and the $d_i$ are weights in $\QQ$. The function yields an error if such a decomposition could not be obtained.
+      Example
+        R = QQ[x,y];
+        f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
+        (g,d) = getSOS f
+        sumSOS(g,d) - f
+      Text
+        The method can also solve parametric SOS problems that depend affinely of some decision variables. 
+        For instance, we can find an SOS lower bound for the dehomogenized Motzkin polynomial:
+      Example
+        R = QQ[x,z,t];
+        f = x^4+x^2+z^6-3*x^2*z^2-t;
+        (g,d,tval) = getSOS (f,{t},-t,rndTol=>12);
+        tval
+      Code
+      Pre
+    SeeAlso
+        findSOS
+        Solver
+///
+
+doc /// --findSOS
+    Key
+        findSOS
+    Headline
+        Computation of a SOS decomposition of a polynomial
+    Usage
+        (ok,Q,mon) = findSOS f
+        (ok,Q,mon,tval) = findSOS(f,p,objFun)
+    Inputs
+        f:RingElement
+          a polynomial with coefficients in $\QQ$
+        p:List
+          of parameters (optional)
+        objFun:RingElement
+          a polynomial with coefficients in $\QQ$ (optional)
+    Outputs
+        ok:Boolean
+          indicates whether a rational SOS decomposition was found
+        Q:Matrix
+          the rational $n x n$ Gram matrix of the polynomial f
+        mon:Matrix
+          a $n x 1$ matrix of monomials
+        tval:List
+          of parameter values
+    Consequences
+    Description
+      Text
+        This method computes an SOS decomposition of a polynomial. 
+        It tries to obtain an exact solution by rounding the numerical result and checking positive definiteness of the Gram matrix afterwards. 
+        If successful the polynomial $f$ can be written as
+        $f = mon' Q mon$, where $Q$ is a rational positive semidefinite matrix, and $mon$ is a vector of monomials.
+      Example
+        R = QQ[x,y];
+        f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
+        (ok,Q,mon) = findSOS f
+        transpose(mon)*Q*mon - f
+      Text
+        The method can also solve parametric SOS problems that depend affinely of some decision variables. 
+        For instance, we can find an SOS lower bound for the dehomogenized Motzkin polynomial:
+      Example
+        R = QQ[x,z,t];
+        f = x^4+x^2+z^6-3*x^2*z^2-t;
+        (ok,Q,mon,tval) = findSOS (f,{t},-t,rndTol=>12);
+        tval
+      Code
+      Pre
+    SeeAlso
+        getSOS
+        Solver
+///
+
 doc /// --getRationalSOS
     Key
         getRationalSOS
@@ -201,9 +245,9 @@ doc /// --getRationalSOS
     Consequences
     Description
       Text
-        Returns the projection of the rounded matrix Q onto the affine subspace Aq=b.
+        Returns the projection of the rounded matrix Q onto the affine subspace $Aq=b$.
 
-        GramIndex and LinSpaceIndex are hash tables for the correspondence between the columns of A and the entries of Q.
+        GramIndex and LinSpaceIndex are hash tables for the correspondence between the columns of $A$ and the entries of $Q$.
       Code
       Pre
     SeeAlso
@@ -257,7 +301,7 @@ doc /// --project2linspace
     Consequences
     Description
       Text
-        Projects a rational point x0 onto the affine subspace given by Ax=b
+        Projects a rational point $x_0$ onto the affine subspace given by $Ax=b$
       Code
       Pre
     SeeAlso
@@ -281,22 +325,15 @@ doc /// --createSOSModel
         This method creates the kernel and image model of the Gram matrices of a polynomial f.
 
         A Gram matrix representation of f is a symmetric matrix X such that
-
-        f = mon' X mon,
-
-        where mon is a vector of monomials.
-
-        The set of all Gram matrices X is an affine subspace.
+        $f = mon' X mon$,
+        where $mon$ is a vector of monomials.
+        The set of all Gram matrices $X$ is an affine subspace.
         This affine subspace can be described in image form as
-    
-           X = C - sum_i (A_i * y_i)
-        
-        where y_i are free parameters,
+        $X = C - \sum_i y_i A_i$
+        where $y_i$ are free parameters,
         or in kernel form as
-       
-           A x = b,
-    
-        where x_i = X_{GramIndex#i}.
+        $A x = b$
+        where $x_i = X_{GramIndex#i}$.
       Code
       Pre
     SeeAlso

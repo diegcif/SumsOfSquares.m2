@@ -118,6 +118,7 @@ findSOS = opts >> o -> args -> (
                 map(QQ^#p,QQ^#p, (j,k) -> if j==k and j==i then -1_QQ else 0_QQ)));
         );
         sol := solveSDP(C, Bi | Ai, obj, Solver=>o.Solver, Verbose=>o.Verbose);
+        if sol#0===null then return (false,,mon,);
         y := -sol_0;
     )else (
         -- compute a feasible solution --
@@ -131,6 +132,7 @@ findSOS = opts >> o -> args -> (
         obj = map(RR^(#Ai+#Bi),RR^1,i->0) || matrix{{-1_RR}};
         y0 := map(RR^(#Ai+#Bi),RR^1,i->0) || matrix{{lambda*1.1}};
         sol = solveSDP(C, append (Bi | Ai, id_(QQ^ndim)), obj, y0, Solver=>o.Solver, Verbose=>o.Verbose);
+        if sol#0===null then return (false,,mon);
         y = -sol_0;
     );
 
@@ -393,7 +395,7 @@ solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
     if o.Solver == "M2" then
         y = simpleSDP(C,A,b,untilObjNegative=>o.untilObjNegative,Verbose=>o.Verbose)
     else if o.Solver == "CSDP" then
-        (y,X,Z) = solveCSDP(C,A,b)
+        (y,X,Z) = solveCSDP(C,A,b,Verbose=>o.Verbose)
     else
         error "unknown algorithm";
     return (y,X);
@@ -427,6 +429,7 @@ simpleSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
       y =  map(R^#A,R^1,i->0) || matrix{{lambda*1.1}};
       obj :=  map(R^#A,R^1,i->0) || matrix{{-1_R}};
       y = simpleSDP(C,append(A,id_(R^n)), obj, y, untilObjNegative=>true, Verbose=>o.Verbose);
+      if y===null then return y;
       y = transpose matrix {take (flatten entries y,numgens target y - 1)};   
       );
      verbose("Computing an optimal solution...", o);
@@ -456,13 +459,18 @@ simpleSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y) -> (
            Sinv :=  solve(S, id_(target S));
            -- compute Hessian:
            H := map(R^m,R^m,(i,j) -> trace(Sinv*A_i*Sinv*A_j));
-           if H==0 then error "Hessian is zero";
+           if H==0 then (
+               print "Hessian is zero";
+               return null );
            -- compute gradient:
            g := map(R^m,R^1,(i,j) -> b_(i,0)/mu + trace(Sinv*A_i));
            
            -- compute damped Newton step:
-           try dy := -g//H else error "Newton step has no solution";
+           try dy := -g//H else (
+               print "Newton step has no solution";
+               return null );
            alpha := backtrack(S, -sum toList apply(0..m-1, i -> matrix(dy_(i,0) * entries A_i)));
+           if alpha===null then return null;
            y = y + transpose matrix {alpha* (flatten entries dy)};
            lambda := (transpose dy*H*dy)_(0,0);
            obj := transpose b * y;
@@ -494,25 +502,31 @@ backtrack = args -> (
       cnt = cnt + 1;
       alpha = alpha / sqrt(2_R);
       S = S0 + matrix( alpha * entries dS);
-      if cnt > BacktrackIterMAX then error ("line search did not converge.");
+      if cnt > BacktrackIterMAX then (
+          print ("line search did not converge.");
+          return null );
       );
-     alpha          
+     return alpha;
      )
 
 
 --solveCSDP
 
-solveCSDP = (C,A,b) -> (
+solveCSDP = method(
+     Options => {Verbose => false}
+     )
+solveCSDP(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     n := numColumns C;
     fin := getFileName();
     fout := getFileName();
     fout2 := getFileName();
     writeSDPA(fin,C,A,b);
     print("Executing CSDP on file " | fin);
-    r := run(csdpexec | " " | fin | " " | fout);
+    r := run(csdpexec | " " | fin | " " | fout | ">" | fout2);
     if r == 32512 then error "csdp executable not found";
-    r = run("cat " | fout | " | tr -d + > " | fout2);
-    (y,X,Z) := readSDPA(fout2,n);
+    print("Output saved on file " | fout);
+    (y,X,Z) := readSDPA(fout,n);
+    (y,X,Z) = readCSDP(fout2,y,X,Z,o.Verbose);
     return (y,X,Z);
 )
 
@@ -522,11 +536,11 @@ getFileName = () -> (
      return filename
 )
 
-writeSDPA = (fname,C,A,b) -> (
+writeSDPA = (fin,C,A,b) -> (
     m := length A;
     n := numColumns C;
     A = prepend(C,A);
-    f := openOut fname;
+    f := openOut fin;
     inputMatrix := l -> (
         a := -A_l;
         pref := toString l | " 1 ";
@@ -546,14 +560,16 @@ writeSDPA = (fname,C,A,b) -> (
     f << close;
 )
 
-readSDPA = (fname,n) -> (
+readSDPA = (fout,n) -> (
     sdpa2matrix := s -> (
         e := for i in s list (i_2-1,i_3-1) => i_4;
         e' := for i in s list (i_3-1,i_2-1) => i_4;
         return map(RR^n, RR^n, e|e');
     );
     readLine := l -> for s in separate(" ",l) list if s=="" then continue else value s;
-    L := lines get openIn fname;
+    tmp := getFileName();
+    r := run("cat " | fout | " | tr -d + > " | tmp);
+    L := lines get openIn tmp;
     y := transpose matrix{readLine L_0};
     S := readLine \ drop(L,1);
     S1 := select(S, l -> l_0==1);
@@ -563,6 +579,16 @@ readSDPA = (fname,n) -> (
     return (y,X,Z);
 )
 
+readCSDP = (fout2,y,X,Z,verb) -> (
+    text := get openIn fout2;
+    s := first select(lines text, l -> match("Success",l));
+    print if verb then text else s;
+    if match("SDP solved",s) then null
+    else if match("primal infeasible",s) then X=null
+    else if match("dual infeasible",s) then (y=null;Z=null;)
+    else error "unknown message";
+    return (y,X,Z);
+)
 
 --##########################################################################--
 -- Documentation and Tests
@@ -572,8 +598,8 @@ beginDocumentation()
 
 load "./SOS/SOSdoc.m2"
 
-TEST ///
-     R = QQ[x,y];
+TEST /// --good cases
+    R = QQ[x,y];
     p = 4*x^4+y^4;
     (g,d) = getSOS(p)
     assert( p == sumSOS(g,d) )
@@ -591,8 +617,13 @@ TEST ///
     p = 2*x^4 + x^2*y^2 + y^4 - 4*x^2*z - 4*x*y*z - 2*y^2*w + y^2 - 2*y*z + 8*z^2 - 2*z*w + 2*w^2;
     (g,d) = getSOS p
     assert( p == sumSOS (g,d) )
+///
 
-    ///
+TEST /// --bad cases
+    f = x^4*y^2 + x^2*y^4 - 3*x^2*y^2 + 1 --Motzkin
+    (ok,Q,mon,tval) = findSOS(f-t,{t},-t); 
+    assert( ok == false )
+///
         
 TEST /// --LDL
 --  Simple example
