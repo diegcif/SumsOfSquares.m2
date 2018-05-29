@@ -1,13 +1,20 @@
 
 document { 
-     Key => SOS,
-     Headline => "An SOS package",
-     EM "SOS", " is a package for solving sum of squares (SOS) problems."
-     }
+    Key => SOS,
+    Headline => "An SOS package",
+    EM "SOS", " is a package for solving sum of squares (SOS) problems.",
+    EXAMPLE lines ///
+     R = QQ[x,y];
+     f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
+     (g,d) = getSOS f
+     sumSOS(g,d) - f
+    ///,
+    }
+
 document {
      Key => {findSOS},
      Headline => "Computation of a SOS decomposition of a polynomial",
-     EM "findSOS", " uses ", TO{"solveSDP"}, " to compute an SOS ",
+     EM "findSOS", " computes an SOS ",
      "decomposition of a polynomial. It tries to obtain an exact solution by rounding ",
      "the numerical result and checking positive definiteness of the Gram matrix ",
      "afterwards. If successful the polynomial ", TT"f", " can be written as", BR{}, BR{},    
@@ -28,13 +35,14 @@ document {
      transpose(mon)*Q*mon - f
           ///
      }
+
 document {
      Key => {getSOS},
      Headline => "SOS decomposition of a polynomial",
-     EM "getSOS", " uses ", TO{"findSOS"}, " to compute a rational SOS decomposition ",
+     EM "getSOS", " computes a rational SOS decomposition ",
      "of a polynomial: ", BR{}, BR{},
      TT "f = sum d", SUB "i", TT " g", SUB "i", SUP "2", ",", BR{},BR{},
-     "where the g", SUB "i", " are polynomials in ", TT "QQ[x]", " and the w", SUB "i", 
+     "where the g", SUB "i", " are polynomials in ", TT "QQ[x]", " and the d", SUB "i", 
      " are weights in ", TT "QQ", ". The function yields an error if such a decomposition ",
      "could not be obtained.",
      Usage => "(g,d) = getSOS f",
@@ -57,6 +65,7 @@ document {
      (g,d,tval) = getSOS (f,{gam},-gam,rndTol=>12)  
                 ///
      }
+
 document {
      Key => {sumSOS},
      Headline => "Computes the expansion of a weighted SOS",
@@ -82,26 +91,30 @@ document {
      "Minimal rounding precision in x binary digits.",
      }
 
+--  References: 
+--  Gene Golub and Charles van Loan: Matrix Computations, Johns Hopkins
+--  series in the Mathematical Science, 2 ed., pp. 133-148,
+--  Baltimore Maryland, 1989.
 document {
-        Key => {LDLdecomposition},
-        Headline => "LDL' factorization of a positive semidefinite matrix",
+    Key => {LDLdecomposition},
+    Headline => "LDL' factorization of a positive semidefinite matrix",
     "If ", TT "A", " is a positive semidefinite matrix, ", EM "LDLdecomposition", " returns a lower 
     triangular matrix ", TT "L", " with ones in the diagonal, a diagonal matrix ",
     TT "D", " and a permutation matrix ", TT "P", " such that ", TT "L'*D*L = P'*A*P.",
-        Usage => "(L,D,P,err) = LDLdecomposition A",
-        Inputs => { "A" => Matrix => {"over ", TT "QQ", " or ", TT "ZZ." } },
-        Outputs => { "L" => Matrix => {"a lower triangular matrix over ", TT "QQ."},
+    Usage => "(L,D,P,err) = LDLdecomposition A",
+    Inputs => { "A" => Matrix => {"over ", TT "QQ", " or ", TT "ZZ." } },
+    Outputs => { "L" => Matrix => {"a lower triangular matrix over ", TT "QQ."},
     "D" => Matrix => {"a diagonal matrix over ", TT "QQ."},
     "P" => Matrix => {"a permutation matrix over ", TT "QQ."},
     "err" => ZZ => {"which is 0 when the factorization was successful, i.e., if ", TT "A", 
         " is positive semidefinite."}},
-        -- SourceCode => {LDLdecomposition},
-        EXAMPLE lines ///
-          A = matrix {{5,3,5},{3,2,4},{5,4,10}}
+    -- SourceCode => {LDLdecomposition},
+    EXAMPLE lines ///
+      A = matrix {{5,3,5},{3,2,4},{5,4,10}}
       (L,D,P,err) = LDLdecomposition(A)
       L*D*transpose(L) == transpose(P)*A*P
       ///
-        }
+    }
 
 document {
      Key => {blkDiag},
@@ -120,6 +133,9 @@ document {
           ///
      }
 
+--  References: 
+--  Boyd, Vandenberghe: Convex Optimization, Cambridge University Press,
+--  2004, pp. 618-619, pp. 463-466
 document {
      Key => {solveSDP,(solveSDP,Matrix,Matrix,Matrix),(solveSDP,Matrix,Matrix,Matrix,Matrix),(solveSDP,Matrix,Sequence,Matrix),(solveSDP,Matrix,Sequence,Matrix,Matrix)},
      Headline => "solve a semidefinite program",
@@ -148,6 +164,7 @@ document {
           y
           ///
      }
+
 document {
      Key => {Solver,[solveSDP,Solver]},
      Headline => "semidefinite programming solver",
@@ -159,3 +176,128 @@ document {
      "The CSDP executable can be specified when loading the package, as follows ",BR{},
      TT "loadPackage(SOS,Configuration=>{\"CSDPexec\"=>\"csdp\"})",
      }
+
+doc /// --getRationalSOS
+    Key
+        getRationalSOS
+    Headline
+        compute rational SOS decomposition for given precision
+    Usage
+        (Qp,ok) = getRationalSOS(Q,A,b,d)
+        (Qp,ok) = getRationalSOS(Q,A,b,d,GramIndex,LinSpaceIndex)
+    Inputs
+        Q:Matrix
+          Gram matrix to be rounded
+        A:Matrix
+        b:Matrix
+          a vector
+        d:RR
+          the rounding precision
+    Outputs
+        Qp:Matrix
+          the rounded matrix
+        ok:Boolean
+          true if Qp is positive semidefinite
+    Consequences
+    Description
+      Text
+        Returns the projection of the rounded matrix Q onto the affine subspace Aq=b.
+
+        GramIndex and LinSpaceIndex are hash tables for the correspondence between the columns of A and the entries of Q.
+      Code
+      Pre
+    SeeAlso
+        createSOSModel
+        project2linspace
+///
+
+doc /// --choosemonp
+    Key
+        choosemonp
+    Headline
+        create list of monomials based on the Newton polytope
+    Usage
+        (lmf, lmsos) = choosemonp(f,p)
+    Inputs
+        f:RingElement
+          a polynomial
+        p:List
+          of parameters
+    Outputs
+        lmf:List
+          of monomials of f
+        lmsos:List
+          of monomials for the SOS factors
+    Consequences
+    Description
+      Text
+        Creates a list of monomials for an SOS decomposition.
+        The monomials are chosen based on the Newton polytope.
+      Code
+      Pre
+    SeeAlso
+///
+
+doc /// --project2linspace
+    Key
+        project2linspace
+    Headline
+        project a rational point onto affine subspace
+    Usage
+        xp = project2linspace(A,b,x0)
+    Inputs
+        A:Matrix
+        b:Matrix
+          a vector
+        x0:Matrix
+          a rational vector
+    Outputs
+        xp:Matrix
+          the projection of x0
+    Consequences
+    Description
+      Text
+        Projects a rational point x0 onto the affine subspace given by Ax=b
+      Code
+      Pre
+    SeeAlso
+///
+
+doc /// --createSOSModel
+    Key
+        createSOSModel
+    Headline
+        model of the Gram matrix representations of a polynomial
+    Usage
+        (C,Ai,mon,A,b,GramIndex) = createSOSModel(f)
+    Inputs
+        f:RingElement
+          a polynomial
+    Outputs
+        C:Matrix
+    Consequences
+    Description
+      Text
+        This method creates the kernel and image model of the Gram matrices of a polynomial f.
+
+        A Gram matrix representation of f is a symmetric matrix X such that
+
+        f = mon' X mon,
+
+        where mon is a vector of monomials.
+
+        The set of all Gram matrices X is an affine subspace.
+        This affine subspace can be described in image form as
+    
+           X = C - sum_i (A_i * y_i)
+        
+        where y_i are free parameters,
+        or in kernel form as
+       
+           A x = b,
+    
+        where x_i = X_{GramIndex#i}.
+      Code
+      Pre
+    SeeAlso
+///

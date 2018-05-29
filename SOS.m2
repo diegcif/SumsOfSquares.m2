@@ -22,17 +22,38 @@ newPackage(
 )
 
 export {
+--Types
+--Methods/Functions
     "findSOS",
     "getSOS",
-    "rndTol",
     "sumSOS",
     "blkDiag",
-    "LDLdecomposition"
+    "LDLdecomposition",
+    "solveSDP",
+--debugging
+    "createSOSModel",
+    "choosemonp",
+    "project2linspace",
+    "getRationalSOS",
+--Method options
+    "rndTol",
+    "untilObjNegative",
+    "workingPrecision",
+    "Solver"
 }
+
+--##########################################################################--
+-- GLOBAL VARIABLES 
+--##########################################################################--
+
+csdpexec=((options SOS).Configuration)#"CSDPexec"
+opts = {rndTol => -3, Solver => "M2", Verbose => false}
 
 --##########################################################################--
 -- METHODS
 --##########################################################################--
+
+verbose = (s,o) -> if o#Verbose then print s
 
 --###################################
 -- findSOS
@@ -42,19 +63,6 @@ sumSOS = (g,d) -> (
      return sum apply(toList (0..#g-1), i -> g_i^2 * d_i)
      )     
 
--- (g,d) = getSOS(p)
--- 
--- getSOS   Get rational SOS decomposition of a polynomial f
---    (g,d) = getSOS(f) returns the rational SOS decomposition
---    of the multivariate polynomial f:
---
---    f = sum_i d_i * g_i^2 
---
---    input: f:      the polynomial
---    output: (g,d): g: sequence of polynomials
---                   d: sequence of weights                        
-
-opts = {rndTol => -3, Solver => "M2"}
 
 --getSOS = args -> (
 getSOS = opts >> o -> args -> (
@@ -75,24 +83,7 @@ getSOS = opts >> o -> args -> (
      if #args==1 then return (g,d) else return (g,d,pVec)
      )     
 
-
--- (ok,Q,mon) = findSOS(f)
--- 
--- findSOS   Compute a rational SOS decomposition for a polynomial f
---    (ok,Q,mon) = findSOS (f) computes a rational SOS decomposition
---    of the multivariate polynomial f such that f = mon'*Q*mon, where
---    Q is a positive semidefinite matrix and mon denotes the vector of
---    monomials. ok is of boolean 
--- input:  f:          polynomial for SOS decomp.
--- output: (ok,Q,mon):  ok: boolean: successful decomposition possible?
---                       Q: Gram matrix representing SOS decomposition
---                     mon: vector of monomials
-
-opts = {rndTol => -3, Solver => "M2"}
-
 findSOS = opts >> o -> args -> (
-    stdio << "findSOS by H. Peyrl and P.A. Parrilo 2007-2013" << endl;
-    
     args = sequence args;
     f := args#0;
     p := {}; if #args >= 2 then p = args#1;
@@ -114,7 +105,7 @@ findSOS = opts >> o -> args -> (
     
     if #p!=0 and #args>2 then (
         -- compute an optimal solution --
-        stdio << "Solving SOS optimization problem..." << endl;
+        verbose("Solving SOS optimization problem...", o);
         objFcnCF := coefficients objFcn;
         objFcnHT := hashTable transpose {flatten entries objFcnCF_0, flatten entries objFcnCF_1};
         obj := transpose matrix {apply(p,i->substitute(-objFcnHT#i,QQ))} || map(QQ^#Ai,QQ^1,i->0);
@@ -130,10 +121,10 @@ findSOS = opts >> o -> args -> (
         y := -sol_0;
     )else (
         -- compute a feasible solution --
-        stdio << "Solving SOS feasibility problem..." << endl;
+        verbose( "Solving SOS feasibility problem...", o);
         lambda := min eigenvalues (promote (C,RR), Hermitian=>true);
         if lambda >=0 then (
-           stdio << "SDP solving maybe not necessary. Checking...." << endl;
+           verbose("SDP solving maybe not necessary. Checking....", o);
            (L,D,P,CnotPSD) := LDLdecomposition(C);
            if CnotPSD == 0 then return (true,C,mon);
         );
@@ -154,7 +145,7 @@ findSOS = opts >> o -> args -> (
     d := o.rndTol;
     
     while (d < dhi) do (
-        stdio << "rounding step #" << d << endl;
+        verbose("rounding step #" | d, o);
         if #p!=0 then (
            pVec := map(QQ^#p,QQ^1,(i,j) -> round(y_(i,0)*2^d)/2^d);
            bPar := b - B*pVec;
@@ -167,28 +158,6 @@ findSOS = opts >> o -> args -> (
     if #p!=0 then return (ok,Qp,mon,flatten entries pVec) 
     else return (ok,Qp,mon)
     )
-
--- (C,Ai,mon,A,b,GramIndex) = CreateSOSModel(f)
---
--- CreateSOSModel   creates kernel and image model of the Gram matrix 
---    representation of a polynomial f:
---
---       f = mon' X mon,                        (*)
---    
---    where X is a symmetric matrix indexed by mon, a vector of 
---    monomials.
--- 
---    C and Ai are symmetric matrices such that X can we written as
---
---       X = C - sum_i (Ai_i * y_i),
---    
---    where y_i are free parameters.
--- 
---    The affine subspace of all X such that (*) holds is determined by
---   
---       A x = b,
---
---    where x_i = X_(GramIndex#i).
 
 createSOSModel = (f,p) -> (
      -- Degree and number of variables
@@ -256,19 +225,11 @@ createSOSModel = (f,p) -> (
      (C,Ai,Bi,A,B,b,transpose matrix {lm},GramIndex,LinSpaceIndex)
      )
 
--- (lmf, lmsos) = choosemonp(f,[p])
--- 
--- CHOOSEMON   Creates a list of monomials for a SOS decomposition of a
---    polynomial with Newton Polytope
---
--- Input:  (f,[p]): f: polynomial,
---                  p: (optional) list of linear parameters
--- Output: (lmf,lmsos): List of f's monomials, List of monomials for SOS decomp.
-
-choosemonp = (f,p) -> (
+choosemonp = {Verbose=>false} >> o -> (f,p) -> (
      -- Get rid of parameters in polynomial:
-     genpos := positions(gens ring f,i->not any(p,j->j==i));
-     ringf := QQ[(gens ring f)_genpos];
+     X := gens ring f;
+     genpos := positions(X,i->not any(p,j->j==i));
+     ringf := QQ(monoid[X_genpos]);
      n := #genpos;
      p1 := apply(p,i->i=>1);
      lmf := unique(apply(flatten entries (coefficients f)_0,i->(substitute(i,p1))));
@@ -282,7 +243,7 @@ choosemonp = (f,p) -> (
      mindegs := apply(entries points, i-> min i);
      
      -- Regard exponent-points in a possible subspace
-     numpoints := #entries transpose points;
+     numpoints := numColumns points;
      shift := first entries transpose points;
      V := matrix transpose apply(entries transpose points, i -> i - shift);
      basV := mingens image V;
@@ -293,42 +254,35 @@ choosemonp = (f,p) -> (
      -- Get candidate points from basis of f:
      mon := flatten apply( toList(mindeg..maxdeg), k -> flatten entries basis(k, ringf));
      cp := apply (mon, i -> flatten exponents (i));
-     stdio << "#candidate points: " << #cp << endl;
+     verbose("#candidate points: " | #cp, o);
 
      -- Filter candidate points:
      -- Only the even ones within the box of degrees[mindegs:maxdegs]:
      cpf := select(cp,i-> all(i,even) and all(i-mindegs,j->j>=0) and all(maxdegs-i,j->j>=0)); 
-     stdio << "#points (even and within box of polynomial degrees): " << #cpf << endl;
+     verbose("#points (even and within box of polynomial degrees): " | #cpf, o);
      -- Drop points that do not live on the subspace: 
      cpf2 := select(cpf,i-> matrix{i-shift}*basVtrans==0);
-     stdio << "#points in subspace of exponent-points: " << #cpf2 << endl;
+     verbose("#points in subspace of exponent-points: " | #cpf2, o);
      
      -- Compute convex hull:
      liftedpts := T*V || map (QQ^1,QQ^(size falt),i->1);
      polytope := transpose substitute(first fourierMotzkin(liftedpts),QQ);
 
      -- Find points within the polytope:
-     lexponents := cpf2_(positions(cpf2, i-> 
-           max flatten entries (polytope * ((T * transpose matrix {i-shift})||1)) <=0))/2;
+     lexponents := select(cpf2, i-> 
+           max flatten entries (polytope * ((T * transpose matrix {i-shift})||1)) <=0)/2;
      lmSOS := apply(lexponents, i-> product(n,j->(
         assert (denominator i#j==1);
          (ring f)_(genpos#j)^(numerator i#j)
          )));
-     stdio << "#points inside Newton polytope: " << #lmSOS << endl;
+     verbose("#points inside Newton polytope: " | #lmSOS, o);
      
      -- Workaround: cast generators back from ringf to ring f!!!!
      -- dummyring = ring f;
      
+     1/0;
      (lmf,lmSOS)
      )
-
--- xp = project2linspace(A,b,x0)
--- 
--- PROJECT2LINSPACE   projects a rational point x0 onto the 
---                    affine subspace given by Ax=b
---
--- input:  (A,b,x0)
--- output: xp: projection of x0
 
 project2linspace = (A,b,x0) -> (     
      -- cast into QQ (necessary class to compute inverse)
@@ -340,44 +294,22 @@ project2linspace = (A,b,x0) -> (
      -- compute projection: 
      xp := x02 - transpose(A2)*((A2*x02-b2)//(A2*transpose(A2)))
      )
-
--- (Qp,ok) = getRationalSOS(Q,A,b,d,GramIndex,LinSpaceIndex)
--- 
--- GETRATIONALSOS compute rational SOS decomposition for given precision.
---    (Qp,ok) = getRationalSOS(Q,A,b,d) returns the projection of the
---    rounded matrix Q onto the affine subspace A*q=b. ok is true if Qp is
---    positive semidefinite. d denotes the rounding precision
---
---    GramIndex and LinSpaceIndex are hash tables for the correspondence
---    between the columns of A and the entries of Q.
      
-getRationalSOS = (Q,A,b,d,GramIndex,LinSpaceIndex) -> (
+getRationalSOS = {Verbose=>false} >> o -> (Q,A,b,d,GramIndex,LinSpaceIndex) -> (
      ndim := #entries Q;
      
-     stdio << "Rounding precision: " << d << endl;
+     verbose("Rounding precision: " | d, o);
      Q0 := matrix pack (apply(flatten entries Q, i -> round(i*2^d)/2^d),ndim);
      x0 := transpose matrix {{apply(0..numgens source A-1, i -> Q0_(toSequence (GramIndex#i-{1,1})))}};
      t := timing (xp := project2linspace(A,b,x0););
-     stdio << "Time needed for projection: " << t#0 << endl;
+     verbose("Time needed for projection: " | net t#0, o);
      Q = map(QQ^ndim,QQ^ndim, (i,j) -> if i>=j then xp_(LinSpaceIndex#{i+1,j+1},0) 
            else xp_(LinSpaceIndex#{j+1,i+1},0));
 
      t = timing((L,D,P,Qpsd) := LDLdecomposition(Q););
-     stdio << "Time needed for LDL decomposition: " << t#0 << endl;
+     verbose("Time needed for LDL decomposition: " | net t#0, o);
      if Qpsd == 0 then (true, Q) else (false,Q)
      )
-
--- (L,D,P,err) = LDLdecomposition(A)
--- 
--- LDL   LDL' factorization of a positive semidefinte matrix.
---    (L,D,P,err) = LDLdecomposition(A) returns a lower triangular matrix L 
----   with ones in the diagonal, a diagonal matrix D, and a permutation matrix P 
---    such that L'*D*L = P'*A*P. If A is positive semidefinite err=0, else err!=0.
---  
---    References: 
---    Gene Golub and Charles van Loan: Matrix Computations, Johns Hopkins
---    series in the Mathematical Science, 2 ed., pp. 133-148,
---    Baltimore Maryland, 1989.
 
 LDLdecomposition = args -> (
      args = sequence args;
@@ -443,30 +375,6 @@ blkDiag = args -> (
 -- SDP SOLVER
 --###################################
 
--- (y) = simpleSDP(C,A,b,y0)
--- 
--- SIMPLESDP   SIMPLESDP is a very simple and primitive SDP solver using
---    a pure dual interior point method based on a damped Newton steps.
---    y = simplesdp(C,A,b,y0) solves the minimization problem
---        
---             min sum( y_i * b_i )
---       s.t.  C - sum( y_i * A_i ) >=0,
---
---    where the y_i denote the decision variables with corresponding 
---    weight b_i. C and A_i are symmetric matrices. y0 is an optional
---    argument defining a starting point.
---
---    y0, y, b are vectors, C is a matrix, and A is a list of matrices.
--- 
---
---    References: 
---    Boyd, Vandenberghe: Convex Optimization, Cambridge University Press,
---    2004, pp. 618-619, pp. 463-466
-
-export {"solveSDP", "untilObjNegative", "workingPrecision", "Solver"}
-
-csdpexec=((options SOS).Configuration)#"CSDPexec"
-
 solveSDP = method(
      Options => {untilObjNegative => false, workingPrecision => 53, Solver=>"M2"}
      )
@@ -493,13 +401,11 @@ solveSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y0) -> (
     return (y,null);
 )
 
---##############################
---####### SIMPLE SDP ###########
---##############################
+--simpleSDP
 
 simpleSDP = method(
      TypicalValue => Matrix,
-     Options => {untilObjNegative => false}
+     Options => {untilObjNegative => false, Verbose => false}
      )
 
 simpleSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
@@ -512,13 +418,13 @@ simpleSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
      if lambda > 0 then (
       y := map(R^#A,R^1,(i,j)-> 0);
       ) else (
-      stdio << "Computing strictly feasible solution..." << endl; 
+      verbose("Computing strictly feasible solution...", o); 
       y =  map(R^#A,R^1,i->0) || matrix{{lambda*1.1}};
       obj :=  map(R^#A,R^1,i->0) || matrix{{-1_R}};
       y = simpleSDP(C,append(A,id_(R^n)), obj, y, untilObjNegative=>true);
       y = transpose matrix {take (flatten entries y,numgens target y - 1)};   
       );
-     stdio << "Computing an optimal solution..." << endl;
+     verbose("Computing an optimal solution...", o);
      simpleSDP(C, A, b, y)
      )
 
@@ -536,8 +442,7 @@ simpleSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y) -> (
      iter := 1;
      NewtonIterMAX := 40;
 
-     stdio << endl << "simpleSDP by H. Peyrl and J. Loefberg 2007" << endl;    
-     stdio << endl << "#It:       b'y      dy'Hdy   mu   alpha" << endl;        
+     verbose("#It:       b'y      dy'Hdy   mu   alpha", o);        
 
      while mu > 0.000001 do (
       mu = mu/theta;
@@ -558,13 +463,12 @@ simpleSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y) -> (
            obj := transpose b * y;
            
            -- print some information:
-           stdio << iter << ":  " << obj << "    " << lambda << "    " << mu;
-           stdio << "    " << alpha << endl;
+           verbose(iter | ":  " | net obj | "    " | net lambda | "    " | net mu | "    " | net alpha, o);
 
-               iter = iter + 1;
+           iter = iter + 1;
            if iter > NewtonIterMAX then (
-            stdio << "Warning: exceeded maximum number of iterations" << endl;
-            return y);
+               verbose("Warning: exceeded maximum number of iterations", o);
+               return y);
            if (o.untilObjNegative == true) and (obj_(0,0) < 0)  then return y;
            if lambda < 0.4 then break;
            ); 
@@ -591,9 +495,7 @@ backtrack = args -> (
      )
 
 
---##############################
---########### CSDP #############
---##############################
+--solveCSDP
 
 solveCSDP = (C,A,b) -> (
     n := numColumns C;
