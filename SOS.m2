@@ -53,15 +53,13 @@ opts = {rndTol => -3, Solver => "M2", Verbose => false}
 -- METHODS
 --##########################################################################--
 
-verbose = (s,o) -> if o#Verbose then print s
+verbose = (s,o) -> if o.Verbose then print s
 
 --###################################
 -- findSOS
 --###################################
 
-sumSOS = (g,d) -> (
-     return sum apply(toList (0..#g-1), i -> g_i^2 * d_i)
-     )     
+sumSOS = (g,d) -> sum for i to #g-1 list g_i^2 * d_i
 
 
 --getSOS = args -> (
@@ -98,7 +96,9 @@ findSOS = opts >> o -> args -> (
     )else parBounded = false;
          
     -- build SOS model --     
-    (C,Ai,Bi,A,B,b,mon,GramIndex,LinSpaceIndex) := createSOSModel(f,p);
+    (C,Ai,Bi,A,B,b,mon,GramIndex,LinSpaceIndex) := createSOSModel(f,p,Verbose=>o.Verbose);
+    if #mon==0 then 
+        return if #p!=0 then (false,,mon,) else (false,,mon);
 
     ndim := #entries C;
     mdim := #Ai;
@@ -117,7 +117,7 @@ findSOS = opts >> o -> args -> (
                 map(QQ^#p,QQ^#p, (j,k) -> if j==k and j==i then 1_QQ else 0_QQ),
                 map(QQ^#p,QQ^#p, (j,k) -> if j==k and j==i then -1_QQ else 0_QQ)));
         );
-        sol := solveSDP(C, Bi | Ai, obj, Solver=>o.Solver);
+        sol := solveSDP(C, Bi | Ai, obj, Solver=>o.Solver, Verbose=>o.Verbose);
         y := -sol_0;
     )else (
         -- compute a feasible solution --
@@ -130,7 +130,7 @@ findSOS = opts >> o -> args -> (
         );
         obj = map(RR^(#Ai+#Bi),RR^1,i->0) || matrix{{-1_RR}};
         y0 := map(RR^(#Ai+#Bi),RR^1,i->0) || matrix{{lambda*1.1}};
-        sol = solveSDP(C, append (Bi | Ai, id_(QQ^ndim)), obj, y0, Solver=>o.Solver);
+        sol = solveSDP(C, append (Bi | Ai, id_(QQ^ndim)), obj, y0, Solver=>o.Solver, Verbose=>o.Verbose);
         y = -sol_0;
     );
 
@@ -152,19 +152,20 @@ findSOS = opts >> o -> args -> (
            ) 
         else bPar= b;
 
-        (ok,Qp) := getRationalSOS(Qnum,A,bPar,d,GramIndex,LinSpaceIndex);
+        (ok,Qp) := getRationalSOS(Qnum,A,bPar,d,GramIndex,LinSpaceIndex,Verbose=>o.Verbose);
         if ok then break else d = d + 1;
     );                
     if #p!=0 then return (ok,Qp,mon,flatten entries pVec) 
     else return (ok,Qp,mon)
     )
 
-createSOSModel = (f,p) -> (
+createSOSModel = {Verbose=>false} >> o -> (f,p) -> (
      -- Degree and number of variables
      n := numgens ring f;
      d := (first degree f)//2;
      -- Get list of monomials for SOS decomposition
-     (lmf,lm) := choosemonp (f,p);
+     (lmf,lm) := choosemonp (f,p,o);
+     if #lm==0 then return (,,,,,,lm,,);
              
      Hm := hashTable apply(lm, toList(1..#lm), identity);
      HHm := combine(Hm,Hm,times,(j,k)-> if j>=k then (j,k) else () , join );
@@ -235,7 +236,7 @@ choosemonp = {Verbose=>false} >> o -> (f,p) -> (
      lmf := unique(apply(flatten entries (coefficients f)_0,i->(substitute(i,p1))));
      falt := sum lmf;
      
-     -- Get exponent-points for newton polytope:
+     -- Get exponent-points for Newton polytope:
      points := substitute(matrix (transpose exponents falt)_genpos,QQ);
      maxdeg := first degree falt;
      mindeg := floor first min entries (transpose points*matrix map(ZZ^n,ZZ^1,i->1));
@@ -251,6 +252,18 @@ choosemonp = {Verbose=>false} >> o -> (f,p) -> (
      if basVdim != n then T := id_(QQ^n)//basV else T = id_(QQ^n);
      basVtrans := mingens kernel transpose basV;
      
+     -- Compute Newton polytope:
+     liftedpts := T*V || map (QQ^1,QQ^(size falt),i->1);
+     dualpolytope := transpose substitute(first fourierMotzkin(liftedpts),QQ);
+     argmin := L -> (m:= min L; set positions(L, l->l==m));
+     idx := sum apply(entries(dualpolytope * liftedpts), i->argmin i);
+     polytope := substitute(points_(toList idx),ZZ);
+     oddverts := select(entries transpose polytope, i->any(i,odd));
+     if #oddverts>0 then(
+         verbose("Newton polytope has odd vertices. Terminate.", o);
+         return (lmf,{});
+         );
+
      -- Get candidate points from basis of f:
      mon := flatten apply( toList(mindeg..maxdeg), k -> flatten entries basis(k, ringf));
      cp := apply (mon, i -> flatten exponents (i));
@@ -264,24 +277,16 @@ choosemonp = {Verbose=>false} >> o -> (f,p) -> (
      cpf2 := select(cpf,i-> matrix{i-shift}*basVtrans==0);
      verbose("#points in subspace of exponent-points: " | #cpf2, o);
      
-     -- Compute convex hull:
-     liftedpts := T*V || map (QQ^1,QQ^(size falt),i->1);
-     polytope := transpose substitute(first fourierMotzkin(liftedpts),QQ);
-
      -- Find points within the polytope:
      lexponents := select(cpf2, i-> 
-           max flatten entries (polytope * ((T * transpose matrix {i-shift})||1)) <=0)/2;
+           max flatten entries (dualpolytope * ((T * transpose matrix {i-shift})||1)) <=0)/2;
      lmSOS := apply(lexponents, i-> product(n,j->(
         assert (denominator i#j==1);
          (ring f)_(genpos#j)^(numerator i#j)
          )));
      verbose("#points inside Newton polytope: " | #lmSOS, o);
      
-     -- Workaround: cast generators back from ringf to ring f!!!!
-     -- dummyring = ring f;
-     
-     1/0;
-     (lmf,lmSOS)
+     return (lmf,lmSOS);
      )
 
 project2linspace = (A,b,x0) -> (     
@@ -376,17 +381,17 @@ blkDiag = args -> (
 --###################################
 
 solveSDP = method(
-     Options => {untilObjNegative => false, workingPrecision => 53, Solver=>"M2"}
+     Options => {untilObjNegative => false, workingPrecision => 53, Solver=>"M2", Verbose => false}
      )
 
-solveSDP(Matrix, Matrix, Matrix) := o -> (C,A,b) -> solveSDP(C, sequence A, b)
+solveSDP(Matrix, Matrix, Matrix) := o -> (C,A,b) -> solveSDP(C,sequence A,b,o)
 
-solveSDP(Matrix, Matrix, Matrix, Matrix) := o -> (C,A,b,y) -> solveSDP(C, sequence A,b,y)
+solveSDP(Matrix, Matrix, Matrix, Matrix) := o -> (C,A,b,y) -> solveSDP(C,sequence A,b,y,o)
 
 solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
     y:=null; X:=null; Z:= null;
     if o.Solver == "M2" then
-        y = simpleSDP(C,A,b,untilObjNegative=>o.untilObjNegative)
+        y = simpleSDP(C,A,b,untilObjNegative=>o.untilObjNegative,Verbose=>o.Verbose)
     else if o.Solver == "CSDP" then
         (y,X,Z) = solveCSDP(C,A,b)
     else
@@ -397,7 +402,7 @@ solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
 solveSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y0) -> (
     if o.Solver != "M2" then
         return solveSDP(C,A,b,o);
-    y := simpleSDP(C,A,b,y0,untilObjNegative=>o.untilObjNegative);
+    y := simpleSDP(C,A,b,y0,untilObjNegative=>o.untilObjNegative,Verbose=>o.Verbose);
     return (y,null);
 )
 
@@ -421,11 +426,11 @@ simpleSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
       verbose("Computing strictly feasible solution...", o); 
       y =  map(R^#A,R^1,i->0) || matrix{{lambda*1.1}};
       obj :=  map(R^#A,R^1,i->0) || matrix{{-1_R}};
-      y = simpleSDP(C,append(A,id_(R^n)), obj, y, untilObjNegative=>true);
+      y = simpleSDP(C,append(A,id_(R^n)), obj, y, untilObjNegative=>true, Verbose=>o.Verbose);
       y = transpose matrix {take (flatten entries y,numgens target y - 1)};   
       );
      verbose("Computing an optimal solution...", o);
-     simpleSDP(C, A, b, y)
+     simpleSDP(C, A, b, y, o)
      )
 
 simpleSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y) -> (
