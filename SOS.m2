@@ -30,6 +30,7 @@ export {
     "blkDiag",
     "LDLdecomposition",
     "solveSDP",
+    "checkSolver",
 --debugging
     "createSOSModel",
     "choosemonp",
@@ -150,11 +151,11 @@ solveSOS(RingElement,List,RingElement,List) := o -> (f,p,objFcn,bounds) -> (
     else return (ok,Qp,mon)
     )
 solveSOS(RingElement,List,RingElement) := o -> (f,p,objFcn) -> 
-    solveSOS(f,p,objFcn,{})
+    solveSOS(f,p,objFcn,{},o)
 solveSOS(RingElement,List) := o -> (f,p) -> 
-    solveSOS(f,p,0_(ring f),{})
+    solveSOS(f,p,0_(ring f),{},o)
 solveSOS(RingElement) := o -> (f) -> 
-    solveSOS(f,{},0_(ring f),{})
+    solveSOS(f,{},0_(ring f),{},o)
 
 createSOSModel = {Verbose=>false} >> o -> (f,p) -> (
      -- Degree and number of variables
@@ -581,6 +582,25 @@ readCSDP = (fout2,y,X,Z,verb) -> (
     return (y,X,Z);
 )
 
+--checkSolver
+
+checkSolver = (solver) -> (
+    ---------------TEST0---------------
+    C := matrix{{0,2,0,0,0,0},{2,0,0,0,0,0},
+     {0,0,10,0,0,0},{0,0,0,10,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0}};
+    A1 := matrix{{-1,0,0,0,0,0},{0,0,0,0,0,0},
+     {0,0,1,0,0,0},{0,0,0,0,0,0},{0,0,0,0,-1,0},{0,0,0,0,0,0}};
+    A2 := matrix{{0,0,0,0,0,0},{0,-1,0,0,0,0},
+     {0,0,0,0,0,0},{0,0,0,1,0,0},{0,0,0,0,0,0},{0,0,0,0,0,-1}};
+    A := (A1,A2);
+    y0 := matrix{{7},{9}};
+    b := matrix{{1},{1}};
+    (y,X) := solveSDP(C,A,b,y0,Solver=>solver);
+    yopt := matrix{{2.},{2.}};
+    assert ( sqrt( sum apply(toList (0..numRows y-1), i-> (y_(i,0)-yopt_(i,0))^2)) <
+        0.001 * (1. + sqrt(sum apply(flatten entries yopt, i->i^2))) )
+)
+
 --##########################################################################--
 -- Documentation and Tests
 --##########################################################################--
@@ -644,18 +664,5 @@ TEST /// --LDL
 ///
 
 TEST /// --solveSDP
-     C = matrix{{0,2,0,0,0,0},{2,0,0,0,0,0},
-      {0,0,10,0,0,0},{0,0,0,10,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0}};
-     A1 = matrix{{-1,0,0,0,0,0},{0,0,0,0,0,0},
-      {0,0,1,0,0,0},{0,0,0,0,0,0},{0,0,0,0,-1,0},{0,0,0,0,0,0}};
-     A2 = matrix{{0,0,0,0,0,0},{0,-1,0,0,0,0},
-      {0,0,0,0,0,0},{0,0,0,1,0,0},{0,0,0,0,0,0},{0,0,0,0,0,-1}};
-     A = (A1,A2);
-     y0 = matrix{{7},{9}};
-     b = matrix{{1},{1}};
-     (y,X) = solveSDP(C,A,b,y0);
-     yopt = matrix{{2.},{2.}};
-     
-    assert ( sqrt( sum apply(toList (0..numRows y-1), i-> (y_(i,0)-yopt_(i,0))^2)) <
-     0.001 * (1. + sqrt(sum apply(flatten entries yopt, i->i^2))) )
+    checkSolver("M2")
 ///

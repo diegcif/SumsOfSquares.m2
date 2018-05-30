@@ -388,6 +388,26 @@ doc /// --solveSDP
     SeeAlso
 ///
 
+doc /// --checkSolver
+    Key
+        checkSolver
+    Headline
+        tests method "solveSDP" (for developers)
+    Usage
+        checkSolver solver
+    Inputs
+        solver:String
+          either "M2" or "CSDP"
+    Consequences
+    Description
+      Text
+        This function tests that @TO solveSDP@ works properly.
+      Code
+      Pre
+    SeeAlso
+        Solver
+///
+
 --###################################
 -- Symbols
 --###################################
