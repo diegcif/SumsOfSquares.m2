@@ -12,117 +12,39 @@ document {
     ///,
     }
 
-document {
-     Key => {sumSOS},
-     Headline => "Computes the expansion of a weighted SOS",
-     EM "sumSOS", " expands a weighted SOS decomposition: ", BR{}, BR{},
-     TT "f = sum d", SUB "i", TT " g", SUB "i", SUP "2", ",", BR{},BR{},
-     "where g", SUB "i", " are polynomials and d", SUB "i", 
-     " are scalars.",
-     Usage => "sumSOS(g,d)",
-     Outputs => { "f" => RingElement => {"a polynomial"}},
-     Inputs => { "g" => Sequence => {"of polynomials"},
-           "d" => Sequence => {"of scalar weights"}},
-     EXAMPLE lines ///
-     R = QQ[x,y];
-     f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
-     (ok,Q,mon) = solveSOS f
-     (g,d) = sosdec(Q,mon)
-     sumSOS(g,d) - f
-     ///
-     }
+--###################################
+-- Methods
+--###################################
 
-document {
-     Key => {rndTol},
-     Headline => "rounding tolerance",
-     "Minimal rounding precision in x binary digits.",
-     }
-
---  References: 
---  Gene Golub and Charles van Loan: Matrix Computations, Johns Hopkins
---  series in the Mathematical Science, 2 ed., pp. 133-148,
---  Baltimore Maryland, 1989.
-document {
-    Key => {LDLdecomposition},
-    Headline => "LDL' factorization of a positive semidefinite matrix",
-    "If ", TT "A", " is a positive semidefinite matrix, ", EM "LDLdecomposition", " returns a lower 
-    triangular matrix ", TT "L", " with ones in the diagonal, a diagonal matrix ",
-    TT "D", " and a permutation matrix ", TT "P", " such that ", TT "L'*D*L = P'*A*P.",
-    Usage => "(L,D,P,err) = LDLdecomposition A",
-    Inputs => { "A" => Matrix => {"over ", TT "QQ", " or ", TT "ZZ." } },
-    Outputs => { "L" => Matrix => {"a lower triangular matrix over ", TT "QQ."},
-    "D" => Matrix => {"a diagonal matrix over ", TT "QQ."},
-    "P" => Matrix => {"a permutation matrix over ", TT "QQ."},
-    "err" => ZZ => {"which is 0 when the factorization was successful, i.e., if ", TT "A", 
-        " is positive semidefinite."}},
-    -- SourceCode => {LDLdecomposition},
-    EXAMPLE lines ///
-      A = matrix {{5,3,5},{3,2,4},{5,4,10}}
-      (L,D,P,err) = LDLdecomposition(A)
-      L*D*transpose(L) == transpose(P)*A*P
-      ///
-    }
-
-document {
-     Key => {blkDiag},
-     Headline => "construct a block diagonal matrix",
-     "This method returns the block diagonal matrix with blocks ",
-     TT "A1,A2,...,An.",
-     Usage => "D = blkDiag(A1,A2,...,An)",
-     Inputs => { "Ai" => {"square matrices"} },
-     Outputs => { "D" => {"block diagonal matrix"} },
-     
-     EXAMPLE lines ///
-          A1 = matrix {{0,1},{1,0}};
-          A2 = matrix {{1,2},{2,2}};
-          A3 = matrix {{3}};
-          blkDiag(A1,A2,A3)
-          ///
-     }
-
---  References: 
---  Boyd, Vandenberghe: Convex Optimization, Cambridge University Press,
---  2004, pp. 618-619, pp. 463-466
-document {
-     Key => {solveSDP,(solveSDP,Matrix,Matrix,Matrix),(solveSDP,Matrix,Matrix,Matrix,Matrix),(solveSDP,Matrix,Sequence,Matrix),(solveSDP,Matrix,Sequence,Matrix,Matrix)},
-     Headline => "solve a semidefinite program",
-     "This method solves a semidefinite program of the form ",
-     BR{}, BR{}, TT "min sum b", SUB "i", TT " y", SUB "i", BR{}, 
-     TT "s.t. C - sum y", SUB "i", TT " A", SUB "i", " > 0,", BR{}, BR{},
-     "where ", TT "y", " denotes the decision variables and ", TT "C", " and ",
-     TT "A", SUB "i", " are symmetric n by n matrices. A strictly feasible ",
-     "initial point ", TT "y0", " may be provided by the user. ",
-     "The default algorithm is a dual interior point method implemented in M2, but an interface to ",
-     TO2 {[solveSDP,Solver],"CSDP"},
-     " is also available. ",
-     Usage => "(y,X) = solveSDP(C,A,b),\n (y,X) = solveSDP(C,A,b,y0),",
-     Inputs => { "C" => Matrix => {"a symmetric n by n matrix, over ", TT "RR"},
-      "A" => Sequence => {"consisting of m symmetric n by n matrices over ", TT "RR"},
-      "b" => Matrix => {"an m by 1 matrix over ", TT "RR"},
-      "y0" => Matrix => {"an m by 1 matrix over ", TT "RR", " (optional)"}},
-     Outputs => { "y" => {"an m by 1 ",TO matrix,", primal solution"},
-                  "X" => {"an n by n ",TO matrix,", dual solution (not available if ", TT "Solver=>\"M2\"", " )"} },
-     
-     EXAMPLE lines ///
-          C = matrix {{1,0},{0,2}};
-          A = (matrix {{0,1},{1,0}});
-      b = matrix {{1}};
-          (y,X) = solveSDP(C,A,b);
-          y
-          ///
-     }
-
-document {
-     Key => {Solver,[solveSDP,Solver]},
-     Headline => "semidefinite programming solver",
-     "The following SDP solvers are available:",
-     UL{
-       {"\"M2\"", " -- use a simple dual interior point method implemented in Macaulay2"},
-       {"\"CSDP\"", " -- use the CSDP solver, available at ", TT "https://projects.coin-or.org/Csdp/" },
-       },
-     "The CSDP executable can be specified when loading the package, as follows ",BR{},
-     TT "loadPackage(SOS,Configuration=>{\"CSDPexec\"=>\"csdp\"})",
-     }
+doc /// --sumSOS
+    Key
+        sumSOS
+    Headline
+        expansion of a weighted SOS decomposition
+    Usage
+        sumSOS(g,d)
+    Inputs
+        g:Sequence
+          of polynomials
+        d:Sequence
+          of numbers
+    Outputs
+        :RingElement
+          a polynomial
+    Consequences
+    Description
+      Text
+        Given polynomials $g_i$ and scalars $d_i$,
+        this method computes
+        $f = \sum_i d_i g_i^2$.
+      Example
+        R = QQ[x,y];
+        sumSOS( (x+1,y), (2,3) )
+      Code
+      Pre
+    SeeAlso
+        sosdec
+///
 
 doc /// --sosdec
     Key
@@ -133,9 +55,9 @@ doc /// --sosdec
         (g,d) = sosdec(Q,mon)
     Inputs
         Q:Matrix
-          the rational $n \times n$ Gram matrix of the polynomial f
+          the rational $n\times n$ Gram matrix of the polynomial f
         mon:Matrix
-          a $n x 1$ matrix of monomials
+          a $n\times 1$ matrix of monomials
     Outputs
         g:Sequence
           of polynomials with coefficients in $\QQ$
@@ -182,9 +104,9 @@ doc /// --solveSOS
         ok:Boolean
           indicates whether a rational SOS decomposition was found
         Q:Matrix
-          the rational $n x n$ Gram matrix of the polynomial f
+          the rational $n\times n$ Gram matrix of the polynomial f
         mon:Matrix
-          a $n x 1$ matrix of monomials
+          a $n\times 1$ matrix of monomials
         tval:List
           of parameter values
     Consequences
@@ -239,7 +161,7 @@ doc /// --getRationalSOS
     Consequences
     Description
       Text
-        Returns the projection of the rounded matrix Q onto the affine subspace $Aq=b$.
+        Returns the projection of the rounded matrix Q onto the affine subspace $A q = b$.
 
         GramIndex and LinSpaceIndex are hash tables for the correspondence between the columns of $A$ and the entries of $Q$.
       Code
@@ -295,7 +217,7 @@ doc /// --project2linspace
     Consequences
     Description
       Text
-        Projects a rational point $x_0$ onto the affine subspace given by $Ax=b$
+        Projects a rational point $x_0$ onto the affine subspace given by $A x = b$
       Code
       Pre
     SeeAlso
@@ -332,3 +254,150 @@ doc /// --createSOSModel
       Pre
     SeeAlso
 ///
+
+doc /// --LDLdecomposition
+    Key
+        LDLdecomposition
+    Headline
+        LDL factorization of a positive semidefinite matrix
+    Usage
+        (L,D,P,err) = LDLdecomposition A
+    Inputs
+        A:Matrix
+          over $\QQ$ or $\ZZ$
+    Outputs
+        L:Matrix
+          lower triangular
+        D:Matrix
+          diagonal
+        L:Matrix
+          lower triangular
+        P:Matrix
+          permutation matrix
+        err:ZZ
+          which is 0 when the factorization was successful, i.e., if A is positive semidefinite.
+    Consequences
+    Description
+      Text
+        Given a positive semidefinite matrix $A$, this method returns a lower triangular matrix $L$ with ones in the diagonal, a diagonal matrix $D$ and a permutation matrix $P$ such that $L' D L = P' A P.$
+      Example
+        A = matrix {{5,3,5},{3,2,4},{5,4,10}}
+        (L,D,P,err) = LDLdecomposition(A)
+        L*D*transpose(L) == transpose(P)*A*P
+      Text
+        {\bf References:}
+        Gene Golub and Charles van Loan: Matrix Computations, Johns Hopkins
+        series in the Mathematical Science, 2 ed., pp. 133-148,
+        Baltimore Maryland, 1989.
+      Code
+      Pre
+    SeeAlso
+///
+
+doc /// --blkDiag
+    Key
+        blkDiag
+    Headline
+        construct a block diagonal matrix
+    Usage
+        D = blkDiag(A1,A2,...,An)
+    Inputs
+        Ai:
+          square matrices
+    Outputs
+        D:
+          block diagonal matrix
+    Consequences
+    Description
+      Text
+        This method returns the block diagonal matrix with blocks 
+        $A1,A2,...,An.$
+      Example
+        A1 = matrix {{0,1},{1,0}};
+        A2 = matrix {{1,2},{2,2}};
+        A3 = matrix {{3}};
+        blkDiag(A1,A2,A3)
+      Code
+      Pre
+    SeeAlso
+///
+
+doc /// --solveSDP
+    Key
+        solveSDP
+        (solveSDP,Matrix,Matrix,Matrix)
+        (solveSDP,Matrix,Matrix,Matrix,Matrix)
+        (solveSDP,Matrix,Sequence,Matrix)
+        (solveSDP,Matrix,Sequence,Matrix,Matrix)
+    Headline
+        solve a semidefinite program
+    Usage
+        (y,X) = solveSDP(C,A,b)
+        (y,X) = solveSDP(C,A,b,y0)
+    Inputs
+        C:Matrix
+          a symmetric $n\times n$ matrix over $\RR$
+        A:Sequence
+          consisting of $m$ symmetric $n\times n$ matrices over $\RR$
+        y0:Matrix
+          an $m\times 1$ matrix over $\RR$ (optional)
+    Outputs
+        y:
+          an $m\times 1$ matrix, the primal solution
+        X:
+          an $n\times n$ matrix, the dual solution (not available if Solver=>"M2")
+    Consequences
+    Description
+      Text
+        This method solves a semidefinite program of the form 
+
+        $$min \sum_i b_i y_i  s.t.  C - \sum_i y_i A_i > 0$$
+
+        where $y_i$ are the decision variables and $C, A_i$ are symmetric $n\times n$ matrices. 
+        A strictly feasible initial point $y0$ may be provided by the user. 
+        The default algorithm is a dual interior point method implemented in M2, but an interface to @TO2 {[solveSDP,Solver],"CSDP"}@ is also available.
+      Example
+        C = matrix {{1,0},{0,2}};
+        A = (matrix {{0,1},{1,0}});
+        b = matrix {{1}};
+        (y,X) = solveSDP(C,A,b);
+        y
+      Text
+        {\bf References:}
+        Boyd, Vandenberghe: Convex Optimization, Cambridge University Press,
+        2004, pp. 618-619, pp. 463-466
+      Code
+      Pre
+    SeeAlso
+///
+
+--###################################
+-- Symbols
+--###################################
+
+doc /// --rndTol
+    Key
+        rndTol
+    Headline
+        construct a block diagonal matrix
+    Consequences
+    Description
+      Text
+        Minimal rounding precision in $x$ binary digits.
+      Code
+      Pre
+    SeeAlso
+///
+
+document { --Solver
+    Key => {Solver,[solveSDP,Solver],[solveSOS,Solver]},
+    Headline => "semidefinite programming solver",
+    "The following SDP solvers are available:",
+    UL{
+      {"\"M2\"", " -- use a simple dual interior point method implemented in Macaulay2"},
+       {"\"CSDP\"", " -- use the CSDP solver, available at ", TT "https://projects.coin-or.org/Csdp/" },
+      },
+    "The CSDP executable can be specified when loading the package, as follows ",BR{},
+    TT "loadPackage(SOS,Configuration=>{\"CSDPexec\"=>\"mypath/csdp\"})",
+    }
+
