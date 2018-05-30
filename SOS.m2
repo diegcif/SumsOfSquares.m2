@@ -13,7 +13,7 @@ newPackage(
       Email => "diegcif@mit.edu",
       HomePage => "http://www.mit.edu/~diegcif/"}
     },
-    Headline => "Sum of Squares Package",
+    Headline => "Sum-of-Squares Package",
     DebuggingMode => true,
     Configuration => {"CSDPexec"=>"csdp"},
     AuxiliaryFiles => true,
@@ -24,8 +24,8 @@ newPackage(
 export {
 --Types
 --Methods/Functions
-    "findSOS",
-    "getSOS",
+    "solveSOS",
+    "sosdec",
     "sumSOS",
     "blkDiag",
     "LDLdecomposition",
@@ -56,19 +56,13 @@ opts = {rndTol => -3, Solver => "M2", Verbose => false}
 verbose = (s,o) -> if o.Verbose then print s
 
 --###################################
--- findSOS
+-- solveSOS
 --###################################
 
 sumSOS = (g,d) -> sum for i to #g-1 list g_i^2 * d_i
 
-
---getSOS = args -> (
-getSOS = opts >> o -> args -> (
-     if #args!=1 then (ok,Q,mon,pVec) := findSOS(args,o) 
-     else (ok,Q,mon) = findSOS(args,o);
-
-     if not ok then error "failed to compute decomposition";
-          
+sosdec = (Q,mon) -> (
+     if mon===null then return (null,null);
      (L,D,P,err) := LDLdecomposition(Q);
      if err != 0 then error ("Gram Matrix is not positive semidefinite");
      n := #entries Q;
@@ -77,11 +71,10 @@ getSOS = opts >> o -> args -> (
      idx := positions (d, i->i!=0);
      d = d_idx;
      g = g_idx;
-          
-     if #args==1 then return (g,d) else return (g,d,pVec)
+     return (g,d);
      )     
 
-findSOS = opts >> o -> args -> (
+solveSOS = opts >> o -> args -> (
     args = sequence args;
     f := args#0;
     p := {}; if #args >= 2 then p = args#1;
@@ -601,28 +594,42 @@ load "./SOS/SOSdoc.m2"
 TEST /// --good cases
     R = QQ[x,y];
     p = 4*x^4+y^4;
-    (g,d) = getSOS(p)
+    (ok,Q,mon) = solveSOS p
+    (g,d) = sosdec(Q,mon)
     assert( p == sumSOS(g,d) )
 
     p = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
-    (g,d) = getSOS f
+    (ok,Q,mon) = solveSOS p
+    (g,d) = sosdec(Q,mon)
     assert( p == sumSOS(g,d) )
 
      R = QQ[x,y,z];
     p = x^4+y^4+z^4-4*x*y*z+x+y+z+3;
-    (g,d) = getSOS(p)
+    (ok,Q,mon) = solveSOS p
+    (g,d) = sosdec(Q,mon)
     assert( p == sumSOS(g,d) )
     
     R = QQ[x,y,z,w];
     p = 2*x^4 + x^2*y^2 + y^4 - 4*x^2*z - 4*x*y*z - 2*y^2*w + y^2 - 2*y*z + 8*z^2 - 2*z*w + 2*w^2;
-    (g,d) = getSOS p
+    (ok,Q,mon) = solveSOS p
+    (g,d) = sosdec(Q,mon)
     assert( p == sumSOS (g,d) )
 ///
 
 TEST /// --bad cases
-    f = x^4*y^2 + x^2*y^4 - 3*x^2*y^2 + 1 --Motzkin
-    (ok,Q,mon,tval) = findSOS(f-t,{t},-t); 
+    R = QQ[x,y,t];
+    f = x^4*y^2 + x^2*y^4 - 3*x^2*y^2 + 1 --minMotzkin
+    (ok,Q,mon,tval) = solveSOS(f-t,{t},-t); 
     assert( ok == false )
+///
+
+TEST /// --Newton polytope
+    R = QQ[x,y,t];
+    f = x^4+2*x*y-x+y^4
+    (lmf,lmsos) = choosemonp(f,{}, Verbose=>true)
+    assert( #lmsos == 0 )
+    (lmf,lmsos) = choosemonp(f-t,{t}, Verbose=>true)
+    assert( #lmsos == 6 )
 ///
         
 TEST /// --LDL

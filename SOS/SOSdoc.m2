@@ -2,11 +2,12 @@
 document { 
     Key => SOS,
     Headline => "An SOS package",
-    EM "SOS", " is a package for solving sum of squares (SOS) problems.",
+    EM "SOS", " is a package for solving sum-of-squares (SOS) problems.",
     EXAMPLE lines ///
      R = QQ[x,y];
      f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
-     (g,d) = getSOS f
+     (ok,Q,mon) = solveSOS f;
+     (g,d) = sosdec(Q,mon)
      sumSOS(g,d) - f
     ///,
     }
@@ -18,14 +19,15 @@ document {
      TT "f = sum d", SUB "i", TT " g", SUB "i", SUP "2", ",", BR{},BR{},
      "where g", SUB "i", " are polynomials and d", SUB "i", 
      " are scalars.",
-     Usage => "f = getSOS (g,d)",
+     Usage => "sumSOS(g,d)",
      Outputs => { "f" => RingElement => {"a polynomial"}},
      Inputs => { "g" => Sequence => {"of polynomials"},
            "d" => Sequence => {"of scalar weights"}},
      EXAMPLE lines ///
      R = QQ[x,y];
      f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
-     (g,d) = getSOS f
+     (ok,Q,mon) = solveSOS f
+     (g,d) = sosdec(Q,mon)
      sumSOS(g,d) - f
      ///
      }
@@ -122,21 +124,18 @@ document {
      TT "loadPackage(SOS,Configuration=>{\"CSDPexec\"=>\"csdp\"})",
      }
 
-doc /// --getSOS
+doc /// --sosdec
     Key
-        getSOS
+        sosdec
     Headline
         SOS decomposition of a polynomial
     Usage
-        (g,d) = getSOS f
-        (g,d,tval) = getSOS(f,p,objFun)
+        (g,d) = sosdec(Q,mon)
     Inputs
-        f:RingElement
-          a polynomial with coefficients in $\QQ$
-        p:List
-          of parameters (optional)
-        objFun:RingElement
-          a polynomial with coefficients in $\QQ$ (optional)
+        Q:Matrix
+          the rational $n \times n$ Gram matrix of the polynomial f
+        mon:Matrix
+          a $n x 1$ matrix of monomials
     Outputs
         g:Sequence
           of polynomials with coefficients in $\QQ$
@@ -149,35 +148,29 @@ doc /// --getSOS
       Text
         This method computes a rational SOS decomposition of a polynomial:
         $$f = \sum_i d_i g_i^2$$
-        where the $g_i$ are polynomials in $\QQ[x]$ and the $d_i$ are weights in $\QQ$. The function yields an error if such a decomposition could not be obtained.
+        where the $g_i$ are polynomials in $\QQ[x]$ and the $d_i$ are weights in $\QQ$.
+        The input is a Gram matrix $Q$ and a vector of monomials $mon$, as produced by the method @TO solveSOS@.
       Example
         R = QQ[x,y];
         f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
-        (g,d) = getSOS f
+        (ok,Q,mon) = solveSOS f;
+        (g,d) = sosdec(Q,mon)
         sumSOS(g,d) - f
-      Text
-        The method can also solve parametric SOS problems that depend affinely of some decision variables. 
-        For instance, we can find an SOS lower bound for the dehomogenized Motzkin polynomial:
-      Example
-        R = QQ[x,z,t];
-        f = x^4+x^2+z^6-3*x^2*z^2-t;
-        (g,d,tval) = getSOS (f,{t},-t,rndTol=>12);
-        tval
       Code
       Pre
     SeeAlso
-        findSOS
+        solveSOS
         Solver
 ///
 
-doc /// --findSOS
+doc /// --solveSOS
     Key
-        findSOS
+        solveSOS
     Headline
-        Computation of a SOS decomposition of a polynomial
+        solve a sum-of-squares problem
     Usage
-        (ok,Q,mon) = findSOS f
-        (ok,Q,mon,tval) = findSOS(f,p,objFun)
+        (ok,Q,mon) = solveSOS f
+        (ok,Q,mon,tval) = solveSOS(f,p,objFun)
     Inputs
         f:RingElement
           a polynomial with coefficients in $\QQ$
@@ -197,14 +190,15 @@ doc /// --findSOS
     Consequences
     Description
       Text
-        This method computes an SOS decomposition of a polynomial. 
-        It tries to obtain an exact solution by rounding the numerical result and checking positive definiteness of the Gram matrix afterwards. 
-        If successful the polynomial $f$ can be written as
-        $f = mon' Q mon$, where $Q$ is a rational positive semidefinite matrix, and $mon$ is a vector of monomials.
+        This method solves SOS problems.
+        Given a rational polynomial $f$, it attempts to find a rational positive semidefinite matrix $Q$ and a vector of monomials $mon$ such that
+        $$f = mon' Q mon.$$ 
+        The algorithm first computes a floating point solution, 
+        and tries to obtain an exact solution by rounding the numerical result and checking positive definiteness of the Gram matrix afterwards. 
       Example
         R = QQ[x,y];
         f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
-        (ok,Q,mon) = findSOS f
+        (ok,Q,mon) = solveSOS f
         transpose(mon)*Q*mon - f
       Text
         The method can also solve parametric SOS problems that depend affinely of some decision variables. 
@@ -212,12 +206,12 @@ doc /// --findSOS
       Example
         R = QQ[x,z,t];
         f = x^4+x^2+z^6-3*x^2*z^2-t;
-        (ok,Q,mon,tval) = findSOS (f,{t},-t,rndTol=>12);
+        (ok,Q,mon,tval) = solveSOS (f,{t},-t,rndTol=>12);
         tval
       Code
       Pre
     SeeAlso
-        getSOS
+        sosdec
         Solver
 ///
 
