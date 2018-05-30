@@ -47,7 +47,6 @@ export {
 --##########################################################################--
 
 csdpexec=((options SOS).Configuration)#"CSDPexec"
-opts = {rndTol => -3, Solver => "M2", Verbose => false}
 
 --##########################################################################--
 -- METHODS
@@ -65,7 +64,7 @@ sosdec = (Q,mon) -> (
      if mon===null then return (null,null);
      (L,D,P,err) := LDLdecomposition(Q);
      if err != 0 then error ("Gram Matrix is not positive semidefinite");
-     n := #entries Q;
+     n := numRows Q;
      g := toList flatten entries (transpose mon * transpose inverse P * L);
      d := apply(toList(0..n-1),i->D_(i,i));
      idx := positions (d, i->i!=0);
@@ -74,29 +73,27 @@ sosdec = (Q,mon) -> (
      return (g,d);
      )     
 
-solveSOS = opts >> o -> args -> (
-    args = sequence args;
-    f := args#0;
-    p := {}; if #args >= 2 then p = args#1;
-    if #args >=3 then (
-        objFcn := args#2;
-        if first degree objFcn > 1 then error("Only linear objective function allowed.")
-    );
-    if #args >=4 then (
-        lB := promote(args#3,QQ);
-        uB := promote(args#4,QQ);
-        parBounded := true;
-    )else parBounded = false;
+solveSOS = method(
+     Options => {rndTol => -3, Solver=>"M2", Verbose => false} )
+solveSOS(RingElement,List,RingElement,List) := o -> (f,p,objFcn,bounds) -> (
+    if first degree objFcn > 1 then error("Only linear objective function allowed.");
+    parBounded := false;
+    if #bounds==2 then (
+        lB := promote(bounds#0,QQ);
+        uB := promote(bounds#1,QQ);
+        parBounded = true;
+    )else if #bounds!=0 then 
+        error "expected a list with two elements";
          
     -- build SOS model --     
     (C,Ai,Bi,A,B,b,mon,GramIndex,LinSpaceIndex) := createSOSModel(f,p,Verbose=>o.Verbose);
     if #mon==0 then 
         return if #p!=0 then (false,,mon,) else (false,,mon);
 
-    ndim := #entries C;
+    ndim := numRows C;
     mdim := #Ai;
     
-    if #p!=0 and #args>2 then (
+    if #p!=0 and objFcn!=0 then (
         -- compute an optimal solution --
         verbose("Solving SOS optimization problem...", o);
         objFcnCF := coefficients objFcn;
@@ -130,9 +127,8 @@ solveSOS = opts >> o -> args -> (
     );
 
     -- round and project --
-    ynum :=  apply(0..#entries y-1, i-> round(y_(i,0)*2^52)/2^52);
-    Qnum := C + sum toList apply(0..#Bi-1, i-> matrix(ynum#i*entries Bi_i)) + (
-     sum toList apply(0..#Ai-1, i-> matrix(ynum#(i+#Bi)*entries Ai_i)));
+    ynum := for i to numRows y-1 list round(y_(i,0)*2^52)/2^52;
+    Qnum := C + sum(for i to #Bi-1 list ynum#i * Bi_i) + sum(for i to #Ai-1 list ynum#(i+#Bi) * Ai_i);
     
     if parBounded then Qnum = Qnum^{0..ndim-1}_{0..ndim-1};
     
@@ -153,6 +149,12 @@ solveSOS = opts >> o -> args -> (
     if #p!=0 then return (ok,Qp,mon,flatten entries pVec) 
     else return (ok,Qp,mon)
     )
+solveSOS(RingElement,List,RingElement) := o -> (f,p,objFcn) -> 
+    solveSOS(f,p,objFcn,{})
+solveSOS(RingElement,List) := o -> (f,p) -> 
+    solveSOS(f,p,0_(ring f),{})
+solveSOS(RingElement) := o -> (f) -> 
+    solveSOS(f,{},0_(ring f),{})
 
 createSOSModel = {Verbose=>false} >> o -> (f,p) -> (
      -- Degree and number of variables
@@ -183,7 +185,7 @@ createSOSModel = {Verbose=>false} >> o -> (f,p) -> (
      Bh := new MutableHashTable;
      LinSpaceDim := floor(ndim^2/2+ndim/2);
      LinSpaceIndex := hashTable apply (flatten values HHHm, toList(0..LinSpaceDim-1),identity);
-     GramIndex := hashTable apply(values LinSpaceIndex, keys LinSpaceIndex, (i,j) -> (i,j));
+     GramIndex := applyPairs (LinSpaceIndex, (i,j)->(j,i));
      for k from 0 to #K-1 do (
       -- Set constraints for monomial K#k 
            PairsEntries := toList HHHm#(K#k) ;
@@ -296,7 +298,7 @@ project2linspace = (A,b,x0) -> (
      )
      
 getRationalSOS = {Verbose=>false} >> o -> (Q,A,b,d,GramIndex,LinSpaceIndex) -> (
-     ndim := #entries Q;
+     ndim := numRows Q;
      
      verbose("Rounding precision: " | d, o);
      Q0 := matrix pack (apply(flatten entries Q, i -> round(i*2^d)/2^d),ndim);
@@ -316,7 +318,7 @@ LDLdecomposition = args -> (
      A := promote (args#0,QQ);
      if transpose A != A then error("Matrix must be symmetric.");
       
-     n := #entries A;
+     n := numRows A;
      Ah := new MutableHashTable; map (QQ^n,QQ^n,(i,j)->Ah#(i,j) = A_(i,j));
      v := new MutableList from toList apply(0..n-1,i->0_QQ);
      d := new MutableList from toList apply(0..n-1,i->0_QQ);
@@ -376,8 +378,7 @@ blkDiag = args -> (
 --###################################
 
 solveSDP = method(
-     Options => {untilObjNegative => false, workingPrecision => 53, Solver=>"M2", Verbose => false}
-     )
+     Options => {untilObjNegative => false, workingPrecision => 53, Solver=>"M2", Verbose => false} )
 
 solveSDP(Matrix, Matrix, Matrix) := o -> (C,A,b) -> solveSDP(C,sequence A,b,o)
 
@@ -405,8 +406,7 @@ solveSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y0) -> (
 
 simpleSDP = method(
      TypicalValue => Matrix,
-     Options => {untilObjNegative => false, Verbose => false}
-     )
+     Options => {untilObjNegative => false, Verbose => false} )
 
 simpleSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
      R := RR;
@@ -505,9 +505,7 @@ backtrack = args -> (
 
 --solveCSDP
 
-solveCSDP = method(
-     Options => {Verbose => false}
-     )
+solveCSDP = method( Options => {Verbose => false} )
 solveCSDP(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     n := numColumns C;
     fin := getFileName();
@@ -603,7 +601,7 @@ TEST /// --good cases
     (g,d) = sosdec(Q,mon)
     assert( p == sumSOS(g,d) )
 
-     R = QQ[x,y,z];
+    R = QQ[x,y,z];
     p = x^4+y^4+z^4-4*x*y*z+x+y+z+3;
     (ok,Q,mon) = solveSOS p
     (g,d) = sosdec(Q,mon)
@@ -658,6 +656,6 @@ TEST /// --solveSDP
      (y,X) = solveSDP(C,A,b,y0);
      yopt = matrix{{2.},{2.}};
      
-    assert ( sqrt( sum apply(toList (0..#entries y-1), i-> (y_(i,0)-yopt_(i,0))^2)) <
+    assert ( sqrt( sum apply(toList (0..numRows y-1), i-> (y_(i,0)-yopt_(i,0))^2)) <
      0.001 * (1. + sqrt(sum apply(flatten entries yopt, i->i^2))) )
 ///

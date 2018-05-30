@@ -88,11 +88,16 @@ doc /// --sosdec
 doc /// --solveSOS
     Key
         solveSOS
+        (solveSOS,RingElement)
+        (solveSOS,RingElement,List)
+        (solveSOS,RingElement,List,RingElement)
+        (solveSOS,RingElement,List,RingElement,List)
     Headline
         solve a sum-of-squares problem
     Usage
         (ok,Q,mon) = solveSOS f
         (ok,Q,mon,tval) = solveSOS(f,p,objFun)
+        (ok,Q,mon,tval) = solveSOS(f,p,objFun,bounds)
     Inputs
         f:RingElement
           a polynomial with coefficients in $\QQ$
@@ -100,6 +105,8 @@ doc /// --solveSOS
           of parameters (optional)
         objFun:RingElement
           a polynomial with coefficients in $\QQ$ (optional)
+        bounds:List
+          a lower and upper bound for the parameters (optional)
     Outputs
         ok:Boolean
           indicates whether a rational SOS decomposition was found
@@ -229,18 +236,28 @@ doc /// --createSOSModel
     Headline
         model of the Gram matrix representations of a polynomial
     Usage
-        (C,Ai,mon,A,b,GramIndex) = createSOSModel(f)
+        (C,Ai,Bi,A,B,b,mon,GramIndex,LinSpaceIndex) = createSOSModel(f,p)
     Inputs
         f:RingElement
           a polynomial
+        p:List
+          of parameters
     Outputs
         C:Matrix
+        Ai:Sequence
+        Bi:Sequence
+        A:Matrix
+        B:Sequence
+        b:Matrix
+        mon:Matrix
+        GramIndex:HashTable
+        LinSpaceIndex:HashTable
     Consequences
     Description
       Text
-        This method creates the kernel and image model of the Gram matrices of a polynomial f.
+        This method creates the kernel and image model of the Gram matrices of a polynomial $f$.
 
-        A Gram matrix representation of f is a symmetric matrix X such that
+        A Gram matrix representation of $f$ is a symmetric matrix X such that
         $f = mon' X mon$,
         where $mon$ is a vector of monomials.
         The set of all Gram matrices $X$ is an affine subspace.
@@ -378,6 +395,7 @@ doc /// --solveSDP
 doc /// --rndTol
     Key
         rndTol
+        [solveSOS,rndTol]
     Headline
         construct a block diagonal matrix
     Consequences
