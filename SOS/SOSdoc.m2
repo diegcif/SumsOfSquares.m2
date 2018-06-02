@@ -368,11 +368,12 @@ doc /// --solveSDP
       Text
         This method solves a semidefinite program of the form 
 
-        $$min \sum_i b_i y_i  s.t.  C - \sum_i y_i A_i > 0$$
+        $$min \sum_i b_i y_i  s.t.  C - \sum_i y_i A_i \geq 0$$
 
         where $y_i$ are the decision variables and $C, A_i$ are symmetric $n\times n$ matrices. 
         A strictly feasible initial point $y0$ may be provided by the user. 
-        The default algorithm is a dual interior point method implemented in M2, but an interface to @TO2 {[solveSDP,Solver],"CSDP"}@ is also available.
+        The default algorithm is a dual interior point method implemented in M2. 
+        An interface to @TO2 {[solveSDP,Solver],"CSDP"}@ is also available.
       Example
         C = matrix {{1,0},{0,2}};
         A = (matrix {{0,1},{1,0}});
@@ -385,6 +386,8 @@ doc /// --solveSDP
         2004, pp. 618-619, pp. 463-466
       Code
       Pre
+    Caveat
+        If the problem is not strictly feasible then Solver => "M2" might fail to compute the solution.
     SeeAlso
 ///
 
