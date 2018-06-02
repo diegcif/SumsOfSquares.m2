@@ -123,7 +123,7 @@ doc /// --solveSOS
         Given a rational polynomial $f$, it attempts to find a rational positive semidefinite matrix $Q$ and a vector of monomials $mon$ such that
         $$f = mon' Q mon.$$ 
         The algorithm first computes a floating point solution, 
-        and tries to obtain an exact solution by rounding the numerical result and checking positive definiteness of the Gram matrix afterwards. 
+        and then tries to obtain an exact solution by rounding the numerical result. 
       Example
         R = QQ[x,y];
         f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
@@ -373,7 +373,7 @@ doc /// --solveSDP
         where $y_i$ are the decision variables and $C, A_i$ are symmetric $n\times n$ matrices. 
         A strictly feasible initial point $y0$ may be provided by the user. 
         The default algorithm is a dual interior point method implemented in M2. 
-        An interface to @TO2 {[solveSDP,Solver],"CSDP"}@ is also available.
+        Alternatively, there is an interface to the @TO2 {[solveSDP,Solver],"solvers"}@ CSDP and SDPA.
       Example
         C = matrix {{1,0},{0,2}};
         A = (matrix {{0,1},{1,0}});
@@ -387,7 +387,7 @@ doc /// --solveSDP
       Code
       Pre
     Caveat
-        If the problem is not strictly feasible then Solver => "M2" might fail to compute the solution.
+        Then "M2" solver might fail to compute the solution if the problem is not strictly feasible.
     SeeAlso
 ///
 
@@ -437,8 +437,9 @@ document { --Solver
     UL{
       {"\"M2\"", " -- use a simple dual interior point method implemented in Macaulay2"},
        {"\"CSDP\"", " -- use the CSDP solver, available at ", TT "https://projects.coin-or.org/Csdp/" },
+       {"\"SDPA\"", " -- use the SDPA solver, available at ", TT "http://sdpa.sourceforge.net/" },
       },
-    "The CSDP executable can be specified when loading the package, as follows ",BR{},
-    TT "loadPackage(SOS,Configuration=>{\"CSDPexec\"=>\"mypath/csdp\"})",
+    "The CSDP and SDPA executables can be specified when loading the package, as follows ",BR{},
+    TT "loadPackage(SOS,Configuration=>{\"CSDPexec\"=>\"csdp\",\"SDPAexec\"=>\"sdpa\"})",BR{},
     }
 

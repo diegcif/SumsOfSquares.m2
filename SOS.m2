@@ -15,7 +15,7 @@ newPackage(
     },
     Headline => "Sum-of-Squares Package",
     DebuggingMode => true,
-    Configuration => {"CSDPexec"=>"csdp"},
+    Configuration => {"CSDPexec"=>"csdp","SDPAexec"=>"sdpa"},
     AuxiliaryFiles => true,
     PackageImports => {"SimpleDoc","FourierMotzkin"},
     PackageExports => {}
@@ -48,6 +48,7 @@ export {
 --##########################################################################--
 
 csdpexec=((options SOS).Configuration)#"CSDPexec"
+sdpaexec=((options SOS).Configuration)#"SDPAexec"
 
 --##########################################################################--
 -- METHODS
@@ -145,7 +146,7 @@ solveSOS(RingElement,List,RingElement,List) := o -> (f,p,objFcn,bounds) -> (
 
         (ok,Qp) := getRationalSOS(Qnum,A,bPar,d,GramIndex,LinSpaceIndex,Verbose=>o.Verbose);
         if ok then break else d = d + 1;
-    );                
+    );
     if #p!=0 then return (ok,Qp,mon,flatten entries pVec) 
     else return (ok,Qp,mon)
     )
@@ -390,6 +391,8 @@ solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
         y = simpleSDP(C,A,b,untilObjNegative=>o.untilObjNegative,Verbose=>o.Verbose)
     else if o.Solver == "CSDP" then
         (y,X,Z) = solveCSDP(C,A,b,Verbose=>o.Verbose)
+    else if o.Solver == "SDPA" then
+        (y,X,Z) = solveSDPA(C,A,b,Verbose=>o.Verbose)
     else
         error "unknown algorithm";
     return (y,X);
@@ -516,8 +519,8 @@ solveCSDP(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     r := run(csdpexec | " " | fin | " " | fout | ">" | fout2);
     if r == 32512 then error "csdp executable not found";
     print("Output saved on file " | fout);
-    (y,X,Z) := readSDPA(fout,n);
-    (y,X,Z) = readCSDP(fout2,y,X,Z,o.Verbose);
+    (y,X,Z) := readCSDP(fout,n);
+    (y,X,Z) = readCSDP2(fout2,y,X,Z,o.Verbose);
     return (y,X,Z);
 )
 
@@ -552,7 +555,7 @@ writeSDPA = (fin,C,A,b) -> (
     f << close;
 )
 
-readSDPA = (fout,n) -> (
+readCSDP = (fout,n) -> (
     sdpa2matrix := s -> (
         e := for i in s list (i_2-1,i_3-1) => i_4;
         e' := for i in s list (i_3-1,i_2-1) => i_4;
@@ -571,16 +574,63 @@ readSDPA = (fout,n) -> (
     return (y,X,Z);
 )
 
-readCSDP = (fout2,y,X,Z,verb) -> (
+readCSDP2 = (fout2,y,X,Z,Verbose) -> (
     text := get openIn fout2;
     s := first select(lines text, l -> match("Success",l));
-    print if verb then text else s;
+    print if Verbose then text else s;
     if match("SDP solved",s) then null
     else if match("primal infeasible",s) then X=null
     else if match("dual infeasible",s) then (y=null;Z=null;)
     else error "unknown message";
     return (y,X,Z);
 )
+
+--solveSDPA
+
+solveSDPA = method( Options => {Verbose => false} )
+solveSDPA(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
+    n := numColumns C;
+    fin := getFileName ".dat-s";
+    fout := getFileName "";
+    writeSDPA(fin,C,A,b);
+    print("Executing SDPA on file " | fin);
+    r := run(sdpaexec | " " | fin | " " | fout | "> /dev/null");
+    if r == 32512 then error "sdpa executable not found";
+    print("Output saved on file " | fout);
+    (y,X,Z) := readSDPA(fout,n,o.Verbose);
+    return (y,X,Z);
+)
+
+readSDPA = (fout,n,Verbose) -> (
+    readPhaseValue := s -> (
+        if match("pdOPT",s) or match("pdFEAS",s) then print "SDP solved"
+        else if match("dUNBD",s) then print "dual infeasible"
+        else if match("pUNBD",s) then print "primal infeasible"
+        else error "unknown message";
+        );
+    readVec := l -> (
+        l = replace("([{} +])","",l);
+        for s in separate(",",l) list if s=="" then continue else value s
+    );
+    readMatrix := ll -> 
+        matrix for l in ll list readVec l;
+    text := get openIn fout;
+    if Verbose then print text;
+    L := lines text;
+    s := first select(L, l -> match("phase.value",l));
+    readPhaseValue(s);
+    y := null; X := null; Z := null;
+    i := position(L, l -> match("xVec =",l));
+    if i=!=null then 
+        y = transpose matrix {readVec L#(i+1)};
+    i = position(L, l -> match("xMat =",l));
+    if i=!=null then 
+        Z = matrix for j to n-1 list readVec L#(i+j+2);
+    i = position(L, l -> match("yMat =",l));
+    if i=!=null then 
+        X = matrix for j to n-1 list readVec L#(i+j+2);
+    return (y,X,Z);
+    )
 
 --checkSolver
 
