@@ -349,8 +349,8 @@ doc /// --solveSDP
     Headline
         solve a semidefinite program
     Usage
-        (y,X) = solveSDP(C,A,b)
-        (y,X) = solveSDP(C,A,b,y0)
+        (y,X,Q) = solveSDP(C,A,b)
+        (y,X,Q) = solveSDP(C,A,b,y0)
     Inputs
         C:Matrix
           a symmetric $n\times n$ matrix over $\RR$
@@ -368,17 +368,17 @@ doc /// --solveSDP
       Text
         This method solves a semidefinite program of the form 
 
-        $$min \sum_i b_i y_i  s.t.  C - \sum_i y_i A_i \geq 0$$
+        $$min_{y,Q} \, \sum_i b_i y_i \,\,\, s.t. \,\,\, Q = C - \sum_i y_i A_i \, and \, Q \geq 0$$
 
-        where $y_i$ are the decision variables and $C, A_i$ are symmetric $n\times n$ matrices. 
+        where $y,Q$ are the decision variables and $C, A_i$ are symmetric $n\times n$ matrices. 
         A strictly feasible initial point $y0$ may be provided by the user. 
         The default algorithm is a dual interior point method implemented in M2. 
         Alternatively, there is an interface to the @TO2 {[solveSDP,Solver],"solvers"}@ CSDP and SDPA.
       Example
         C = matrix {{1,0},{0,2}};
-        A = (matrix {{0,1},{1,0}});
+        A = matrix {{0,1},{1,0}};
         b = matrix {{1}};
-        (y,X) = solveSDP(C,A,b);
+        (y,X,Q) = solveSDP(C,A,b);
         y
       Text
         {\bf References:}

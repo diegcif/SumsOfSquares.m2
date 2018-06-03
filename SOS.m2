@@ -113,33 +113,12 @@ solveSOS(RingElement,List,RingElement,List) := o -> (f,p,objFcn,bounds) -> (
         verbose( "Solving SOS feasibility problem...", o);
         obj = map(RR^(#Ai+#Bi),RR^1,i->0);
     );
-    sol := solveSDP(C, Bi | Ai, obj, Solver=>o.Solver, Verbose=>o.Verbose);
-    if sol#0===null then return (false,,mon,);
-    y := -sol_0;
+    (my,X,Q) := solveSDP(C, Bi | Ai, obj, Solver=>o.Solver, Verbose=>o.Verbose);
+    if my===null then return (false,,mon,);
+    y := -my;
+    if parBounded then Q = Q^{0..ndim-1}_{0..ndim-1};
 
-    linspace := (A,B,GramIndex,LinSpaceIndex);
-
-    -- round and project --
-    ynum := for i to numRows y-1 list round(y_(i,0)*2^52)/2^52;
-    Qnum := C + sum(for i to #Bi-1 list ynum#i * Bi_i) + sum(for i to #Ai-1 list ynum#(i+#Bi) * Ai_i);
-    
-    if parBounded then Qnum = Qnum^{0..ndim-1}_{0..ndim-1};
-    
-    dhi := 52;
-    d := o.rndTol;
-    
-    while (d < dhi) do (
-        verbose("rounding step #" | d, o);
-        if #p!=0 then (
-           pVec := map(QQ^#p,QQ^1,(i,j) -> round(y_(i,0)*2^d)/2^d);
-           bPar := b - B*pVec;
-           ) 
-        else bPar= b;
-
-        (ok,Qp) := getRationalSOS(Qnum,A,bPar,d,GramIndex,LinSpaceIndex,Verbose=>o.Verbose);
-        if ok then break else d = d + 1;
-    );
-    pVec = if #p!=0 then flatten entries pVec else null;
+    (ok,Qp,pVec) := roundSolution(y,Q,A,B,b,GramIndex,LinSpaceIndex,o.rndTol);
     return (ok,Qp,mon,pVec);
     )
 solveSOS(RingElement,List,RingElement) := o -> (f,p,objFcn) -> 
@@ -148,6 +127,29 @@ solveSOS(RingElement,List) := o -> (f,p) ->
     solveSOS(f,p,0_(ring f),o)
 solveSOS(RingElement) := o -> (f) -> 
     drop(solveSOS(f,{},o),-1)
+
+roundSolution = {Verbose=>false} >> o -> (y,Q,A,B,b,GramIndex,LinSpaceIndex,rndTol) -> (
+    -- round and project --
+    Qnum := matrix applyTable(entries Q, a -> round(a*2^52)/2^52);
+
+    dhi := 52;
+    d := rndTol;
+    np := numColumns B;
+    
+    while (d < dhi) do (
+        verbose("rounding step #" | d, o);
+        if np!=0 then (
+           pVec := map(QQ^np,QQ^1,(i,j) -> round(y_(i,0)*2^d)/2^d);
+           bPar := b - B*pVec;
+           ) 
+        else bPar= b;
+
+        (ok,Qp) := getRationalSOS(Qnum,A,bPar,d,GramIndex,LinSpaceIndex,Verbose=>o.Verbose);
+        if ok then break else d = d + 1;
+        );
+    pVec = if np!=0 then flatten entries pVec else null;
+    return (ok,Qp,pVec);
+    )
 
 createSOSModel = {Verbose=>false} >> o -> (f,p) -> (
      -- Degree and number of variables
@@ -193,7 +195,7 @@ createSOSModel = {Verbose=>false} >> o -> (f,p) -> (
       );
    
      A := map(QQ^#K,QQ^(LinSpaceDim),(i,j) -> if Ah#?(i,j) then Ah#(i,j) else 0);
-     if #p!=0 then B := map(QQ^#K,QQ^#p,(i,j) -> if Bh#?(i,j) then Bh#(i,j) else 0)  else B = ();
+     B := map(QQ^#K,QQ^#p,(i,j) -> if Bh#?(i,j) then Bh#(i,j) else 0);
                       
      -- compute the C matrix
      c := b//A;
@@ -379,24 +381,24 @@ solveSDP(Matrix, Matrix, Matrix, Matrix) := o -> (C,A,b,y) -> solveSDP(C,sequenc
 
 solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
     (ok,y,X,Z) := trivialSDP(C,A,b);
-    if ok then return (y,X);
+    if ok then return (y,X,Z);
     if o.Solver == "M2" then
-        y = simpleSDP(C,A,b,untilObjNegative=>o.untilObjNegative,Verbose=>o.Verbose)
+        (y,Z) = simpleSDP(C,A,b,untilObjNegative=>o.untilObjNegative,Verbose=>o.Verbose)
     else if o.Solver == "CSDP" then
         (y,X,Z) = solveCSDP(C,A,b,Verbose=>o.Verbose)
     else if o.Solver == "SDPA" then
         (y,X,Z) = solveSDPA(C,A,b,Verbose=>o.Verbose)
     else
         error "unknown algorithm";
-    return (y,X);
+    return (y,X,Z);
 )
 
 solveSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y0) -> (
     (ok,y,X,Z) := trivialSDP(C,A,b);
     if ok then return (y,X);
     if o.Solver != "M2" then return solveSDP(C,A,b,o);
-    y = simpleSDP(C,A,b,y0,untilObjNegative=>o.untilObjNegative,Verbose=>o.Verbose);
-    return (y,null);
+    (y,Z) = simpleSDP(C,A,b,y0,untilObjNegative=>o.untilObjNegative,Verbose=>o.Verbose);
+    return (y,,Z);
 )
 
 -- check trivial cases
@@ -419,82 +421,84 @@ trivialSDP = (C,A,b) -> (
 --simpleSDP
 
 simpleSDP = method(
-     TypicalValue => Matrix,
-     Options => {untilObjNegative => false, Verbose => false} )
+    TypicalValue => Matrix,
+    Options => {untilObjNegative => false, Verbose => false} )
 
 simpleSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
-     R := RR;
-     C = promote(C,R);
-     n := numRows C;
-     
-     -- try to find strictly feasible starting point --
-     lambda := min eigenvalues (C, Hermitian=>true);
-     if lambda > 0 then (
-      y := map(R^#A,R^1,(i,j)-> 0);
-      ) else (
-      verbose("Computing strictly feasible solution...", o); 
-      y =  map(R^#A,R^1,i->0) || matrix{{lambda*1.1}};
-      obj :=  map(R^#A,R^1,i->0) || matrix{{-1_R}};
-      y = simpleSDP(C,append(A,id_(R^n)), obj, y, untilObjNegative=>true, Verbose=>o.Verbose);
-      if y===null then return y;
-      y = transpose matrix {take (flatten entries y,numRows y - 1)};   
-      );
-     verbose("Computing an optimal solution...", o);
-     simpleSDP(C, A, b, y, o)
-     )
+    R := RR;
+    C = promote(C,R);
+    n := numRows C;
+    
+    -- try to find strictly feasible starting point --
+    (y,Z) := (,);
+    lambda := min eigenvalues (C, Hermitian=>true);
+    if lambda > 0 then 
+        y = map(R^#A,R^1,(i,j)-> 0)
+    else(
+        verbose("Computing strictly feasible solution...", o); 
+        y =  map(R^#A,R^1,i->0) || matrix{{lambda*1.1}};
+        obj :=  map(R^#A,R^1,i->0) || matrix{{-1_R}};
+        (y,Z) = simpleSDP(C,append(A,id_(R^n)), obj, y, untilObjNegative=>true, Verbose=>o.Verbose);
+        if y===null then return (,);
+        y = transpose matrix {take (flatten entries y,numRows y - 1)};   
+        );
+    verbose("Computing an optimal solution...", o);
+    return simpleSDP(C, A, b, y, o);
+    )
 
 simpleSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y) -> (
-     R := RR;
-     C = promote(C,R);
-     A = apply(0..#A-1, i -> promote(A_i,R));
-     b = promote(b,R);
-     n := numgens target C;                                    
-     y = promote(y,R);
+    R := RR;
+    C = promote(C,R);
+    A = apply(0..#A-1, i -> promote(A_i,R));
+    b = promote(b,R);
+    n := numgens target C;                                    
+    y = promote(y,R);
 
-     m := numgens target y;
-     mu := 1_R;
-     theta := 10_R;
-     iter := 1;
-     NewtonIterMAX := 40;
+    m := numgens target y;
+    mu := 1_R;
+    theta := 10_R;
+    iter := 1;
+    NewtonIterMAX := 40;
 
-     verbose("#It:       b'y      dy'Hdy   mu   alpha", o);        
+    verbose("#It:       b'y      dy'Hdy   mu   alpha", o);        
 
-     while mu > 0.000001 do (
-      mu = mu/theta;
-           while true do (
-           S := C - sum toList apply(0..m-1, i-> y_(i,0) * A_i);
-           Sinv :=  solve(S, id_(target S));
-           -- compute Hessian:
-           H := map(R^m,R^m,(i,j) -> trace(Sinv*A_i*Sinv*A_j));
-           if H==0 then (
-               print "Hessian is zero";
-               return null );
-           -- compute gradient:
-           g := map(R^m,R^1,(i,j) -> b_(i,0)/mu + trace(Sinv*A_i));
-           
-           -- compute damped Newton step:
-           try dy := -g//H else (
-               print "Newton step has no solution";
-               return null );
-           alpha := backtrack(S, -sum toList apply(0..m-1, i -> matrix(dy_(i,0) * entries A_i)));
-           if alpha===null then return null;
-           y = y + transpose matrix {alpha* (flatten entries dy)};
-           lambda := (transpose dy*H*dy)_(0,0);
-           obj := transpose b * y;
-           
-           -- print some information:
-           verbose(iter | ":  " | net obj | "    " | net lambda | "    " | net mu | "    " | net alpha, o);
+    while mu > 0.000001 do (
+        mu = mu/theta;
+        while true do (
+            S := C - sum toList apply(0..m-1, i-> y_(i,0) * A_i);
+            Sinv :=  solve(S, id_(target S));
+            -- compute Hessian:
+            H := map(R^m,R^m,(i,j) -> trace(Sinv*A_i*Sinv*A_j));
+            if H==0 then (
+                print "Hessian is zero";
+                return (,) );
+            -- compute gradient:
+            g := map(R^m,R^1,(i,j) -> b_(i,0)/mu + trace(Sinv*A_i));
+            
+            -- compute damped Newton step:
+            try dy := -g//H else (
+                print "Newton step has no solution";
+                return (,) );
+            alpha := backtrack(S, -sum toList apply(0..m-1, i -> matrix(dy_(i,0) * entries A_i)));
+            if alpha===null then return (,);
+            y = y + transpose matrix {alpha* (flatten entries dy)};
+            lambda := (transpose dy*H*dy)_(0,0);
+            obj := transpose b * y;
+            
+            -- print some information:
+            verbose(iter | ":  " | net obj | "    " | net lambda | "    " | net mu | "    " | net alpha, o);
 
-           iter = iter + 1;
-           if iter > NewtonIterMAX then (
-               verbose("Warning: exceeded maximum number of iterations", o);
-               return y);
-           if (o.untilObjNegative == true) and (obj_(0,0) < 0)  then return y;
-           if lambda < 0.4 then break;
-           ); 
-      );
-     return y;                
-     )     
+            iter = iter + 1;
+            if iter > NewtonIterMAX then (
+                verbose("Warning: exceeded maximum number of iterations", o);
+                break);
+            if (o.untilObjNegative == true) and (obj_(0,0) < 0) then break;
+            if lambda < 0.4 then break;
+            ); 
+        );
+    Z := C - sum(for i to #A-1 list y_(i,0) * A_i);
+    return (y,Z);
+    )     
 
 backtrack = args -> (
      S0 := args#0;
@@ -660,7 +664,7 @@ checkSolver = (solver) -> (
     A := (A1,A2);
     y0 := matrix{{7},{9}};
     b := matrix{{1},{1}};
-    (y,X) := solveSDP(C,A,b,y0,Solver=>solver);
+    (y,X,Z) := solveSDP(C,A,b,y0,Solver=>solver);
     yopt := matrix{{2.},{2.}};
     t0 := equal(yopt,y);
     ---------------TEST1---------------
@@ -670,7 +674,7 @@ checkSolver = (solver) -> (
     A = (A1,A2);
     b = matrix {{0},{-1}};
     y0 = matrix {{0},{-.486952}};
-    (y,X) = solveSDP(C,A,b,y0,Solver=>solver);
+    (y,X,Z) = solveSDP(C,A,b,y0,Solver=>solver);
     yopt = matrix{{1.97619},{.466049}};
     t1 := equal(yopt,y);
     ---------------TEST2---------------
@@ -679,7 +683,7 @@ checkSolver = (solver) -> (
     A2 = matrix{{0,0,0,1/2},{0,-1,0,0},{0,0,0,0},{1/2,0,0,0}};
     A = (A1,A2);
     b = matrix{{1},{0}};
-    (y,X) = solveSDP(C,A,b,Solver=>solver);
+    (y,X,Z) = solveSDP(C,A,b,Solver=>solver);
     yopt = matrix{{0.},{4.}};
     t2 := equal(yopt,y); 
     ---------------TEST3---------------
@@ -688,7 +692,7 @@ checkSolver = (solver) -> (
     A1 = matrix {{0,0,0,1/2},{0,-1,0,0},{0,0,0,0},{1/2,0,0,0}};
     A = sequence A1;
     b = matrix {{1}};
-    (y,X) = solveSDP(C,A,b,Solver=>solver);
+    (y,X,Z) = solveSDP(C,A,b,Solver=>solver);
     yopt = 4.;
     t3 := equal(yopt,y);
     -----------------------------------
@@ -708,27 +712,33 @@ load "./SOS/SOSdoc.m2"
 
 TEST /// --good cases
     R = QQ[x,y];
-    p = 4*x^4+y^4;
-    (ok,Q,mon) = solveSOS p
+    f = 4*x^4+y^4;
+    (ok,Q,mon) = solveSOS f
     (g,d) = sosdec(Q,mon)
-    assert( p == sumSOS(g,d) )
+    assert( f == sumSOS(g,d) )
 
-    p = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
-    (ok,Q,mon) = solveSOS p
+    f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
+    (ok,Q,mon) = solveSOS f
     (g,d) = sosdec(Q,mon)
-    assert( p == sumSOS(g,d) )
+    assert( f == sumSOS(g,d) )
 
     R = QQ[x,y,z];
-    p = x^4+y^4+z^4-4*x*y*z+x+y+z+3;
-    (ok,Q,mon) = solveSOS p
+    f = x^4+y^4+z^4-4*x*y*z+x+y+z+3;
+    (ok,Q,mon) = solveSOS f
     (g,d) = sosdec(Q,mon)
-    assert( p == sumSOS(g,d) )
+    assert( f == sumSOS(g,d) )
     
     R = QQ[x,y,z,w];
-    p = 2*x^4 + x^2*y^2 + y^4 - 4*x^2*z - 4*x*y*z - 2*y^2*w + y^2 - 2*y*z + 8*z^2 - 2*z*w + 2*w^2;
-    (ok,Q,mon) = solveSOS p
+    f = 2*x^4 + x^2*y^2 + y^4 - 4*x^2*z - 4*x*y*z - 2*y^2*w + y^2 - 2*y*z + 8*z^2 - 2*z*w + 2*w^2;
+    (ok,Q,mon) = solveSOS f
     (g,d) = sosdec(Q,mon)
-    assert( p == sumSOS (g,d) )
+    assert( f == sumSOS (g,d) )
+
+    R = QQ[x,z,t];
+    f = x^4+x^2+z^6-3*x^2*z^2-t;
+    (ok,Q,mon,tval) = solveSOS (f,{t},-t,rndTol=>12);
+    assert( tval#0 == -729/4096 )
+    assert( sub(f,t=>tval#0) == transpose(mon)*Q*mon )
 ///
 
 TEST /// --bad cases
