@@ -89,8 +89,7 @@ solveSOS(RingElement,List,RingElement,List) := o -> (f,p,objFcn,bounds) -> (
          
     -- build SOS model --     
     (C,Ai,Bi,A,B,b,mon,GramIndex,LinSpaceIndex) := createSOSModel(f,p,Verbose=>o.Verbose);
-    if #mon==0 then 
-        return if #p!=0 then (false,,mon,) else (false,,mon);
+    if #mon==0 then return (false,,mon,);
 
     ndim := numRows C;
     mdim := #Ai;
@@ -109,23 +108,16 @@ solveSOS(RingElement,List,RingElement,List) := o -> (f,p,objFcn,bounds) -> (
                 map(QQ^#p,QQ^#p, (j,k) -> if j==k and j==i then 1_QQ else 0_QQ),
                 map(QQ^#p,QQ^#p, (j,k) -> if j==k and j==i then -1_QQ else 0_QQ)));
         );
-        sol := solveSDP(C, Bi | Ai, obj, Solver=>o.Solver, Verbose=>o.Verbose);
-        if sol#0===null then return (false,,mon,);
-        y := -sol_0;
     )else (
         -- compute a feasible solution --
         verbose( "Solving SOS feasibility problem...", o);
-        lambda := min eigenvalues (promote (C,RR), Hermitian=>true);
-        if lambda >=0 then (
-           verbose("SDP solving maybe not necessary. Checking....", o);
-           (L,D,P,CnotPSD) := LDLdecomposition(C);
-           if CnotPSD == 0 then return (true,C,mon);
-        );
         obj = map(RR^(#Ai+#Bi),RR^1,i->0);
-        sol = solveSDP(C, Bi | Ai, obj, Solver=>o.Solver, Verbose=>o.Verbose);
-        if sol#0===null then return (false,,mon);
-        y = -sol_0;
     );
+    sol := solveSDP(C, Bi | Ai, obj, Solver=>o.Solver, Verbose=>o.Verbose);
+    if sol#0===null then return (false,,mon,);
+    y := -sol_0;
+
+    linspace := (A,B,GramIndex,LinSpaceIndex);
 
     -- round and project --
     ynum := for i to numRows y-1 list round(y_(i,0)*2^52)/2^52;
@@ -147,15 +139,15 @@ solveSOS(RingElement,List,RingElement,List) := o -> (f,p,objFcn,bounds) -> (
         (ok,Qp) := getRationalSOS(Qnum,A,bPar,d,GramIndex,LinSpaceIndex,Verbose=>o.Verbose);
         if ok then break else d = d + 1;
     );
-    if #p!=0 then return (ok,Qp,mon,flatten entries pVec) 
-    else return (ok,Qp,mon)
+    pVec = if #p!=0 then flatten entries pVec else null;
+    return (ok,Qp,mon,pVec);
     )
 solveSOS(RingElement,List,RingElement) := o -> (f,p,objFcn) -> 
     solveSOS(f,p,objFcn,{},o)
 solveSOS(RingElement,List) := o -> (f,p) -> 
-    solveSOS(f,p,0_(ring f),{},o)
+    solveSOS(f,p,0_(ring f),o)
 solveSOS(RingElement) := o -> (f) -> 
-    solveSOS(f,{},0_(ring f),{},o)
+    drop(solveSOS(f,{},o),-1)
 
 createSOSModel = {Verbose=>false} >> o -> (f,p) -> (
      -- Degree and number of variables
@@ -386,10 +378,9 @@ solveSDP(Matrix, Matrix, Matrix) := o -> (C,A,b) -> solveSDP(C,sequence A,b,o)
 solveSDP(Matrix, Matrix, Matrix, Matrix) := o -> (C,A,b,y) -> solveSDP(C,sequence A,b,y,o)
 
 solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
-    y:=null; X:=null; Z:= null;
-    if #A==0 then
-        (y,X,Z) = trivialSDP(C)
-    else if o.Solver == "M2" then
+    (ok,y,X,Z) := trivialSDP(C,A,b);
+    if ok then return (y,X);
+    if o.Solver == "M2" then
         y = simpleSDP(C,A,b,untilObjNegative=>o.untilObjNegative,Verbose=>o.Verbose)
     else if o.Solver == "CSDP" then
         (y,X,Z) = solveCSDP(C,A,b,Verbose=>o.Verbose)
@@ -401,19 +392,28 @@ solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
 )
 
 solveSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y0) -> (
-    if #A==0 or o.Solver != "M2" then
-        return solveSDP(C,A,b,o);
-    y := simpleSDP(C,A,b,y0,untilObjNegative=>o.untilObjNegative,Verbose=>o.Verbose);
+    (ok,y,X,Z) := trivialSDP(C,A,b);
+    if ok then return (y,X);
+    if o.Solver != "M2" then return solveSDP(C,A,b,o);
+    y = simpleSDP(C,A,b,y0,untilObjNegative=>o.untilObjNegative,Verbose=>o.Verbose);
     return (y,null);
 )
 
-trivialSDP = (C) -> (
+-- check trivial cases
+trivialSDP = (C,A,b) -> (
     C = promote (C,RR);
-    lambda := min eigenvalues(C, Hermitian=>true);
-    if lambda>=0 then
-        return (matrix(RR^0,RR^1,i->0), 0*C, C);
-    print "dual infeasible";
-    return (,,);
+    if #A==0 or b==0 then(
+        lambda := min eigenvalues(C, Hermitian=>true);
+        if lambda>=0 then(
+            print "SDP solved";
+            y0 := map(RR^#A,RR^1,i->0);
+            return (true, y0, 0*C, C); 
+        )else if #A==0 then(
+            print "dual infeasible";
+            return (true,,,); 
+            );
+        );
+    return (false,,,);
 )
 
 --simpleSDP
@@ -670,8 +670,8 @@ checkSolver = (solver) -> (
     A = (A1,A2);
     b = matrix {{0},{-1}};
     y0 = matrix {{0},{-.486952}};
-    (y,X) := solveSDP(C,A,b,y0,Solver=>solver);
-    yopt := matrix{{1.97619},{.466049}};
+    (y,X) = solveSDP(C,A,b,y0,Solver=>solver);
+    yopt = matrix{{1.97619},{.466049}};
     t1 := equal(yopt,y);
     ---------------TEST2---------------
     C = matrix{{2,2,-1,3},{2,0,0,2},{-1,0,1,0},{3,2,0,1}};
