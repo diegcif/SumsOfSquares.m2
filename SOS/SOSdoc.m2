@@ -2,13 +2,39 @@
 document { 
     Key => SOS,
     Headline => "An SOS package",
-    EM "SOS", " is a package for solving sum-of-squares (SOS) problems.",
+    TT "SOS", " is a package for solving sum-of-squares (SOS) problems.",
+
+    HEADER5 "Computing SOS decompositions",
+    "The following example demonstrates how to compute an SOS decomposition of a polynomial.",
     EXAMPLE lines ///
-     R = QQ[x,y];
-     f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
-     (ok,Q,mon) = solveSOS f;
-     (g,d) = sosdec(Q,mon)
-     sumSOS(g,d) - f
+      R = QQ[x,y];
+      f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y
+      (ok,Q,mon) = solveSOS f;
+      (g,d) = sosdec(Q,mon)
+    ///,
+    "We can check with the command ", TT "sumSOS", " whether the found decomposition matches the original polynomial",
+    EXAMPLE lines ///
+      sumSOS(g,d)
+    ///,
+
+    HEADER5 "SOS with parameters",
+    "If the coefficients of the polynomial are linearly parameterized, we can also search for parameters which render a polynomial to be a SOS. In the following example, the variable ", TT "t", " will be treated as a free parameter.",
+    EXAMPLE lines ///
+      R = QQ[x,t];
+      f = (t-1)*x^4+1/2*t*x+1;
+      (ok,Q,mon,tval) = solveSOS (f,{t});
+      (g,d) = sosdec(Q,mon)
+      tval
+    ///,
+
+    HEADER5 "SOS with parameter optimization",
+    "Semidefinite programming also allows to optimize a linear functional of the decision variables. As an example we compute a lower bound of a polynomial by minimizing its constant term. Since there is a tradeoff between rounding and optimality, we specify the required rounding precision as an optional input argument.",
+    EXAMPLE lines ///
+      R = QQ[x,t];
+      f = x^4 - 2*x + t;
+      (ok,Q,mon,tval) = solveSOS (f,{t},t,rndTol=>3);
+      (g,d) = sosdec(Q,mon)
+      tval
     ///,
     }
 
