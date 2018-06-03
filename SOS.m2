@@ -387,7 +387,9 @@ solveSDP(Matrix, Matrix, Matrix, Matrix) := o -> (C,A,b,y) -> solveSDP(C,sequenc
 
 solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
     y:=null; X:=null; Z:= null;
-    if o.Solver == "M2" then
+    if #A==0 then
+        (y,X,Z) = trivialSDP(C)
+    else if o.Solver == "M2" then
         y = simpleSDP(C,A,b,untilObjNegative=>o.untilObjNegative,Verbose=>o.Verbose)
     else if o.Solver == "CSDP" then
         (y,X,Z) = solveCSDP(C,A,b,Verbose=>o.Verbose)
@@ -399,10 +401,19 @@ solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
 )
 
 solveSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y0) -> (
-    if o.Solver != "M2" then
+    if #A==0 or o.Solver != "M2" then
         return solveSDP(C,A,b,o);
     y := simpleSDP(C,A,b,y0,untilObjNegative=>o.untilObjNegative,Verbose=>o.Verbose);
     return (y,null);
+)
+
+trivialSDP = (C) -> (
+    C = promote (C,RR);
+    lambda := min eigenvalues(C, Hermitian=>true);
+    if lambda>=0 then
+        return (matrix(RR^0,RR^1,i->0), 0*C, C);
+    print "dual infeasible";
+    return (,,);
 )
 
 --simpleSDP
@@ -519,8 +530,7 @@ solveCSDP(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     r := run(csdpexec | " " | fin | " " | fout | ">" | fout2);
     if r == 32512 then error "csdp executable not found";
     print("Output saved on file " | fout);
-    (y,X,Z) := readCSDP(fout,n);
-    (y,X,Z) = readCSDP2(fout2,y,X,Z,o.Verbose);
+    (y,X,Z) := readCSDP(fout,fout2,n,o.Verbose);
     return (y,X,Z);
 )
 
@@ -555,13 +565,14 @@ writeSDPA = (fin,C,A,b) -> (
     f << close;
 )
 
-readCSDP = (fout,n) -> (
+readCSDP = (fout,fout2,n,Verbose) -> (
     sdpa2matrix := s -> (
         e := for i in s list (i_2-1,i_3-1) => i_4;
         e' := for i in s list (i_3-1,i_2-1) => i_4;
         return map(RR^n, RR^n, e|e');
-    );
+        );
     readLine := l -> for s in separate(" ",l) list if s=="" then continue else value s;
+    --READ SOLUTIONS
     tmp := getFileName "";
     r := run("cat " | fout | " | tr -d + > " | tmp);
     L := lines get openIn tmp;
@@ -571,10 +582,7 @@ readCSDP = (fout,n) -> (
     S2 := select(S, l -> l_0==2);
     Z := sdpa2matrix(S1); -- slack matrix
     X := sdpa2matrix(S2); -- dual solution
-    return (y,X,Z);
-)
-
-readCSDP2 = (fout2,y,X,Z,Verbose) -> (
+    -- READ STATUS
     text := get openIn fout2;
     s := first select(lines text, l -> match("Success",l));
     print if Verbose then text else s;
@@ -584,6 +592,7 @@ readCSDP2 = (fout2,y,X,Z,Verbose) -> (
     else error "unknown message";
     return (y,X,Z);
 )
+
 
 --solveSDPA
 
@@ -602,12 +611,6 @@ solveSDPA(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
 )
 
 readSDPA = (fout,n,Verbose) -> (
-    readPhaseValue := s -> (
-        if match("pdOPT",s) or match("pdFEAS",s) then print "SDP solved"
-        else if match("dUNBD",s) then print "dual infeasible"
-        else if match("pUNBD",s) then print "primal infeasible"
-        else error "unknown message";
-        );
     readVec := l -> (
         l = replace("([{} +])","",l);
         for s in separate(",",l) list if s=="" then continue else value s
@@ -615,10 +618,8 @@ readSDPA = (fout,n,Verbose) -> (
     readMatrix := ll -> 
         matrix for l in ll list readVec l;
     text := get openIn fout;
-    if Verbose then print text;
     L := lines text;
-    s := first select(L, l -> match("phase.value",l));
-    readPhaseValue(s);
+    --READ SOLUTIONS
     y := null; X := null; Z := null;
     i := position(L, l -> match("xVec =",l));
     if i=!=null then 
@@ -629,6 +630,18 @@ readSDPA = (fout,n,Verbose) -> (
     i = position(L, l -> match("yMat =",l));
     if i=!=null then 
         X = matrix for j to n-1 list readVec L#(i+j+2);
+    --READ STATUS
+    if Verbose then print text;
+    s := first select(L, l -> match("phase.value",l));
+    if match("pdOPT",s) or match("pdFEAS",s) then 
+        print "SDP solved"
+    else if match("dUNBD",s) then(
+        print "dual infeasible";
+        y=null;Z=null; )
+    else if match("pUNBD",s) then(
+        print "primal infeasible";
+        X=null; )
+    else error "unknown message";
     return (y,X,Z);
     )
 
@@ -651,6 +664,16 @@ checkSolver = (solver) -> (
     yopt := matrix{{2.},{2.}};
     t0 := equal(yopt,y);
     ---------------TEST1---------------
+    C = matrix {{2,1,-1},{1,0,0},{-1,0,5}};
+    A1 = matrix {{0,0,1/2},{0,-1,0},{1/2,0,0}};
+    A2 = matrix {{1,0,0},{0,1,0},{0,0,1}};
+    A = (A1,A2);
+    b = matrix {{0},{-1}};
+    y0 = matrix {{0},{-.486952}};
+    (y,X) := solveSDP(C,A,b,y0,Solver=>solver);
+    yopt := matrix{{1.97619},{.466049}};
+    t1 := equal(yopt,y);
+    ---------------TEST2---------------
     C = matrix{{2,2,-1,3},{2,0,0,2},{-1,0,1,0},{3,2,0,1}};
     A1 = matrix{{-1,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}};
     A2 = matrix{{0,0,0,1/2},{0,-1,0,0},{0,0,0,0},{1/2,0,0,0}};
@@ -658,8 +681,8 @@ checkSolver = (solver) -> (
     b = matrix{{1},{0}};
     (y,X) = solveSDP(C,A,b,Solver=>solver);
     yopt = matrix{{0.},{4.}};
-    t1 := equal(yopt,y); 
-    ---------------TEST2---------------
+    t2 := equal(yopt,y); 
+    ---------------TEST3---------------
     -- solution not strictly feasible
     C = matrix {{2,2,-1,3},{2,0,0,2},{-1,0,1,0},{3,2,0,1}};
     A1 = matrix {{0,0,0,1/2},{0,-1,0,0},{0,0,0,0},{1/2,0,0,0}};
@@ -667,10 +690,10 @@ checkSolver = (solver) -> (
     b = matrix {{1}};
     (y,X) = solveSDP(C,A,b,Solver=>solver);
     yopt = 4.;
-    t2 := equal(yopt,y);
+    t3 := equal(yopt,y);
     -----------------------------------
-    test := {t0,t1,t2};
-    for i to 2 do
+    test := {t0,t1,t2,t3};
+    for i to 3 do
         if not test#i then print("test"|i|" failed");
     return test;
 )
@@ -710,7 +733,9 @@ TEST /// --good cases
 
 TEST /// --bad cases
     R = QQ[x,y,t];
-    f = x^4*y^2 + x^2*y^4 - 3*x^2*y^2 + 1 --minMotzkin
+    f = x^4*y^2 + x^2*y^4 - 3*x^2*y^2 + 1 --Motzkin
+    (ok,Q,mon) = solveSOS(f); 
+    assert( ok == false )
     (ok,Q,mon,tval) = solveSOS(f-t,{t},-t); 
     assert( ok == false )
 ///
@@ -739,5 +764,5 @@ TEST /// --LDL
 
 TEST /// --solveSDP
     test := checkSolver("M2")
-    assert(test#0 and test#1)
+    assert(test#0 and test#1 and test#2)
 ///
