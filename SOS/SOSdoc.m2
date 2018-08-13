@@ -9,64 +9,166 @@ document {
     EXAMPLE lines ///
       R = QQ[x,y];
       f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y
-      (ok,Q,mon) = solveSOS f;
-      (g,d) = sosdec(Q,mon)
+      (mon,Q,X,tval) = solveSOS f;
+      s = sosdec(mon,Q)
     ///,
     "We can check with the command ", TT "sumSOS", " whether the found decomposition matches the original polynomial",
     EXAMPLE lines ///
-      sumSOS(g,d)
+      sumSOS(s)
     ///,
 
     HEADER5 "SOS with parameters",
     "If the coefficients of the polynomial are linearly parameterized, we can also search for parameters which render a polynomial to be a SOS. In the following example, the variable ", TT "t", " will be treated as a free parameter.",
     EXAMPLE lines ///
-      R = QQ[x,t];
+      R = QQ[x][t];
       f = (t-1)*x^4+1/2*t*x+1;
-      (ok,Q,mon,tval) = solveSOS (f,{t});
-      (g,d) = sosdec(Q,mon)
+      (mon,Q,X,tval) = solveSOS (f);
+      sosdec(mon,Q)
       tval
     ///,
 
     HEADER5 "SOS with parameter optimization",
     "Semidefinite programming also allows to optimize a linear functional of the decision variables. As an example we compute a lower bound of a polynomial by minimizing its constant term. Since there is a tradeoff between rounding and optimality, we specify the required rounding precision as an optional input argument.",
     EXAMPLE lines ///
-      R = QQ[x,t];
+      R = QQ[x][t];
       f = x^4 - 2*x + t;
-      (ok,Q,mon,tval) = solveSOS (f,{t},t,rndTol=>3);
-      (g,d) = sosdec(Q,mon)
+      (mon,Q,X,tval) = solveSOS (f,t);
+      sosdec(mon,Q)
       tval
     ///,
     }
 
 --###################################
+-- SOSPoly
+--###################################
+
+doc /// --SOSPoly
+    Key
+        SOSPoly
+        sosPoly
+        (ring, SOSPoly)
+        (gens, SOSPoly)
+        (coefficients, SOSPoly)
+        (length, SOSPoly)
+        (net, SOSPoly)
+        (substitute, SOSPoly, Ring)
+        (symbol +, SOSPoly, SOSPoly)
+        (symbol *, SOSPoly, SOSPoly)
+        (symbol *, Number, SOSPoly)
+        (symbol ^, SOSPoly, ZZ)
+        (symbol ==, SOSPoly, SOSPoly)
+        (symbol ==, SOSPoly, RingElement)
+        (symbol ==, RingElement, SOSPoly)
+    Headline
+        A type to store SOS decompositions of polynomials
+    Description
+      Text
+        This data type stores sums of squares in terms of the summands.  
+	The type is a hash table consisting of the polynomials to be 
+	squared and summed (the 'generators'), corresponding coefficients,
+	and the base ring.
+      Example
+        R = QQ[x,y];
+        s = sosPoly(R, {x+1,y}, {2,3} )
+	peek s
+      Text
+        The ingredients of a SOS can be recovered using the expected commands:
+      Example
+        gens s
+	ring s
+	coefficients s
+      Text
+        The length of an SOS is the number of summands:
+      Example
+        length s
+      Text
+        Sums of squares support many common operations with polynomials:
+      Example
+	2 * s
+        s + s
+	s * s
+	s == s
+      Text
+        The actual polynomial can be recovered using @TO sumSOS@:
+      Example
+        sumSOS s
+      Text
+        @TO SOSPoly@ supports the @TO substitute@ command.  This
+	cannot be used to change the coefficient field, use @TO toRing@ for
+	this purpuse.
+      Example
+        S = QQ[x,y,z];
+	sub (s, S)
+///
+
+
+--###################################
 -- Methods
 --###################################
+
+doc /// --cleanSOS
+    Key
+        (clean,RR,SOSPoly)
+    Headline
+        Remove terms with very small coefficients from a sum of squares.
+    Usage
+        clean (tol, s)
+    Inputs
+	  tol:RR
+	    the tolerance for the coefficients.
+      s:SOSPoly
+    Outputs
+        :SOSPoly
+          a cleaned up @TO SOSPoly@
+    Consequences
+    Description
+      Text
+        Given an @TO SOSPoly@ with coefficients in the reals, 
+	this method removes terms with 
+	coefficients smaller than the given tolerance.  It does nothing 
+	on inputs with rational coefficients.
+      Example
+        R = RR[x,y];
+        s = sosPoly(R, {x^2+.0001*x+1, y}, {2, .0001})
+        clean( .001, s )
+      Code
+      Pre
+    SeeAlso
+        SOSPoly
+///
 
 doc /// --sumSOS
     Key
         sumSOS
+        (sumSOS,SOSPoly)
+	(sumSOS, List, List)
     Headline
         expansion of a weighted SOS decomposition
     Usage
-        sumSOS(g,d)
+        sumSOS(s)
+	sumSOS(g,d)
     Inputs
-        g:Sequence
-          of polynomials
-        d:Sequence
-          of numbers
+        s:SOSPoly
+	g:List
+	  a list of polynomials
+	d:List
+	  a list of coefficients
     Outputs
         :RingElement
           a polynomial
     Consequences
     Description
       Text
-        Given polynomials $g_i$ and scalars $d_i$,
-        this method computes
-        $f = \sum_i d_i g_i^2$.
+        Given polynomials $g_i$ and coefficients $d_i$,
+        this method computes $f = \sum_i d_i g_i^2$.
+	The polynomials and coefficients can be given as lists or
+	encapsulated in an object of type @TO SOSPoly@.
       Example
         R = QQ[x,y];
-        sumSOS( (x+1,y), (2,3) )
-      Code
+	sumSOS( {x+1,y}, {2,3}  )
+        s = sosPoly(R, {x+1,y}, {2,3} )
+        sumSOS( s )
+      Code    
       Pre
     SeeAlso
         sosdec
@@ -78,19 +180,14 @@ doc /// --sosdec
     Headline
         SOS decomposition of a polynomial
     Usage
-        (g,d) = sosdec(Q,mon)
+        s = sosdec(mon,Q)
     Inputs
         Q:Matrix
           the rational $n\times n$ Gram matrix of the polynomial f
         mon:Matrix
           a $n\times 1$ matrix of monomials
     Outputs
-        g:Sequence
-          of polynomials with coefficients in $\QQ$
-        d:Sequence
-          of scalar weights in $\QQ$
-        tval:List
-          of parameter values
+        s:SOSPoly
     Consequences
     Description
       Text
@@ -101,9 +198,9 @@ doc /// --sosdec
       Example
         R = QQ[x,y];
         f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
-        (ok,Q,mon) = solveSOS f;
-        (g,d) = sosdec(Q,mon)
-        sumSOS(g,d) - f
+        (mon,Q,X,tval) = solveSOS f;
+        s = sosdec(mon,Q)
+        sumSOS(s)
       Code
       Pre
     SeeAlso
@@ -115,31 +212,30 @@ doc /// --solveSOS
     Key
         solveSOS
         (solveSOS,RingElement)
-        (solveSOS,RingElement,List)
-        (solveSOS,RingElement,List,RingElement)
-        (solveSOS,RingElement,List,RingElement,List)
+        (solveSOS,RingElement,RingElement)
+        (solveSOS,RingElement,Matrix)
+        (solveSOS,RingElement,RingElement,Matrix)
     Headline
         solve a sum-of-squares problem
     Usage
-        (ok,Q,mon) = solveSOS f
-        (ok,Q,mon,tval) = solveSOS(f,p,objFun)
-        (ok,Q,mon,tval) = solveSOS(f,p,objFun,bounds)
+        (mon,Q,X,tval) = solveSOS(f)
+        (mon,Q,X,tval) = solveSOS(f,objFun)
+        (Q,X,tval) = solveSOS(f,mon)
+        (Q,X,tval) = solveSOS(f,objFun,mon)
     Inputs
         f:RingElement
-          a polynomial with coefficients in $\QQ$
-        p:List
-          of parameters (optional)
+          a polynomial
         objFun:RingElement
-          a polynomial with coefficients in $\QQ$ (optional)
-        bounds:List
-          a lower and upper bound for the parameters (optional)
+          a linear function of the parameters (optional)
+        mon:Matrix
+          a vector of monomials (optional)
     Outputs
-        ok:Boolean
-          indicates whether a rational SOS decomposition was found
         Q:Matrix
-          the rational $n\times n$ Gram matrix of the polynomial f
+          the $n\times n$ Gram matrix of the polynomial f
         mon:Matrix
           a $n\times 1$ matrix of monomials
+        X:Matrix
+          the $n\times n$ moment matrix (dual to Q)
         tval:List
           of parameter values
     Consequences
@@ -150,18 +246,19 @@ doc /// --solveSOS
         $$f = mon' Q mon.$$ 
         The algorithm first computes a floating point solution, 
         and then tries to obtain an exact solution by rounding the numerical result. 
+        If the rounding fails, the numerical solution is returned.
       Example
         R = QQ[x,y];
         f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
-        (ok,Q,mon) = solveSOS f
+        (mon,Q,X,tval) = solveSOS f
         transpose(mon)*Q*mon - f
       Text
         The method can also solve parametric SOS problems that depend affinely of some decision variables. 
         For instance, we can find an SOS lower bound for the dehomogenized Motzkin polynomial:
       Example
-        R = QQ[x,z,t];
+        R = QQ[x,z][t];
         f = x^4+x^2+z^6-3*x^2*z^2-t;
-        (ok,Q,mon,tval) = solveSOS (f,{t},-t,rndTol=>12);
+        (mon,Q,X,tval) = solveSOS (f,-t,RndTol=>12);
         tval
       Code
       Pre
@@ -170,17 +267,55 @@ doc /// --solveSOS
         Solver
 ///
 
-doc /// --getRationalSOS
+doc ///
     Key
-        getRationalSOS
+    	toRing
+	(toRing, Ring, RingElement)
+	(toRing, Ring, SOSPoly)
     Headline
-        compute rational SOS decomposition for given precision
+        Move a polynomial to a ring with different coefficients
     Usage
-        (Qp,ok) = getRationalSOS(Q,A,b,d)
-        (Qp,ok) = getRationalSOS(Q,A,b,d,GramIndex,LinSpaceIndex)
+        f = toRing (R, f)
+        s = toRing (R, s)
+    Inputs
+        R:Ring
+          a polynomial ring with rational or real coefficients
+        f:RingElement
+          a polynomial or
+        s:SOSPoly
+          an @TO SOSPoly@
+    Outputs
+    	f:RingElement
+	  the input polynomial in the new ring, or
+	s:SOSPoly
+	  the input SOS polynomial in the new ring
+    Description
+    	Text
+    	    This method can be used to change a polynomial or SOSPoly with
+	    rational coefficients into one with real coefficients and vice
+	    versa.
+    	Example
+	    R = QQ[x,y];
+    	    s = sosPoly(R, {x+1,y}, {2,3});
+    	    S = RR[x,y];
+    	    s2 = toRing_S s
+    	    s3 = toRing_R s2
+    Caveat
+    	The function is designed to switch from real coefficients to rational
+	coefficients and back.  It's behaviour is undefined if both rings
+	have the same coefficient ring.  The obvious rounding issues apply.
+///
+
+doc /// --roundPSDmatrix
+    Key
+        roundPSDmatrix
+    Headline
+        rational rounding of a PSD matrix
+    Usage
+        (Qp,ok) = roundPSDmatrix(Q,A,b,d)
     Inputs
         Q:Matrix
-          Gram matrix to be rounded
+          a positive semidefinite matrix
         A:Matrix
         b:Matrix
           a vector
@@ -188,20 +323,21 @@ doc /// --getRationalSOS
           the rounding precision
     Outputs
         Qp:Matrix
-          the rounded matrix
+          the rounded matrix (rational)
         ok:Boolean
           true if Qp is positive semidefinite
     Consequences
     Description
       Text
-        Returns the projection of the rounded matrix Q onto the affine subspace $A q = b$.
+        Returns the projection of a matrix $Q$ onto an affine subspace described by rational coefficients.
 
-        GramIndex and LinSpaceIndex are hash tables for the correspondence between the columns of $A$ and the entries of $Q$.
+        By @TO2 {smat2vec,"vectorizing"}@ the matrices, the affine subspace can be described in the form $A q = b$.
       Code
       Pre
     SeeAlso
         createSOSModel
         project2linspace
+        smat2vec
 ///
 
 doc /// --choosemonp
@@ -210,12 +346,10 @@ doc /// --choosemonp
     Headline
         create list of monomials based on the Newton polytope
     Usage
-        (lmf, lmsos) = choosemonp(f,p)
+        (lmf, lmsos) = choosemonp(f)
     Inputs
         f:RingElement
           a polynomial
-        p:List
-          of parameters
     Outputs
         lmf:List
           of monomials of f
@@ -259,40 +393,78 @@ doc /// --project2linspace
 doc /// --createSOSModel
     Key
         createSOSModel
+        (createSOSModel,RingElement,Matrix)
     Headline
-        model of the Gram matrix representations of a polynomial
+        space of Gram matrices of a polynomial (for developers)
     Usage
-        (C,Ai,Bi,A,B,b,mon,GramIndex,LinSpaceIndex) = createSOSModel(f,p)
+        (C,Ai,Bi,A,B,b) = createSOSModel(f,mon)
     Inputs
         f:RingElement
           a polynomial
-        p:List
-          of parameters
+        mon:Matrix
+          a vector of monomials
     Outputs
         C:Matrix
         Ai:Sequence
         Bi:Sequence
         A:Matrix
-        B:Sequence
+        B:Matrix
         b:Matrix
-        mon:Matrix
-        GramIndex:HashTable
-        LinSpaceIndex:HashTable
     Consequences
     Description
       Text
         This method creates the kernel and image model of the Gram matrices of a polynomial $f$.
 
-        A Gram matrix representation of $f$ is a symmetric matrix X such that
-        $f = mon' X mon$,
+        A Gram matrix representation of $f$ is a symmetric matrix $Q$ such that
+        $f = mon' Q mon$,
         where $mon$ is a vector of monomials.
-        The set of all Gram matrices $X$ is an affine subspace.
-        This affine subspace can be described in image form as
-        $X = C - \sum_i y_i A_i$
-        where $y_i$ are free parameters,
+        The set of all Gram matrices $Q$ is an affine subspace.
+        This subspace can be described in image form as
+        $Q = C - \sum_i y_i A_i$,
         or in kernel form as
-        $A x = b$
-        where $x_i = X_{GramIndex#i}$.
+        $A q = b$
+        where $q$ is the @TO2 {smat2vec,"vectorization"}@ of $Q$.
+
+        For parametric SOS problems the image form is
+        $Q = C - \sum_i y_i A_i - \sum_j p_j B_j$,
+        where $p_j$ are the parameters,
+        and the kernel form is
+        $A q + B p = b$.
+      Code
+      Pre
+    SeeAlso
+///
+
+doc /// --smat2vec
+    Key
+        smat2vec
+        (smat2vec,Matrix)
+        (smat2vec,List)
+        vec2smat
+        (vec2smat,Matrix)
+        (vec2smat,List)
+    Headline
+        vectorization of a symmetric matrix
+    Usage
+        v = smat2vec A
+        A = vec2smat v
+    Inputs
+        A:Matrix
+          symmetric
+        v:Matrix
+          a vector
+    Outputs
+        v:Matrix
+        A:Matrix
+    Consequences
+    Description
+      Text
+        The method {\tt smat2vec} obtains the vectorization of a symmetric matrix.
+        The method {\tt vec2smat} performs the reverse operation.
+      Example
+        A = matrix(QQ, {{1,2,3,4},{2,5,6,7},{3,6,8,9},{4,7,9,10}})
+        v = smat2vec A
+        vec2smat v
       Code
       Pre
     SeeAlso
@@ -307,14 +479,11 @@ doc /// --LDLdecomposition
         (L,D,P,err) = LDLdecomposition A
     Inputs
         A:Matrix
-          over $\QQ$ or $\ZZ$
     Outputs
         L:Matrix
           lower triangular
         D:Matrix
           diagonal
-        L:Matrix
-          lower triangular
         P:Matrix
           permutation matrix
         err:ZZ
@@ -322,9 +491,9 @@ doc /// --LDLdecomposition
     Consequences
     Description
       Text
-        Given a positive semidefinite matrix $A$, this method returns a lower triangular matrix $L$ with ones in the diagonal, a diagonal matrix $D$ and a permutation matrix $P$ such that $L' D L = P' A P.$
+        Given a positive semidefinite matrix $A$, this method returns a lower triangular matrix $L$ with ones in the diagonal, a diagonal matrix $D$ and a permutation matrix $P$ such that $L D L' = P' A P.$
       Example
-        A = matrix {{5,3,5},{3,2,4},{5,4,10}}
+        A = matrix(QQ, {{5,3,5},{3,2,4},{5,4,10}})
         (L,D,P,err) = LDLdecomposition(A)
         L*D*transpose(L) == transpose(P)*A*P
       Text
@@ -332,34 +501,6 @@ doc /// --LDLdecomposition
         Gene Golub and Charles van Loan: Matrix Computations, Johns Hopkins
         series in the Mathematical Science, 2 ed., pp. 133-148,
         Baltimore Maryland, 1989.
-      Code
-      Pre
-    SeeAlso
-///
-
-doc /// --blkDiag
-    Key
-        blkDiag
-    Headline
-        construct a block diagonal matrix
-    Usage
-        D = blkDiag(A1,A2,...,An)
-    Inputs
-        Ai:
-          square matrices
-    Outputs
-        D:
-          block diagonal matrix
-    Consequences
-    Description
-      Text
-        This method returns the block diagonal matrix with blocks 
-        $A1,A2,...,An.$
-      Example
-        A1 = matrix {{0,1},{1,0}};
-        A2 = matrix {{1,2},{2,2}};
-        A3 = matrix {{3}};
-        blkDiag(A1,A2,A3)
       Code
       Pre
     SeeAlso
@@ -379,16 +520,18 @@ doc /// --solveSDP
         (y,X,Q) = solveSDP(C,A,b,y0)
     Inputs
         C:Matrix
-          a symmetric $n\times n$ matrix over $\RR$
+          a symmetric $n\times n$ matrix
         A:Sequence
-          consisting of $m$ symmetric $n\times n$ matrices over $\RR$
+          consisting of $m$ symmetric $n\times n$ matrices
         y0:Matrix
-          an $m\times 1$ matrix over $\RR$ (optional)
+          an $m\times 1$ matrix (optional)
     Outputs
         y:
-          an $m\times 1$ matrix, the primal solution
+          an $m\times 1$ matrix, primal variable
         X:
-          an $n\times n$ matrix, the dual solution (not available if Solver=>"M2")
+          an $n\times n$ matrix, dual variable (not available if Solver=>"M2")
+        Q:
+          an $n\times n$ matrix, primal variable
     Consequences
     Description
       Text
@@ -417,20 +560,198 @@ doc /// --solveSDP
     SeeAlso
 ///
 
-doc /// --checkSolver
-    Key
-        checkSolver
+doc /// --makeMultiples
+    Key	   
+        makeMultiples
     Headline
-        tests method "solveSDP" (for developers)
+        Multiply a list of polynomials by monomials
     Usage
-        checkSolver solver
+        (H,m) = makeMultiples (h, D, homog)
     Inputs
-        solver:String
-          either "M2" or "CSDP"
+        h:List
+          a list of polynomials
+        D:ZZ
+          degree bound
+	homog:Boolean
+	  whether the whole list should be homogenous
+    Outputs
+        f:RingElement
+	  the generic combination
+	H:List
+	  consisting of multiples of h
+	m:List
+	  consisting of monomials
+    Description
+      Text
+        This method takes a list of polynomials as an input and multiplies them by all the monomials up to a certain degree bound.
+      Example
+        R = QQ[x,y,z];
+    	f1 = x + y;
+    	f2 = x + z;
+    	(H,m) = makeMultiples ({f1,f2},2, false);
+        H
+///
+
+
+doc /// --sosdecTernary
+    Key
+        sosdecTernary
+    Headline
+       Sum of squares decomposition for ternary forms.
+    Usage
+        (p,q) = sosdecTernary(f, Solver=>"CSDP")
+    Inputs
+        f:RingElement
+          a homogeneous polynomial in 3 variables
+    Outputs
+        p:List
+          of sum of squares
+        q:List
+          of sum of squares
     Consequences
     Description
       Text
-        This function tests that @TO solveSDP@ works properly.
+        Given a non-negative ternary form $f$, this method uses Hilbert's algorithm to compute a decomposition of $f$ as sum of squares of rational polynomials:
+        $$f=\frac{\prod_ip_i}{\prod_iq_i}$$
+        The method returns null if $f$ is not non-negative.
+
+        {\bf References:}
+        de Klerk, Etienne and Pasechnik, Dmitrii V.: Products of positive forms, linear matrix inequalities, and Hilbert 17th problem for ternary forms, European J. Oper. Res., 39-45 (2004).
+    Caveat
+        This implementation only works with the solver CSDP.
+///
+
+doc /// --sosInIdeal
+    Key
+        sosInIdeal
+    Headline
+       Sum of squares polynomial in ideal
+    Usage
+        (p,mult) = sosInIdeal(f,d,Solver=>"CSDP")
+    Inputs
+        f:List
+          a list of polynomials
+        d:ZZ
+          positive integer greater than the degrees of polynomials in the list f.
+    Outputs
+        p:SOSPoly
+        mult:List
+          of polynomial multipliers
+    Consequences
+    Description
+      Text
+        This method takes a list of polynomials as an input and finds a sum of squares polynomial upto degree d in the ideal generated by the polynomials in the list f. 
+        Output is null if it doesn't find a sum of squares polynomial upto that degree.
+    Caveat
+        This implementation only works with the solver CSDP.
+///
+
+doc /// --lowerBound
+    Key
+        lowerBound
+        (lowerBound, RingElement)
+        (lowerBound, RingElement, ZZ)
+        (lowerBound, RingElement, Matrix, ZZ)
+    Headline
+        finds a lower bound for a polynomial
+    Usage
+        (bound,mon,Q,X) = lowerBound(f)
+        (bound,mon,Q,X) = lowerBound(f,D)
+        (bound,mon,Q,X,mult) = lowerBound(f, h, D)
+    Inputs
+        f:RingElement
+          a polynomial
+        h:List
+          a polynomials (optional)
+        D:ZZ
+          a degree bound for the SDP relaxation (optional)
+    Outputs
+        bound:
+          a lower bound on f
+        mon:
+          the minimizer of f (if it can be recovered)
+    Consequences
+    Description
+      Text
+        This method finds a lower bound for a function $f$, which is either a polynomial or a rational function.
+        In some cases the minimizer can be recovered by using the method @TO recoverSolution@.
+      Example
+        R=QQ[x];
+        f = (x-1)^2 + (x+3)^2;
+        (bound,mon,Q,X) = lowerBound(f);
+        bound
+      Text
+        More generally, the method computes lower bounds for a polynomial optimization problem of the form
+        $$min_x \, f(x) \,\,\, s.t. \,\,\, h_i(x) = 0, \, i=1..m$$
+      Example
+        R = QQ[x,y];
+        f = y;
+        h = matrix{{y-x^2}};
+        (bound,mon,Q,X,mult) = lowerBound (f, h, 4);
+        bound
+      Text
+        The method also works in quotient rings.
+      Example
+        R = QQ[x,y]/ideal(x^2 - x, y^2 - y);
+        f = x - y;
+        (bound,mon,Q,X) = lowerBound(f,2);
+        bound
+    SeeAlso
+        recoverSolution
+///
+
+doc /// --recoverSolution
+    Key
+        recoverSolution
+    Headline
+        recover the solution of an SOS problem
+    Usage
+        sol = recoverSolution(mon,X)
+    Inputs
+        mon:Matrix
+          of monomials
+        X:Matrix
+          the moment matrix
+    Outputs
+        sol:List
+          the solution
+    Consequences
+    Description
+      Text
+        This method attempts to find the solution of an SOS problem
+        by checking if the moment matrix is rank one.
+      Example
+        R = RR[x,y];
+        mon = matrix {{1},{x},{y}};
+        X = matrix(RR, {{1,0,1},{0,0,0},{1,0,1}} );
+        sol = recoverSolution(mon,X)
+      Code
+      Pre
+    SeeAlso
+        solveSOS
+        lowerBound
+///
+
+doc /// --checkSolver
+    Key
+        checkSolver
+        (checkSolver,String)
+        (checkSolver,String,String)
+        (checkSolver,String,Function)
+    Headline
+        tests an SDP solver
+    Usage
+        checkSolver(solver)
+        checkSolver(solver,fun)
+    Inputs
+        solver:String
+          either "M2" or "CSDP" or "SDPA"
+        fun:Function
+          (optional)
+    Consequences
+    Description
+      Text
+        This method tests that a function works works properly using a specified solver.
       Code
       Pre
     SeeAlso
@@ -441,12 +762,12 @@ doc /// --checkSolver
 -- Symbols
 --###################################
 
-doc /// --rndTol
+doc /// --RndTol
     Key
-        rndTol
-        [solveSOS,rndTol]
+        RndTol
+        [solveSOS,RndTol]
     Headline
-        construct a block diagonal matrix
+        rounding precision
     Consequences
     Description
       Text
@@ -457,7 +778,14 @@ doc /// --rndTol
 ///
 
 document { --Solver
-    Key => {Solver,[solveSDP,Solver],[solveSOS,Solver]},
+    Key => {
+        Solver,
+        [solveSDP,Solver],
+        [solveSOS,Solver],
+        [sosInIdeal,Solver],
+        [sosdecTernary,Solver],
+        [lowerBound,Solver],
+        },
     Headline => "semidefinite programming solver",
     "The following SDP solvers are available:",
     UL{
@@ -466,6 +794,6 @@ document { --Solver
        {"\"SDPA\"", " -- use the SDPA solver, available at ", TT "http://sdpa.sourceforge.net/" },
       },
     "The CSDP and SDPA executables can be specified when loading the package, as follows ",BR{},
-    TT "loadPackage(SOS,Configuration=>{\"CSDPexec\"=>\"csdp\",\"SDPAexec\"=>\"sdpa\"})",BR{},
+    TT "loadPackage(\"SOS\",Configuration=>{\"CSDPexec\"=>\"csdp\",\"SDPAexec\"=>\"sdpa\"})",BR{},
     }
 

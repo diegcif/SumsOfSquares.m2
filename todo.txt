@@ -1,0 +1,114 @@
+#########################
+######## IMPROVE ########
+#########################
+
+The following methods need to be improved
+
+1) changeRingField doesn't work on quotient rings
+1) realZeros should work on a nontrivial example
+2) createSOSModel should be faster than solving the SDP
+
+
+#########################
+######## TESTING ########
+#########################
+
+Implement tests for the following methods
+
+3) sosdec (missing over RR)
+7*) LDLdecomposition
+9*) choosemonp
+10) createSOSModel
+
+The following methods need a test that accepts the Solver as an input
+
+14*) solveSDP
+15*) solveSOS
+16) sosdecTernary
+17) sosInIdeal
+18) lowerBound
+--19) lasserreHierarchy--
+
+The methods marked with (*) already have some tests, but need more.
+
+NOTE: All methods must be tested with inputs over QQ and over RR.
+
+#########################
+####### DEBUGGING #######
+#########################
+
+Known bugs:
+
+4) Numerators in bugs/sosdecTernaryHarris.m2 lie in different rings
+
+5) In the first test of lasserreHierarchy it sometimes happens that
+   rounding fails.  In this case the last few lines of solveSOS fail,
+   because they call changePolyField with f being a matrix.  I can't
+   reproduce this at the moment because rounding is always successful.
+
+6) LDLdecomposition decomposes (matrix{{1,-1,1},{-1,1,1},{1,1,1}})
+   but fails the test. Of course it has one eigenvalue negative, so it shouldn't decompose.
+
+7) The following works over QQ but fails over RR (true solution -.178)
+    R = RR[x,z]
+    f = x^4+x^2+z^6-3*x^2*z^2;
+    (bound,mon,Q,X) = lowerBound (f,Solver=>"SDPA");
+
+#########################
+##### DOCUMENTATION #####
+#########################
+
+Methods without documentation
+
+--1) sosPoly--
+--2) cleanSOS--
+--3) toRing--
+--4) sub(SOSPoly,Ring)--
+--5) SOSPoly * SOSPoly--
+--6) genericCombination--
+
+Methods whose documentation needs improvement
+
+7) sumSOS
+8) roundPSDmatrix
+9) choosemonp
+10) lowerBound   TK: Calling it with parameters is not documented
+11) lasserreHierarchy   TK: Options are not documented yet.
+
+########################################
+######### Comments and discussion ######
+########################################
+
+2) The function sosInIdeal is worthless if it can't even solve
+    R = QQ[x,y,z];
+    h = {x-y, x+z};
+    (s,mult) = sosInIdeal (h,10, Solver=>"CSDP");
+    diego: it seems to work with d=4, why did you choose d=10??
+    --> The result is too complicated.  This may be a bug.
+
+3) Maybe we should implement that each RingMap can be applied to an
+   SOSpoly?
+   TK does it if it is easy (5 lines).
+
+6) The following example only works with SDPA, but not M2 and not
+   CSDP.  Can we do anything about it?
+   needsPackage ("SOS" , Configuration => { "CSDPexec" => "CSDP/csdp", "SDPAexec"=>"./sdpa"})
+   R = QQ[x,y]
+   f = (x-y)^2 + x^2 + (y-4)^2;
+   (bound, sol) = lowerBound(f, Solver=>"SDPA");
+   -- the minimum is 16/3.
+   result = (abs (16/3-bound) < 0.1)
+
+
+#########################
+######### PAPER #########
+#########################
+
+Sketch of the paper (might change)
+
+1) brief introduction to SOS, nonnegativity, polynomial optimization
+2) computing SOS decompositions (Motzkin, Robinson, Lax-Lax)
+2) computing SOS decompositions of ternary forms (Harris)
+3) parametrized SOS problems
+4) SOS optimization (lowerBound, lasserreHierarchy)
+
