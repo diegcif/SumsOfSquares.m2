@@ -34,7 +34,6 @@ export {
 --Methods/Functions
     "sosPoly",
     "solveSOS",
-    "sosdec",
     "sosdecTernary",
     "sumSOS",
     "LDLdecomposition",
@@ -246,7 +245,7 @@ vec2smat(Matrix) := o -> v -> matrix(ring v, vec2smat(flatten entries v,o))
 -- solveSOS
 --###################################
 
-sosdec = (mon,Q) -> (
+sosPoly(Matrix,Matrix) := (mon,Q) -> (
     if mon===null or Q===null then return;
     (L,D,P,err) := PSDdecomposition(Q);
     if err != 0 then (
@@ -698,7 +697,7 @@ sosInIdeal (Ring, ZZ) := o -> (R,D) -> (
     mon := if isHomogeneous R then transpose basis(D//2,R)
         else transpose basis(0,D//2,R);
     (mon',Q,X,tval) := solveSOS (0_R, mon, o);
-    a := sosdec(mon',Q);
+    a := if Q=!=null then sosPoly(mon',Q);
     if a===null or Q==0 or (not isExactField Q and norm Q<1e-6) then (
         print("no sos polynomial in degree "|D);
         return;
@@ -719,7 +718,7 @@ sosInIdeal (Matrix,ZZ) := o -> (h,D) -> (
     (H,m) := makeMultiples(first entries h, D, homog);
     F := matrix transpose {{0}|H};
     (mon,Q,X,tval) := rawSolveSOS (F, o);
-    a := sosdec(mon,Q);
+    a := if Q=!=null then sosPoly(mon,Q);
     if a===null or Q==0 or (not isExactField Q and norm Q<1e-6) then (
         print("no sos polynomial in degree "|D);
         return (null,null);
@@ -756,7 +755,7 @@ sosdecTernary(RingElement) := o -> (f) -> (
         S = append(S,Si);
         );
     (mon,Q,X,tval) := rawSolveSOS matrix{{fi}};
-    Si = sosdec(mon,Q);
+    Si = if Q=!=null then sosPoly(mon,Q);
     if Si===null then return (,);
     S = append(S,Si);
     nums := for i to #S-1 list if odd i then continue else S#i;
@@ -1618,11 +1617,8 @@ TEST /// --sosdec
     Q=matrix{{1,-1/2,1},{-1/2,1,-1/2},{1,-1/2,1}}
     Q=promote(Q,QQ)
     mon=matrix{{x^3},{x^2*z},{y*z^2}}
-    f=sosdec(mon,Q)
+    f=sosPoly(mon,Q)
     assert(f=!=null and sumSOS f==transpose mon * Q *mon)
-    -- boundary cases:
-    assert( sosdec(  ,mon) === null )
-    assert( sosdec(Q ,   ) === null )
 ///
 
 TEST /// --choosemonp

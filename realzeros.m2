@@ -62,7 +62,7 @@ c = { 0.0178596043395922,0.0233257692779691,0.116691455690316,0.0313008384002122
 p = sum apply(mon6,c, (i,j)->i*j);
 
 (Q,mon,X) = solveSOS(p,Solver=>"CSDP");
-s = sosdec(Q,mon)
+s = sosPoly(Q,mon)
 s' = clean(1e-4, s);
 pts = solveSystem gens s'
 --pts := zeroSolve(h');

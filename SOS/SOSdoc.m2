@@ -10,7 +10,7 @@ document {
       R = QQ[x,y];
       f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y
       (mon,Q,X,tval) = solveSOS f;
-      s = sosdec(mon,Q)
+      s = sosPoly(mon,Q)
     ///,
     "We can check with the command ", TT "sumSOS", " whether the found decomposition matches the original polynomial",
     EXAMPLE lines ///
@@ -23,7 +23,7 @@ document {
       R = QQ[x][t];
       f = (t-1)*x^4+1/2*t*x+1;
       (mon,Q,X,tval) = solveSOS (f);
-      sosdec(mon,Q)
+      sosPoly(mon,Q)
       tval
     ///,
 
@@ -33,7 +33,7 @@ document {
       R = QQ[x][t];
       f = x^4 - 2*x + t;
       (mon,Q,X,tval) = solveSOS (f,t);
-      sosdec(mon,Q)
+      sosPoly(mon,Q)
       tval
     ///,
     }
@@ -171,16 +171,16 @@ doc /// --sumSOS
       Code    
       Pre
     SeeAlso
-        sosdec
+        (sosPoly,Matrix,Matrix)
 ///
 
 doc /// --sosdec
     Key
-        sosdec
+        (sosPoly,Matrix,Matrix)
     Headline
-        SOS decomposition of a polynomial
+        make SOS polynomial from Gram matrix
     Usage
-        s = sosdec(mon,Q)
+        s = sosPoly(mon,Q)
     Inputs
         Q:Matrix
           the rational $n\times n$ Gram matrix of the polynomial f
@@ -199,7 +199,7 @@ doc /// --sosdec
         R = QQ[x,y];
         f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
         (mon,Q,X,tval) = solveSOS f;
-        s = sosdec(mon,Q)
+        s = sosPoly(mon,Q)
         sumSOS(s)
       Code
       Pre
@@ -263,7 +263,7 @@ doc /// --solveSOS
       Code
       Pre
     SeeAlso
-        sosdec
+        (sosPoly,Matrix,Matrix)
         Solver
 ///
 
