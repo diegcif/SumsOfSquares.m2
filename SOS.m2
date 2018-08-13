@@ -47,15 +47,9 @@ export {
     "vec2smat",
     "recoverSolution",
 --only for debugging
-    "truncatedSVD",
-    "kernelGens",
-    "parameterVector",
     "createSOSModel",
     "choosemonp",
     "project2linspace",
-    "toRing",
-    "changeRingField",
-    "changeMatrixField",
 --Method options
     "RndTol",
     "UntilObjNegative",

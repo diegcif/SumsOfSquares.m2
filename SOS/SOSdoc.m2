@@ -312,26 +312,28 @@ doc /// --roundPSDmatrix
     Headline
         rational rounding of a PSD matrix
     Usage
-        (Qp,ok) = roundPSDmatrix(Q,A,b,d)
+        (Qp,ispsd) = roundPSDmatrix(Q,A,b,d)
     Inputs
         Q:Matrix
-          a positive semidefinite matrix
+          a symmetric matrix (real)
         A:Matrix
+          (rational)
         b:Matrix
-          a vector
-        d:RR
+          (rational)
+        d:ZZ
           the rounding precision
     Outputs
         Qp:Matrix
           the rounded matrix (rational)
-        ok:Boolean
+        ispsd:Boolean
           true if Qp is positive semidefinite
     Consequences
     Description
       Text
-        Returns the projection of a matrix $Q$ onto an affine subspace described by rational coefficients.
-
-        By @TO2 {smat2vec,"vectorizing"}@ the matrices, the affine subspace can be described in the form $A q = b$.
+        Let $S^n$ be the space of symmetric $n\times n$ matrices,
+        and let $L \subset S^n$ be a rational affine subspace.
+        By @TO2 {smat2vec,"vectorization"}@ we may describe this subspace in the form  $A q = b$ for some matrix $A$ with $n(n+1)/2$ columns.
+        Given a real matrix $Q\in S^n$, this method finds a nearby rational matrix $Q_p$ on $L$.
       Code
       Pre
     SeeAlso
