@@ -347,7 +347,7 @@ toRing (Ring, RingElement) := (S,f) -> (
     -- QQ => RR
     if kk===QQ then return phi(f);
     -- RR => QQ
-    if not class kk === RealField then error "Expecting conversion from real here";
+    if not instance(kk, RealField) then error "Expecting conversion from real here";
     (mon,coef) := coefficients f;
     mon = matrix {liftMonomial_S \ flatten entries mon};
     K := 2^(precision kk);
@@ -365,7 +365,7 @@ toRing (Ring, SOSPoly) := (S, s) -> (
         return sosPoly (S, (x -> sub (x, S)) \ gens s,
             (q -> sub (q, kk)) \ coefficients s);
     -- RR => QQ
-    if not(class kk === RealField and coefficientRing S===QQ) then 
+    if not (instance (kk, RealField) and coefficientRing S===QQ) then 
         error "Error: only conversion between real and rational coefficient fields is implemented.";
 	g' := toRing_S \ gens s;
 	K := 2^(precision kk);
@@ -1588,7 +1588,7 @@ TEST ///--toRing
     s = sosPoly(R, {x+1,y}, {2,3});
     S = RR[x,y];
     s2 = toRing_S s;
-    assert (class coefficientRing ring s2 === RealField)
+    assert instance(coefficientRing ring s2, RealField)
     s3 = toRing_R s2;
     assert (s==s3)
     
