@@ -1,22 +1,44 @@
 
 document { 
     Key => SOS,
-    Headline => "An SOS package",
-    TT "SOS", " is a package for solving sum-of-squares (SOS) problems.",
-
-    HEADER5 "Computing SOS decompositions",
-    "The following example demonstrates how to compute an SOS decomposition of a polynomial.",
+    Headline => "A package for sums-of-squares problems",
+    TT "SOS", " is a package to solve sum-of-squares (SOS) problems.",
+    
+    HEADER4 "Introduction",
+    "Writing a polynomial as a sum of squares polynomials proves its non-negativity for all arguments,
+    but not all non-negative polynomials are sums of squares.  
+    While non-negativity of a polynomial is hard to check, there are efficient methods to find
+    sums-of-squares decompositions, and this package tries to make them available in Macaulay2.  
+    These methods rely on efficient semi-definite-programming solvers from 
+    mathematical optimization.  The ", TT "SOS", " package interfaces tries hard to hide 
+    some of the difficulties that arise from using these numerical procedures. ", 
+    "The most basic application is to (try to) decompose a polynomial as a sum of squares using the function ", TO "solveSOS",
     EXAMPLE lines ///
       R = QQ[x,y];
       f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y
       (mon,Q,X,tval) = solveSOS f;
+    ///,
+    "In the case of a successful decomposition the important return values of , ", TO "solveSOS", " are the first two, 
+    which encode the SOS decomposition as described in ", TO "solveSOS", ". The function ", TO "sosPoly", " creates a an object 
+    of type ", TO "SOSPoly", "
+    storing the decomposition in terms of the polynomials whose squares sum up to the original polynomial.  The coefficients
+    in the sum of squares are stored independently as their roots may not exist in the coefficient field.",
+    EXAMPLE lines ///
       s = sosPoly(mon,Q)
     ///,
-    "We can check with the command ", TT "sumSOS", " whether the found decomposition matches the original polynomial",
+    "The command ", TO "sumSOS", " can be used to check that the found decomposition matches the original polynomial as follows",
     EXAMPLE lines ///
       sumSOS(s)
     ///,
+    
+    -- CREATE TWO PAGES ON SOLVERS AND COEFFICIENT FIELDS AND LINK THEM HERE.
+    
+    HEADER4 "Sums of squares modulo equality constraints",
+    "This can be useful to prove non-negativity of a polynomial on a variety.  For example, consider the problem
+    of proving that the polynomial", TEX "F = 10-x^2-y", " is non-negative on the unit circle, defined by ", TEX "G = x^2 + y^2 - 1", ". ",
+    "According to [P05], one checks if", TEX "F", " is a sum-of-squares in the ring ",
 
+    HEADER4 "Other useful functions in this package",
     HEADER5 "SOS with parameters",
     "If the coefficients of the polynomial are linearly parameterized, we can also search for parameters which render a polynomial to be a SOS. In the following example, the variable ", TT "t", " will be treated as a free parameter.",
     EXAMPLE lines ///
@@ -36,6 +58,12 @@ document {
       sosPoly(mon,Q)
       tval
     ///,
+    
+    HEADER4 "Literature",
+    UL {
+	LI {"[BPT12] ", EM "Semidefinite Optimization and Convex Algebraic Geometry", " SIAM Textbook, edited by G. Blekherman, P. Parrilo, and R. Thomas, (2012)"},
+	LI {"[P05] ", EM "Exploiting Algebraic Structure in Sum of Squares Programs", " P. Parrilo in ", EM"Positive polynomials in control", " (2005)"},
+	}
     }
 
 --###################################
