@@ -49,7 +49,6 @@ export {
 --Method options
     "RndTol",
     "UntilObjNegative",
-    "WorkingPrecision",
     "Solver",
     "TraceObj",
     "Scaling"
@@ -830,7 +829,7 @@ lowerBound(RingElement,Matrix,ZZ) := o -> (f,h,D) -> (
 --###################################
 
 solveSDP = method(
-     Options => {UntilObjNegative => false, WorkingPrecision => 53, Solver=>"M2", Verbose => false} )
+     Options => {Solver=>"M2", Verbose => false} )
 
 solveSDP(Matrix, Matrix, Matrix) := o -> (C,A,b) -> solveSDP(C,sequence A,b,o)
 
@@ -845,7 +844,7 @@ solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
     if o.Solver == "M2" then(
         (ok,y,X,Z) = trivialSDP(C,A,b);
         if ok then return (y,X,Z)
-        else (y,Z) = simpleSDP(C,A,b,UntilObjNegative=>o.UntilObjNegative,Verbose=>o.Verbose)
+        else (y,Z) = simpleSDP(C,A,b,Verbose=>o.Verbose)
         )
     else if o.Solver == "CSDP" then
         (y,X,Z) = solveCSDP(C,A,b,Verbose=>o.Verbose)
@@ -885,7 +884,7 @@ solveSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y0) -> (
     if o.Solver != "M2" then return solveSDP(C,A,b,o);
     (ok,y,X,Z) = trivialSDP(C,A,b);
     if ok then return (y,X,Z);
-    (y,Z) = simpleSDP(C,A,b,y0,UntilObjNegative=>o.UntilObjNegative,Verbose=>o.Verbose);
+    (y,Z) = simpleSDP(C,A,b,y0,Verbose=>o.Verbose);
     return (y,,Z);
     )
 
@@ -1584,6 +1583,7 @@ TEST ///--substitute SOSPoly
 ///
 
 TEST ///--toRing
+    debug needsPackage "SOS"
     R = QQ[x,y];
     s = sosPoly(R, {x+1,y}, {2,3});
     S = RR[x,y];
@@ -1612,6 +1612,7 @@ TEST /// --sosdec
 ///
 
 TEST /// --choosemonp
+    debug needsPackage "SOS"
     R = QQ[x,y];
     f = x^4+2*x*y-x+y^4
     lmsos = choosemonp(f)
@@ -1628,6 +1629,7 @@ TEST /// --choosemonp
 ///
 
 TEST /// --createSOSModel
+    debug needsPackage "SOS"
     eval = (Q,v) -> (transpose v * Q * v)_(0,0)
     
     R = QQ[x][t];
@@ -1696,6 +1698,7 @@ TEST /// --roundPSDmatrix
 ///
 
 TEST ///--makeMultiples
+    debug needsPackage "SOS"
     R = QQ[x,y,z]
     f1 = x + y
     f2 = x^2 + z^2
