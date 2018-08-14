@@ -45,7 +45,6 @@ document {
 doc /// --SOSPoly
     Key
         SOSPoly
-        sosPoly
         (ring, SOSPoly)
         (gens, SOSPoly)
         (coefficients, SOSPoly)
@@ -63,20 +62,23 @@ doc /// --SOSPoly
         A type to store SOS decompositions of polynomials
     Description
       Text
+        A polynomial $f\in K[x]$ is a sum-of-squares (SOS) if it can be written as
+        $$f = \sum_i d_i g_i^2,$$
+        where the $g_i$ are polynomials in $K[x]$ and the $d_i$ are weights in $K$.
         This data type stores sums of squares in terms of the summands.  
-	The type is a hash table consisting of the polynomials to be 
-	squared and summed (the 'generators'), corresponding coefficients,
-	and the base ring.
+        The type is a hash table consisting of the polynomials to be 
+        squared and summed (the 'generators'), corresponding coefficients,
+        and the base ring.
       Example
         R = QQ[x,y];
         s = sosPoly(R, {x+1,y}, {2,3} )
-	peek s
+        peek s
       Text
         The ingredients of a SOS can be recovered using the expected commands:
       Example
         gens s
-	ring s
-	coefficients s
+        ring s
+        coefficients s
       Text
         The length of an SOS is the number of summands:
       Example
@@ -84,21 +86,23 @@ doc /// --SOSPoly
       Text
         Sums of squares support many common operations with polynomials:
       Example
-	2 * s
+        2 * s
         s + s
-	s * s
-	s == s
+        s * s
+        s == s
       Text
         The actual polynomial can be recovered using @TO sumSOS@:
       Example
         sumSOS s
       Text
         @TO SOSPoly@ supports the @TO substitute@ command.  This
-	cannot be used to change the coefficient field, use @TO toRing@ for
-	this purpuse.
+        cannot be used to change the coefficient field, use @TO toRing@ for
+        this purpuse.
       Example
         S = QQ[x,y,z];
-	sub (s, S)
+        sub (s, S)
+    SeeAlso
+        sosPoly
 ///
 
 
@@ -174,27 +178,39 @@ doc /// --sumSOS
         (sosPoly,Matrix,Matrix)
 ///
 
-doc /// --sosdec
+doc /// --sosPoly
     Key
+        sosPoly
+        (sosPoly,Ring,List,List)
+        (sosPoly,List,List)
         (sosPoly,Matrix,Matrix)
     Headline
-        make SOS polynomial from Gram matrix
+        make an SOS polynomial
     Usage
+        s = sosPoly(R,polys,coeffs)
         s = sosPoly(mon,Q)
     Inputs
+        R:Ring
+        polys:List
+          of polynomials
+        coeffs:List
+          of scalars
         Q:Matrix
-          the rational $n\times n$ Gram matrix of the polynomial f
+          the Gram matrix of the polynomial f
         mon:Matrix
-          a $n\times 1$ matrix of monomials
+          a vector of monomials
     Outputs
         s:SOSPoly
     Consequences
     Description
       Text
-        This method computes a rational SOS decomposition of a polynomial:
-        $$f = \sum_i d_i g_i^2$$
-        where the $g_i$ are polynomials in $\QQ[x]$ and the $d_i$ are weights in $\QQ$.
-        The input is a Gram matrix $Q$ and a vector of monomials $mon$, as produced by the method @TO solveSOS@.
+        This method creats an object of type @TO SOSPoly@.
+        An SOS polynomial can be created from a list of generators and weights.
+      Example
+        R = QQ[x,y];
+        s = sosPoly(R, {x+1,y}, {2,3} )
+      Text
+        Alternatively, one can input a Gram matrix $Q$ and a vector of monomials $mon$, as produced by the method @TO solveSOS@.
       Example
         R = QQ[x,y];
         f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
@@ -342,101 +358,6 @@ doc /// --roundPSDmatrix
         smat2vec
 ///
 
-doc /// --choosemonp
-    Key
-        choosemonp
-    Headline
-        create list of monomials based on the Newton polytope
-    Usage
-        (lmf, lmsos) = choosemonp(f)
-    Inputs
-        f:RingElement
-          a polynomial
-    Outputs
-        lmf:List
-          of monomials of f
-        lmsos:List
-          of monomials for the SOS factors
-    Consequences
-    Description
-      Text
-        Creates a list of monomials for an SOS decomposition.
-        The monomials are chosen based on the Newton polytope.
-      Code
-      Pre
-    SeeAlso
-///
-
-doc /// --project2linspace
-    Key
-        project2linspace
-    Headline
-        project a rational point onto affine subspace
-    Usage
-        xp = project2linspace(A,b,x0)
-    Inputs
-        A:Matrix
-        b:Matrix
-          a vector
-        x0:Matrix
-          a rational vector
-    Outputs
-        xp:Matrix
-          the projection of x0
-    Consequences
-    Description
-      Text
-        Projects a rational point $x_0$ onto the affine subspace given by $A x = b$
-      Code
-      Pre
-    SeeAlso
-///
-
-doc /// --createSOSModel
-    Key
-        createSOSModel
-        (createSOSModel,RingElement,Matrix)
-    Headline
-        space of Gram matrices of a polynomial (for developers)
-    Usage
-        (C,Ai,Bi,A,B,b) = createSOSModel(f,mon)
-    Inputs
-        f:RingElement
-          a polynomial
-        mon:Matrix
-          a vector of monomials
-    Outputs
-        C:Matrix
-        Ai:Sequence
-        Bi:Sequence
-        A:Matrix
-        B:Matrix
-        b:Matrix
-    Consequences
-    Description
-      Text
-        This method creates the kernel and image model of the Gram matrices of a polynomial $f$.
-
-        A Gram matrix representation of $f$ is a symmetric matrix $Q$ such that
-        $f = mon' Q mon$,
-        where $mon$ is a vector of monomials.
-        The set of all Gram matrices $Q$ is an affine subspace.
-        This subspace can be described in image form as
-        $Q = C - \sum_i y_i A_i$,
-        or in kernel form as
-        $A q = b$
-        where $q$ is the @TO2 {smat2vec,"vectorization"}@ of $Q$.
-
-        For parametric SOS problems the image form is
-        $Q = C - \sum_i y_i A_i - \sum_j p_j B_j$,
-        where $p_j$ are the parameters,
-        and the kernel form is
-        $A q + B p = b$.
-      Code
-      Pre
-    SeeAlso
-///
-
 doc /// --smat2vec
     Key
         smat2vec
@@ -561,39 +482,6 @@ doc /// --solveSDP
         Then "M2" solver might fail to compute the solution if the problem is not strictly feasible.
     SeeAlso
 ///
-
-doc /// --makeMultiples
-    Key	   
-        makeMultiples
-    Headline
-        Multiply a list of polynomials by monomials
-    Usage
-        (H,m) = makeMultiples (h, D, homog)
-    Inputs
-        h:List
-          a list of polynomials
-        D:ZZ
-          degree bound
-	homog:Boolean
-	  whether the whole list should be homogenous
-    Outputs
-        f:RingElement
-	  the generic combination
-	H:List
-	  consisting of multiples of h
-	m:List
-	  consisting of monomials
-    Description
-      Text
-        This method takes a list of polynomials as an input and multiplies them by all the monomials up to a certain degree bound.
-      Example
-        R = QQ[x,y,z];
-    	f1 = x + y;
-    	f2 = x + z;
-    	(H,m) = makeMultiples ({f1,f2},2, false);
-        H
-///
-
 
 doc /// --sosdecTernary
     Key
@@ -758,6 +646,137 @@ doc /// --checkSolver
       Pre
     SeeAlso
         Solver
+///
+
+--###################################
+-- Unexported methods (for developers)
+--###################################
+
+doc /// --createSOSModel
+    Key
+        createSOSModel
+        (createSOSModel,RingElement,Matrix)
+    Headline
+        space of Gram matrices of a polynomial (for developers)
+    Usage
+        (C,Ai,Bi,A,B,b) = createSOSModel(f,mon)
+    Inputs
+        f:RingElement
+          a polynomial
+        mon:Matrix
+          a vector of monomials
+    Outputs
+        C:Matrix
+        Ai:Sequence
+        Bi:Sequence
+        A:Matrix
+        B:Matrix
+        b:Matrix
+    Consequences
+    Description
+      Text
+        This method creates the kernel and image model of the Gram matrices of a polynomial $f$.
+
+        A Gram matrix representation of $f$ is a symmetric matrix $Q$ such that
+        $f = mon' Q mon$,
+        where $mon$ is a vector of monomials.
+        The set of all Gram matrices $Q$ is an affine subspace.
+        This subspace can be described in image form as
+        $Q = C - \sum_i y_i A_i$,
+        or in kernel form as
+        $A q = b$
+        where $q$ is the @TO2 {smat2vec,"vectorization"}@ of $Q$.
+
+        For parametric SOS problems the image form is
+        $Q = C - \sum_i y_i A_i - \sum_j p_j B_j$,
+        where $p_j$ are the parameters,
+        and the kernel form is
+        $A q + B p = b$.
+      Code
+      Pre
+    SeeAlso
+///
+
+doc /// --choosemonp
+    Key
+        choosemonp
+    Headline
+        create list of monomials based on the Newton polytope
+    Usage
+        (lmf, lmsos) = choosemonp(f)
+    Inputs
+        f:RingElement
+          a polynomial
+    Outputs
+        lmf:List
+          of monomials of f
+        lmsos:List
+          of monomials for the SOS factors
+    Consequences
+    Description
+      Text
+        Creates a list of monomials for an SOS decomposition.
+        The monomials are chosen based on the Newton polytope.
+      Code
+      Pre
+    SeeAlso
+///
+
+doc /// --project2linspace
+    Key
+        project2linspace
+    Headline
+        project a rational point onto affine subspace
+    Usage
+        xp = project2linspace(A,b,x0)
+    Inputs
+        A:Matrix
+        b:Matrix
+          a vector
+        x0:Matrix
+          a rational vector
+    Outputs
+        xp:Matrix
+          the projection of x0
+    Consequences
+    Description
+      Text
+        Projects a rational point $x_0$ onto the affine subspace given by $A x = b$
+      Code
+      Pre
+    SeeAlso
+///
+
+doc /// --makeMultiples
+    Key	   
+        makeMultiples
+    Headline
+        Multiply a list of polynomials by monomials
+    Usage
+        (H,m) = makeMultiples (h, D, homog)
+    Inputs
+        h:List
+          a list of polynomials
+        D:ZZ
+          degree bound
+	homog:Boolean
+	  whether the whole list should be homogenous
+    Outputs
+        f:RingElement
+	  the generic combination
+	H:List
+	  consisting of multiples of h
+	m:List
+	  consisting of monomials
+    Description
+      Text
+        This method takes a list of polynomials as an input and multiplies them by all the monomials up to a certain degree bound.
+      Example
+        R = QQ[x,y,z];
+    	f1 = x + y;
+    	f2 = x + z;
+    	(H,m) = makeMultiples ({f1,f2},2, false);
+        H
 ///
 
 --###################################

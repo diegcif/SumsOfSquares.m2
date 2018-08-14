@@ -38,7 +38,6 @@ export {
     "sumSOS",
     "LDLdecomposition",
     "solveSDP",
-    "makeMultiples",
     "sosInIdeal",
     "lowerBound",
     "roundPSDmatrix",
@@ -47,9 +46,6 @@ export {
     "vec2smat",
     "recoverSolution",
 --only for debugging
-    "createSOSModel",
-    "choosemonp",
-    "project2linspace",
 --Method options
     "RndTol",
     "UntilObjNegative",
