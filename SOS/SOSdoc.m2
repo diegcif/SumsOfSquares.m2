@@ -713,37 +713,37 @@ doc /// --project2linspace
     SeeAlso
 ///
 
-doc /// --makeMultiples
-    Key	   
-        makeMultiples
-    Headline
-        Multiply a list of polynomials by monomials
-    Usage
-        (H,m) = makeMultiples (h, D, homog)
-    Inputs
-        h:List
-          a list of polynomials
-        D:ZZ
-          degree bound
-	homog:Boolean
-	  whether the whole list should be homogenous
-    Outputs
-        f:RingElement
-	  the generic combination
-	H:List
-	  consisting of multiples of h
-	m:List
-	  consisting of monomials
-    Description
-      Text
-        This method takes a list of polynomials as an input and multiplies them by all the monomials up to a certain degree bound.
-      Example
-        R = QQ[x,y,z];
-    	f1 = x + y;
-    	f2 = x + z;
-    	(H,m) = makeMultiples ({f1,f2},2, false);
-        H
-///
+-- doc /// --makeMultiples
+--     Key	   
+--         makeMultiples
+--     Headline
+--         Multiply a list of polynomials by monomials
+--     Usage
+--         (H,m) = makeMultiples (h, D, homog)
+--     Inputs
+--         h:List
+--           a list of polynomials
+--         D:ZZ
+--           degree bound
+-- 	homog:Boolean
+-- 	  whether the whole list should be homogenous
+--     Outputs
+--         f:RingElement
+-- 	  the generic combination
+-- 	H:List
+-- 	  consisting of multiples of h
+-- 	m:List
+-- 	  consisting of monomials
+--     Description
+--       Text
+--         This method takes a list of polynomials as an input and multiplies them by all the monomials up to a certain degree bound.
+--       Example
+--         R = QQ[x,y,z];
+--     	f1 = x + y;
+--     	f2 = x + z;
+--     	(H,m) = makeMultiples ({f1,f2},2, false);
+--         H
+-- ///
 
 --###################################
 -- Symbols

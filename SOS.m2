@@ -22,8 +22,8 @@ newPackage(
     When the documentation changes, the developer has to exchange true and
     false below, create the new example files, commit them, and change it back.
     *-
-    UseCachedExampleOutput => true,
-    CacheExampleOutput => false,
+    UseCachedExampleOutput => false,
+    CacheExampleOutput => true,
     PackageImports => {"SimpleDoc","FourierMotzkin"},
     PackageExports => {}
 )
