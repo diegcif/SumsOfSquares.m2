@@ -59,6 +59,11 @@ export {
 --##########################################################################--
 
 makeGlobalPath = (fname) -> (
+    r := run( "which " | "'" | fname |"'");
+    if r>0 then(
+        print("Warning: " | fname | " executable was not found.");
+        return;
+        );
     if first fname != "/" then fname = currentDirectory() | fname;
     return "'" | fname | "'";
     )
@@ -1030,6 +1035,7 @@ solveCSDP = method( Options => {Verbose => false} )
 solveCSDP(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     -- CSDP expects the file fparam to be in the working directory.
     -- That's why we need to change directory before executing csdp.
+    if csdpexec===null then error "csdp executable not found";
     n := numColumns C;
     fin := getFileName ".dat-s";
     (dir,fin1) := splitFileName(fin);
@@ -1151,6 +1157,7 @@ checkDualSol = (C,A,y,Z,Verbose) -> (
 
 solveSDPA = method( Options => {Verbose => false} )
 solveSDPA(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
+    if sdpaexec===null then error "sdpa executable not found";
     n := numColumns C;
     fin := getFileName ".dat-s";
     fout := getFileName "";
