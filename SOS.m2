@@ -59,11 +59,13 @@ export {
 --##########################################################################--
 
 makeGlobalPath = (fname) -> (
-    r := run( "which " | "'" | fname |"'");
+    tmp := temporaryFileName();
+    r := run( "which '" | fname | "' > " | tmp);
     if r>0 then(
         print("Warning: " | fname | " executable was not found.");
         return;
         );
+    fname = replace("\n","",get tmp);
     if first fname != "/" then fname = currentDirectory() | fname;
     return "'" | fname | "'";
     )
