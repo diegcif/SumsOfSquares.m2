@@ -16,7 +16,7 @@ document {
     EXAMPLE lines ///
       R = QQ[x,y];
       f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y
-      (mon,Q,X,tval) = solveSOS f;
+      sol = solveSOS f;
     ///,
     "In the case of a successful decomposition the important return values of , ", TO "solveSOS", " are the first two, 
     which encode the SOS decomposition as described in ", TO "solveSOS", ". The function ", TO "sosPoly", " creates a an object 
@@ -24,7 +24,7 @@ document {
     storing the decomposition in terms of the polynomials whose squares sum up to the original polynomial.  The coefficients
     in the sum of squares are stored independently as their roots may not exist in the coefficient field.",
     EXAMPLE lines ///
-      s = sosPoly(mon,Q)
+      s = sosPoly sol
     ///,
     "The command ", TO "sumSOS", " can be used to check that the found decomposition matches the original polynomial as follows",
     EXAMPLE lines ///
@@ -44,8 +44,8 @@ document {
     EXAMPLE lines ///
       R = QQ[x][t];
       f = (t-1)*x^4+1/2*t*x+1;
-      (mon,Q,X,tval) = solveSOS (f);
-      sosPoly(mon,Q)
+      sol = solveSOS (f);
+      sosPoly(sol)
       tval
     ///,
 
@@ -54,8 +54,8 @@ document {
     EXAMPLE lines ///
       R = QQ[x][t];
       f = x^4 - 2*x + t;
-      (mon,Q,X,tval) = solveSOS (f,t);
-      sosPoly(mon,Q)
+      sol = solveSOS (f,t);
+      sosPoly(sol)
       tval
     ///,
     
@@ -242,8 +242,8 @@ doc /// --sosPoly
       Example
         R = QQ[x,y];
         f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
-        (mon,Q,X,tval) = solveSOS f;
-        s = sosPoly(mon,Q)
+        sol = solveSOS f;
+        s = sosPoly(sol)
         sumSOS(s)
       Code
       Pre
@@ -262,10 +262,10 @@ doc /// --solveSOS
     Headline
         solve a sum-of-squares problem
     Usage
-        (mon,Q,X,tval) = solveSOS(f)
-        (mon,Q,X,tval) = solveSOS(f,objFun)
-        (Q,X,tval) = solveSOS(f,mon)
-        (Q,X,tval) = solveSOS(f,objFun,mon)
+        sol = solveSOS(f)
+        sol = solveSOS(f,objFun)
+        sol = solveSOS(f,mon)
+        sol = solveSOS(f,objFun,mon)
     Inputs
         f:RingElement
           a polynomial
@@ -294,7 +294,9 @@ doc /// --solveSOS
       Example
         R = QQ[x,y];
         f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
-        (mon,Q,X,tval) = solveSOS f
+        sol = solveSOS f;
+        Q = sol#"Q"
+        mon = sol#"mon"
         transpose(mon)*Q*mon - f
       Text
         The method can also solve parametric SOS problems that depend affinely of some decision variables. 
@@ -302,8 +304,8 @@ doc /// --solveSOS
       Example
         R = QQ[x,z][t];
         f = x^4+x^2+z^6-3*x^2*z^2-t;
-        (mon,Q,X,tval) = solveSOS (f,-t,RndTol=>12);
-        tval
+        sol = solveSOS (f,-t,RndTol=>12);
+        sol#"tval"
       Code
       Pre
     SeeAlso
@@ -511,7 +513,7 @@ doc /// --sosInIdeal
     Headline
        Sum of squares polynomial in ideal
     Usage
-        (p,mult) = sosInIdeal(f,d,Solver=>"CSDP")
+        sol = sosInIdeal(f,d,Solver=>"CSDP")
     Inputs
         f:List
           a list of polynomials
@@ -539,9 +541,9 @@ doc /// --lowerBound
     Headline
         finds a lower bound for a polynomial
     Usage
-        (bound,mon,Q,X) = lowerBound(f)
-        (bound,mon,Q,X) = lowerBound(f,D)
-        (bound,mon,Q,X,mult) = lowerBound(f, h, D)
+        (bound,sol) = lowerBound(f)
+        (bound,sol) = lowerBound(f,D)
+        (bound,sol) = lowerBound(f, h, D)
     Inputs
         f:RingElement
           a polynomial
@@ -562,7 +564,7 @@ doc /// --lowerBound
       Example
         R=QQ[x];
         f = (x-1)^2 + (x+3)^2;
-        (bound,mon,Q,X) = lowerBound(f);
+        (bound,sol) = lowerBound(f);
         bound
       Text
         More generally, the method computes lower bounds for a polynomial optimization problem of the form
@@ -571,14 +573,14 @@ doc /// --lowerBound
         R = QQ[x,y];
         f = y;
         h = matrix{{y-x^2}};
-        (bound,mon,Q,X,mult) = lowerBound (f, h, 4);
+        (bound,sol) = lowerBound (f, h, 4);
         bound
       Text
         The method also works in quotient rings.
       Example
         R = QQ[x,y]/ideal(x^2 - x, y^2 - y);
         f = x - y;
-        (bound,mon,Q,X) = lowerBound(f,2);
+        (bound,sol) = lowerBound(f,2);
         bound
     SeeAlso
         recoverSolution
