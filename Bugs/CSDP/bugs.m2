@@ -1,4 +1,4 @@
-needsPackage( "SOS", Configuration=>{"CSDPexec"=>"CSDP/csdp","SDPAexec"=>"CSDP/sdpa"} )
+needsPackage( "SOS", Configuration=>{"CSDPexec"=>"SDPsolvers/csdp","SDPAexec"=>"SDPsolvers/sdpa"} )
 
 -- Bug 1: sdp is feasible, but csdp fails
 -- Solution: set perturbobj=0

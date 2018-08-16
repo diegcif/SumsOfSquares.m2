@@ -1,4 +1,4 @@
-needsPackage ("SOS" , Configuration => { "CSDPexec" => "CSDP/csdp"})
+needsPackage ("SOS" , Configuration => { "CSDPexec" => "SDPsolvers/csdp"})
 
 R = QQ[x,y,z]
 (a,b,c,d,e) = (16,-36,20,57,-38);
