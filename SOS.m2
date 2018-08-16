@@ -167,13 +167,29 @@ clean(RR,SOSPoly) := (tol,s) -> (
 
 SDPResult = new Type of HashTable
 
-sdpResult = (mon,Q,X,tval) -> (
+sdpResult = (mon,Q,X,tval,mult) -> (
     new SDPResult from {
         "mon" => mon,
         "Q" => Q,
         "X" => X,
-        "tval" => tval
+        "tval" => tval,
+        "mult" => mult
         }
+    )
+
+net SDPResult := sol -> (
+    mat2str := M -> 
+        if M===null then "null" 
+        else numRows M | "x" | numColumns M | " matrix over " | toString ring M;
+    str := {
+        {"Primal X", mat2str sol#"X"},
+        {"Dual Q", mat2str sol#"Q"},
+        {"Monomials", mat2str sol#"mon"}
+        };
+    mult := sol#"mult";
+    if mult=!=null then
+        str = append(str,{"Multipliers",mat2str mult});
+    return netList(str,HorizontalSpace=>1,Alignment=>Center)
     )
 
 readSdpResult = sol -> (sol#"mon", sol#"Q", sol#"X", sol#"tval")
@@ -270,7 +286,7 @@ sosPoly(Matrix,Matrix) := (mon,Q) -> (
     g = g_idx;
     return sosPoly(ring mon,g,d);
     )
-sosPoly(SDPResult) := sol -> sosPoly(sol#"mon", sol#"Q")
+sosPoly(SDPResult) := sol -> if sol#"Q"=!=null then sosPoly(sol#"mon", sol#"Q")
 
 -- internal way to call solveSOS
 rawSolveSOS = method(
@@ -306,19 +322,19 @@ rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
     else verbose("Solving SOS optimization problem...", o);
 
     (my,X,Q) := solveSDP(C, Ai, obj, Solver=>o.Solver, Verbose=>o.Verbose);
-    if Q===null then return sdpResult(mon,Q,X,);
+    if Q===null then return sdpResult(mon,Q,X,,);
     y := -my;
     pvec0 := flatten entries(p0 + V*y);
 
-    if not isExactField kk then return sdpResult(mon,Q,X,pvec0);
+    if not isExactField kk then return sdpResult(mon,Q,X,pvec0,);
     if o.RndTol==infinity then
-        return (changeMatrixField(RR,mon),Q,X,pvec0);
+        return sdpResult(changeMatrixField(RR,mon),Q,X,pvec0,);
 
     -- rational rounding --
     (ok,Qp,pVec) := roundSolution(pvec0,Q,A,B,b,o.RndTol);
-    if ok then return sdpResult(mon,Qp,X,pVec);
+    if ok then return sdpResult(mon,Qp,X,pVec,);
     print "rounding failed, returning real solution";
-    return sdpResult(changeMatrixField(RR,mon),Q,X,pvec0);
+    return sdpResult(changeMatrixField(RR,mon),Q,X,pvec0,);
     )
 
 rawSolveSOS(Matrix,Matrix) := o -> (F,objP) -> (
@@ -708,12 +724,11 @@ sosInIdeal (Ring, ZZ) := o -> (R,D) -> (
     mon := if isHomogeneous R then transpose basis(D//2,R)
         else transpose basis(0,D//2,R);
     (mon',Q,X,tval) := readSdpResult solveSOS (0_R, mon, o);
-    a := if Q=!=null then sosPoly(mon',Q);
-    if a===null or Q==0 or (not isExactField Q and norm Q<1e-6) then (
+    if Q===null or Q==0 or (not isExactField Q and norm Q<1e-6) then (
         print("no sos polynomial in degree "|D);
-        return;
+        return sdpResult(mon,,X,,);
         );
-    return a;
+    return sdpResult(mon,Q,X,tval,);
     )
 sosInIdeal (Matrix,ZZ) := o -> (h,D) -> (
     -- h is a row vector of polynomials
@@ -729,12 +744,12 @@ sosInIdeal (Matrix,ZZ) := o -> (h,D) -> (
     (H,m) := makeMultiples(first entries h, D, homog);
     F := matrix transpose {{0}|H};
     (mon,Q,X,tval) := readSdpResult rawSolveSOS (F, o);
-    if Q==0 or (not isExactField Q and norm Q<1e-6) then (
+    if Q===null or Q==0 or (not isExactField Q and norm Q<1e-6) then (
         print("no sos polynomial in degree "|D);
-        return (null,null);
+        return sdpResult(mon,,X,,);
         );
     mult := getMultipliers(m,tval,ring mon);
-    return sdpResult(mon,Q,X,mult);
+    return sdpResult(mon,Q,X,tval,mult);
     )
 
 getMultipliers = (mon,tval,S) -> (
@@ -758,7 +773,9 @@ sosdecTernary(RingElement) := o -> (f) -> (
     S := {};
     di := first degree fi;
     while di > 4 do(
-        (Si,mult) := sosInIdeal(matrix{{fi}},2*di-4,o);
+        sol := sosInIdeal(matrix{{fi}},2*di-4,o);
+        Si := sosPoly sol;
+        mult := sol#"mult";
         if Si===null then return (,);
         fi = mult_(0,0);
         di = first degree fi;
@@ -836,13 +853,13 @@ lowerBound(RingElement,Matrix,ZZ) := o -> (f,h,D) -> (
         {RndTol=>o.RndTol, Solver=>o.Solver, Verbose=>o.Verbose};
     mon := if isQuotientRing R then transpose basis(0,D//2,R)
         else choosemonp (F,Verbose=>o.Verbose);
-    if mon===null then return (,sdpResult(,,,));
+    if mon===null then return (,sdpResult(,,,,));
     (mon',Q,X,tval) := readSdpResult rawSolveSOS(F,objP,mon,o');
     if tval=!=null then(
         bound := tval#0;
         mult := getMultipliers(m,drop(tval,1),ring mon');
     )else (bound,mult) = (,);
-    return (bound,sdpResult(mon,Q,X,mult));
+    return (bound,sdpResult(mon,Q,X,tval,mult));
     )
 
 --###################################
@@ -1451,7 +1468,7 @@ checkSosInIdeal = solver -> (
     h:= matrix {{x+1}};
     sol = sosInIdeal (h,2, Solver=>solver);
     s = sosPoly sol;
-    mult = sol#mult;
+    mult = sol#"mult";
     t0 := cmp(h,s,mult);
     
     -- Test 1 (similar to test 0)
@@ -1459,7 +1476,7 @@ checkSosInIdeal = solver -> (
     h= matrix {{x+1}};
     sol = sosInIdeal (h,4, Solver=>solver);
     s = sosPoly sol;
-    mult = sol#mult;
+    mult = sol#"mult";
     t1 := cmp(h,s,mult);
 
     -- Test 2:
@@ -1467,7 +1484,7 @@ checkSosInIdeal = solver -> (
     h = matrix {{x-y, x+z}};
     sol = sosInIdeal (h,2, Solver=>solver);
     s = sosPoly sol;
-    mult = sol#mult;
+    mult = sol#"mult";
     t2 := cmp(h,s,mult);
 
     -- Test 3: (similar to test 2)
@@ -1475,7 +1492,7 @@ checkSosInIdeal = solver -> (
     h = matrix {{x-y, x+z}};
     sol = sosInIdeal (h,6, Solver=>solver);
     s = sosPoly sol;
-    mult = sol#mult;
+    mult = sol#"mult";
     t3 := cmp(h,s,mult);
 
     results := {t0,t1,t2,t3};
@@ -1533,7 +1550,8 @@ checkLowerBound = solver -> (
     f = y;
     h := matrix {{y-pi*x^2}};
     (bound,sol) = lowerBound (f, h, 4, Solver=>solver);
-    (mon,Q,X,mult) := readSdpResult sol;
+    (mon,Q,X,tval) := readSdpResult sol;
+    mult := sol#"mult";
     t4 := equal(bound,0) and cmp(f,h,bound,mon,Q,mult);
 
     -- Test 5
@@ -1541,7 +1559,8 @@ checkLowerBound = solver -> (
     f = z;
     h = matrix {{x^2 + y^2 + z^2 - 1}};
     (bound,sol) = lowerBound (f, h, 4, Solver=>solver);
-    (mon,Q,X,mult) = readSdpResult sol;
+    (mon,Q,X,tval) = readSdpResult sol;
+    mult = sol#"mult";
     t5 := equal(bound,-1) and cmp(f,h,bound,mon,Q,mult);
 
     -----------------QUOTIENT1-----------------
@@ -1552,7 +1571,8 @@ checkLowerBound = solver -> (
     f = sub(x-y,S);
     h = matrix {{sub(y^2 - y,S)}};
     (bound,sol) = lowerBound(f, h, 2, Solver=>solver);
-    (mon,Q,X,mult) = readSdpResult sol;
+    (mon,Q,X,tval) = readSdpResult sol;
+    mult = sol#"mult";
     t6 := equal(bound,-1) and cmp(f,h,bound,mon,Q,mult);
     
     results := {t0,t1,t2,t3,t4,t5,t6};
