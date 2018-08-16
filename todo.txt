@@ -92,7 +92,7 @@ Methods whose documentation needs improvement
 
 6) The following example only works with SDPA, but not M2 and not
    CSDP.  Can we do anything about it?
-   needsPackage ("SOS" , Configuration => { "CSDPexec" => "CSDP/csdp", "SDPAexec"=>"./sdpa"})
+   needsPackage ("SOS" , Configuration => { "CSDPexec" => "SDPsolvers/csdp", "SDPAexec"=>"SDPsolvers/sdpa"})
    R = QQ[x,y]
    f = (x-y)^2 + x^2 + (y-4)^2;
    (bound, sol) = lowerBound(f, Solver=>"SDPA");

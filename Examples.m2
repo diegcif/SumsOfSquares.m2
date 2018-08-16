@@ -1,4 +1,4 @@
-needsPackage( "SOS", Configuration=>{"CSDPexec"=>"CSDP/csdp","SDPAexec"=>"CSDP/sdpa"} )
+needsPackage( "SOS", Configuration=>{"CSDPexec"=>"SDPsolvers/csdp","SDPAexec"=>"SDPsolvers/sdpa"} )
 
 -- Motzkin polynomial
 R = QQ[x,y,z]

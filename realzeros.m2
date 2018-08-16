@@ -1,4 +1,4 @@
-needsPackage ("SOS" , Configuration => { "CSDPexec" => "CSDP/csdp"})
+needsPackage ("SOS" , Configuration => { "CSDPexec" => "SDPsolvers/csdp"})
 needsPackage ("NumericalAlgebraicGeometry")
 
 sortBy = (L, fun) -> 
