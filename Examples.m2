@@ -30,3 +30,11 @@ f4 = a*( x^10 + y^10 + z^10)+
 h = x^2 + y^2 + z^2
 (mon4,Q4,X4,tval) = solveSOS (f4*h^3, Solver=>"CSDP")
 g4 = sosPoly (mon4,Q4)
+
+-- Scheiderer polynomial
+-- h is SOS, but no rational decomposition exists
+R = QQ[x,y,z]
+f = (x^4 + x*y^3 + y^4 - 3*x^2*y*z - 4*x*y^2*z + 2*x^2*z^2 + x*z^3 + y*z^3 + z^4)
+(mon5,Q5,X5,tval) = solveSOS (f, Solver=>"CSDP")
+
+
