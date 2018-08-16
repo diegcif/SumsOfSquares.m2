@@ -1043,7 +1043,7 @@ simpleSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y) -> (
             if iter > NewtonIterMAX then (
                 verbose("Warning: exceeded maximum number of iterations", o);
                 break);
-            if (o.UntilObjNegative == true) and (obj_(0,0) < 0) then break;
+            if o.UntilObjNegative and (obj_(0,0) < 0) then break;
             if lambda < 0.4 then break;
             ); 
         );
