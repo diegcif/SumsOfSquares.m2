@@ -15,7 +15,7 @@ newPackage(
     },
     Headline => "Sum-of-Squares Package",
     DebuggingMode => true,
-    Configuration => {"CSDPexec"=>"csdp","SDPAexec"=>"sdpa"},
+    Configuration => {"CSDPexec"=>"csdp","SDPAexec"=>"sdpa","DefaultSolver"=>null},
     AuxiliaryFiles => true,
     -*
     The following two settings make use of a cached version of example output.
@@ -73,6 +73,7 @@ makeGlobalPath = (fname) -> (
 
 csdpexec = makeGlobalPath ((options SOS).Configuration)#"CSDPexec"
 sdpaexec = ((options SOS).Configuration)#"SDPAexec"
+defaultSolver = ((options SOS).Configuration)#"DefaultSolver"
 
 --##########################################################################--
 -- TYPES
@@ -290,7 +291,7 @@ sosPoly(SDPResult) := sol -> if sol#"Q"=!=null then sosPoly(sol#"mon", sol#"Q")
 
 -- internal way to call solveSOS
 rawSolveSOS = method(
-     Options => {RndTol => 3, Solver=>"M2", Verbose => false, TraceObj => false} )
+     Options => {RndTol => 3, Solver=>null, Verbose => false, TraceObj => false} )
  
 rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
     -- f is a polynomial to decompose
@@ -348,7 +349,7 @@ rawSolveSOS(Matrix) := o -> (F) ->
 -- This is the main method to decompose a polynomial as a 
 -- sum of squares using an SDP solver.
 solveSOS = method(
-     Options => {RndTol => 3, Solver=>"M2", Verbose => false, TraceObj => false} )
+     Options => {RndTol => 3, Solver=>null, Verbose => false, TraceObj => false} )
 
 solveSOS(RingElement,RingElement,Matrix) := o -> (f,objFcn,mon) -> (
     (F,objP) := parameterVector(f,objFcn);
@@ -814,7 +815,7 @@ recoverSolution = (mon,X) -> (
 -- Unconstrained minimization 
 -- sos lower bound for the polynomial f
 lowerBound = method(
-     Options => {RndTol => 3, Solver=>"M2", Verbose => false} )
+     Options => {RndTol => 3, Solver=>null, Verbose => false} )
 lowerBound(RingElement) := o -> (f) -> lowerBound(f,-1,o)
 lowerBound(RingElement,ZZ) := o -> (f,D) -> lowerBound(f,zeros(ring f,1,0),D,o)
 
@@ -867,7 +868,7 @@ lowerBound(RingElement,Matrix,ZZ) := o -> (f,h,D) -> (
 --###################################
 
 solveSDP = method(
-     Options => {Solver=>"M2", Verbose => false} )
+     Options => {Solver=>null, Verbose => false} )
 
 solveSDP(Matrix, Matrix, Matrix) := o -> (C,A,b) -> solveSDP(C,sequence A,b,o)
 
@@ -879,14 +880,15 @@ solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
     (ok,y,X,Z) := (,,,);
     (ok,y,X,Z) = sdpNoConstraints(C,A,b);
     if ok then return (y,X,Z);
-    if o.Solver == "M2" then(
+    solver := chooseSolver o;
+    if solver == "M2" then(
         (ok,y,X,Z) = trivialSDP(C,A,b);
         if ok then return (y,X,Z)
         else (y,Z) = simpleSDP(C,A,b,Verbose=>o.Verbose)
         )
-    else if o.Solver == "CSDP" then
+    else if solver == "CSDP" then
         (y,X,Z) = solveCSDP(C,A,b,Verbose=>o.Verbose)
-    else if o.Solver == "SDPA" then
+    else if solver == "SDPA" then
         (y,X,Z) = solveSDPA(C,A,b,Verbose=>o.Verbose)
     else
         error "unknown SDP solver";
@@ -919,11 +921,19 @@ solveSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y0) -> (
     (ok,y,X,Z) := (,,,);
     (ok,y,X,Z) = sdpNoConstraints(C,A,b);
     if ok then return (y,X,Z);
-    if o.Solver != "M2" then return solveSDP(C,A,b,o);
+    if chooseSolver o != "M2" then return solveSDP(C,A,b,o);
     (ok,y,X,Z) = trivialSDP(C,A,b);
     if ok then return (y,X,Z);
     (y,Z) = simpleSDP(C,A,b,y0,Verbose=>o.Verbose);
     return (y,,Z);
+    )
+
+chooseSolver = o -> (
+    if o.Solver=!=null then return o.Solver;
+    if defaultSolver=!=null then return defaultSolver;
+    if csdpexec=!=null then return "CSDP";
+    if sdpaexec=!=null then return "SDPA";
+    return "M2";
     )
 
 toReal = (C,A,b) -> (
@@ -992,6 +1002,7 @@ simpleSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
     )
 
 simpleSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y) -> (
+    print "Running M2 solver";
     R := RR;
     n := numgens target C;
 
