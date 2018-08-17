@@ -48,6 +48,8 @@ export {
     "recoverSolution",
 --only for debugging
 --Method options
+    "GramMatrix",
+    "MomentMatrix",
     "RndTol",
     "UntilObjNegative",
     "Solver",
@@ -170,9 +172,9 @@ SDPResult = new Type of HashTable
 
 sdpResult = (mon,Q,X,tval,mult) -> (
     new SDPResult from {
-        "mon" => mon,
-        "Q" => Q,
-        "X" => X,
+        Monomials => mon,
+        GramMatrix => Q,
+        MomentMatrix => X,
         "tval" => tval,
         "mult" => mult
         }
@@ -183,9 +185,9 @@ net SDPResult := sol -> (
         if M===null then "null" 
         else numRows M | "x" | numColumns M | " matrix over " | toString ring M;
     str := {
-        {"Primal X", mat2str sol#"X"},
-        {"Dual Q", mat2str sol#"Q"},
-        {"Monomials", mat2str sol#"mon"}
+        {"MomentMatrix", mat2str sol#MomentMatrix},
+        {"GramMatrix", mat2str sol#GramMatrix},
+        {"Monomials", mat2str sol#Monomials}
         };
     mult := sol#"mult";
     if mult=!=null then
@@ -193,7 +195,7 @@ net SDPResult := sol -> (
     return netList(str,HorizontalSpace=>1,Alignment=>Center)
     )
 
-readSdpResult = sol -> (sol#"mon", sol#"Q", sol#"X", sol#"tval")
+readSdpResult = sol -> (sol#Monomials, sol#GramMatrix, sol#MomentMatrix, sol#"tval")
 
 --##########################################################################--
 -- METHODS
@@ -287,7 +289,7 @@ sosPoly(Matrix,Matrix) := (mon,Q) -> (
     g = g_idx;
     return sosPoly(ring mon,g,d);
     )
-sosPoly(SDPResult) := sol -> if sol#"Q"=!=null then sosPoly(sol#"mon", sol#"Q")
+sosPoly(SDPResult) := sol -> if sol#GramMatrix=!=null then sosPoly(sol#Monomials, sol#GramMatrix)
 
 -- internal way to call solveSOS
 rawSolveSOS = method(
@@ -538,6 +540,7 @@ choosemonp(RingElement) := o -> (f) -> (
     )
 choosemonp(Matrix) := o -> (F) -> (
      R := ring F;
+     if F==0 then error "Expected nonzero inputs.";
      if isQuotientRing R then error("Monomial vector must be provided in quotient rings.");
      n:= numgens R;
      mons := g -> set first entries monomials g;
@@ -776,14 +779,16 @@ sosdecTernary(RingElement) := o -> (f) -> (
     while di > 4 do(
         sol := sosInIdeal(matrix{{fi}},2*di-4,o);
         Si := sosPoly sol;
-        mult := sol#"mult";
         if Si===null then return (,);
+        mult := sol#"mult";
         fi = mult_(0,0);
+        if fi==0 then return (,);
         di = first degree fi;
         S = append(S,Si);
         );
     (mon,Q,X,tval) := readSdpResult rawSolveSOS matrix{{fi}};
-    Si = if Q=!=null then sosPoly(mon,Q);
+    if Q===null or Q==0 or (not isExactField Q and norm Q<1e-6) then return (,);
+    Si = sosPoly(mon,Q);
     if Si===null then return (,);
     S = append(S,Si);
     nums := for i to #S-1 list if odd i then continue else S#i;
@@ -1439,19 +1444,19 @@ checkSosdecTernary = solver -> (
     -- Test 0
     R:= QQ[x,y,z];
     f := x^2 + y^2 +z^2;
-    (p,q) := sosdecTernary (f, Solver=>"CSDP");
+    (p,q) := sosdecTernary (f, Solver=>solver);
     t0 := cmp(f,p,q);
 
     -- Test 1
     R = QQ[x,y,z];
     f = x^4*y^2 + x^2*y^4 + z^6 - 4*x^2 *y^2 * z^2;
-    (p,q) = sosdecTernary (f, Solver=>"CSDP");
+    (p,q) = sosdecTernary (f, Solver=>solver);
     t1 := (p===null);
 
     -- Test 2
     R = RR[x,y,z];
     f = x^4*y^2 + x^2*y^4 + z^6 - 3*x^2 *y^2 * z^2; --Motzkin
-    (p,q) = sosdecTernary (f, Solver=>"CSDP");
+    (p,q) = sosdecTernary (f, Solver=>solver);
     t2 := cmp(f,p,q);
 
     results := {t0,t1,t2};
