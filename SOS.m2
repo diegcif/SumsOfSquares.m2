@@ -368,6 +368,22 @@ solveSOS(RingElement,RingElement) := o -> (f,objFcn) -> (
 solveSOS(RingElement) := o -> (f) -> 
     solveSOS(f,0_(ring f),o)
 
+solveSOS(RingElement,ZZ) := o -> (f,D) -> (
+    mon := choosemonD(f,D);
+    return solveSOS(f,mon,o);
+    )
+solveSOS(RingElement,RingElement,ZZ) := o -> (f,objFcn,D) -> (
+    mon := choosemonD(f,D);
+    return solveSOS(f,objFcn,mon,o);
+    )
+
+choosemonD = (f,D) -> (
+    if D<=0 or odd D then error "Expected even positive integer";
+    R := ring f;
+    mon := if isHomogeneous R and isHomogeneous f then basis(D//2,R)
+        else basis(0,D//2,R);
+    return transpose mon;
+    )
 
 changeRingField = (kk,R) -> kk(monoid[gens R])
 
