@@ -368,19 +368,18 @@ solveSOS(RingElement,RingElement) := o -> (f,objFcn) -> (
 solveSOS(RingElement) := o -> (f) -> 
     solveSOS(f,0_(ring f),o)
 
-solveSOS(RingElement,ZZ) := o -> (f,D) -> (
-    mon := choosemonD(f,D);
-    return solveSOS(f,mon,o);
-    )
 solveSOS(RingElement,RingElement,ZZ) := o -> (f,objFcn,D) -> (
-    mon := choosemonD(f,D);
+    (F,objP) := parameterVector(f,objFcn);
+    mon := choosemonD(F,D);
     return solveSOS(f,objFcn,mon,o);
     )
+solveSOS(RingElement,ZZ) := o -> (f,D) -> 
+    solveSOS(f,0_(ring f),D,o)
 
-choosemonD = (f,D) -> (
+choosemonD = (F,D) -> (
     if D<=0 or odd D then error "Expected even positive integer";
-    R := ring f;
-    mon := if isHomogeneous R and isHomogeneous f then basis(D//2,R)
+    R := ring F;
+    mon := if isHomogeneous R and isHomogeneous F then basis(D//2,R)
         else basis(0,D//2,R);
     return transpose mon;
     )
