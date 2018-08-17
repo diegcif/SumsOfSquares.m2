@@ -1688,15 +1688,21 @@ TEST /// --choosemonp
     f = x^4+2*x*y-x+y^4
     lmsos = choosemonp(f)
     assert( lmsos === null )
+
+    R = QQ[x,y]
+    f = (x+2*y)^2 + (x-y)^4
+    lmsos = choosemonp f
+    assert( lmsos=!=null and numRows lmsos == 5 )
+
     R = QQ[x,y][t];
     f = x^4+2*x*y-x+y^4
     lmsos = choosemonp(f-t)
-    assert( ring lmsos===R and numRows lmsos == 6 )
+    assert( lmsos=!=null and ring lmsos===R and numRows lmsos == 6 )
     
     R = RR[x,y][t];
     f = x^4+2*x*y-x+y^4
     lmsos = choosemonp(f-t)
-    assert( ring lmsos===R and numRows lmsos == 6 )
+    assert( lmsos=!=null and ring lmsos===R and numRows lmsos == 6 )
 ///
 
 TEST /// --createSOSModel

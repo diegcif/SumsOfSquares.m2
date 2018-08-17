@@ -40,9 +40,9 @@ document {
     "For such a computation, a suitable monomial basis must be given by the user",
     EXAMPLE lines ///
         R = QQ[x,y]
-	S = R/ideal(x^2 + y^2 - 1)
-	F = 10-x^2-y
-	solveSOS (F, matrix {{1}, {x}, {y}})
+        S = R/ideal(x^2 + y^2 - 1)
+        F = 10-x^2-y
+        solveSOS (F, matrix {{1}, {x}, {y}})
     ///,
     "See ", TO "TraceObj", " for how to reduce the number of summands to 2.",
     
@@ -56,7 +56,7 @@ document {
     HEADER4 "On the role of coefficient fields",  
     "The ", TT "SOS", " package interfaces tries to hide 
     some of the difficulties that arise from using these numerical procedures. ", 
-    "The SOS package works with two coefficient rings: the rational numbers ", TO "QQ", "and the real numbers ", TO "RR",
+    "The SOS package works with two coefficient rings: the rational numbers ", TO "QQ", " and the real numbers ", TO "RR",". ",
     "Almost all operations in this package rely on a numerical SDP ", TO "Solver", ".  When calling such a solver, even if the 
 	input was a polynomial with rational coefficients, the result is numerical.  The package makes some 
 	effort to round and return a rational result, but this can fail, independent of whether a 
@@ -303,25 +303,25 @@ doc /// --sosPoly
         (sosPoly,Ring,List,List)
         (sosPoly,List,List)
         (sosPoly,Matrix,Matrix)
-	(sosPoly,SDPResult)
+        (sosPoly,SDPResult)
     Headline
         make an SOS polynomial
     Usage
-        s = sosPoly (R,polys,coeffs)
+        s = sosPoly (SDPR)
         s = sosPoly (mon,Q)
-	s = sosPoly (SDPR)
+        s = sosPoly (R,polys,coeffs)
     Inputs
+        SDPR:SDPResult
+          the result of an SDP computation
+        Q:Matrix
+          positive semidefinite (Gram matrix)
+        mon:Matrix
+          a vector of monomials
         R:Ring
         polys:List
           of polynomials
         coeffs:List
           of scalars
-        Q:Matrix
-          the Gram matrix of the polynomial f
-        mon:Matrix
-          a vector of monomials
-	SDPR:SDPResult
-	  the result of an SDP computation
     Outputs
         s:SOSPoly
     Consequences
@@ -334,18 +334,15 @@ doc /// --sosPoly
         f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
         sosPoly solveSOS f
       Text
-        An SOS polynomial can also be created from a list of generators and weights.
+        One can also input a Gram matrix $Q$ and a vector of monomials $mon$.
       Example
-        R = QQ[x,y];
-        s = sosPoly(R, {x+1,y}, {2,3} )
+        Q = matrix(QQ,{{1,1,1},{1,1,1},{1,1,1}});
+        mon = matrix{{1},{x},{y}};
+        sosPoly(mon,Q)
       Text
-        Alternatively, one can input a Gram matrix $Q$ and a vector of monomials $mon$, as produced by the method @TO solveSOS@.
+        Alternatively, an SOS polynomial can be created from a list of generators and weights.
       Example
-        R = QQ[x,y];
-        f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
-        sol = solveSOS f;
-        s = sosPoly sol
-        sumSOS s
+        s = sosPoly(R, {x+1,y}, {2,3} )
       Code
       Pre
     SeeAlso
@@ -400,13 +397,34 @@ doc /// --solveSOS
         mon = sol#Monomials
         transpose(mon)*Q*mon - f
       Text
-        The method can also solve parametric SOS problems that depend affinely of some decision variables. 
+        {\bf SOS with parameters:}
+        If the coefficients of the polynomial are linearly parameterized, we can also search for parameters which render a polynomial to be a SOS. 
+        In the following example, the variable $t$ will be treated as a free parameter.
+      Example
+        R = QQ[x][t];
+        f = (t-1)*x^4+1/2*t*x+1;
+        sol = solveSOS (f);
+        sosPoly(sol)
+        sol#"tval"
+      Text 
+        {\bf SOS with parameter optimization:}
+        Semidefinite programming also allows to optimize a linear functional of the decision variables.
         For instance, we can find an SOS lower bound for the dehomogenized Motzkin polynomial:
       Example
         R = QQ[x,z][t];
         f = x^4+x^2+z^6-3*x^2*z^2-t;
         sol = solveSOS (f,-t,RndTol=>12);
         sol#"tval"
+      Text
+        Since there is a tradeoff between rounding and optimality, we specify the required rounding precision as an optional input argument.
+      Text
+        {\bf Quotient rings:}
+        We can also find SOS decompositions in quotient rings.
+      Example
+        R = QQ[x,y]
+        S = R/ideal(x^2 + y^2 - 1)
+        F = 10-x^2-y
+        solveSOS (F, matrix {{1}, {x}, {y}})
       Code
       Pre
     SeeAlso
@@ -699,20 +717,25 @@ doc /// --lowerBound
         (bound,sol) = lowerBound(f);
         bound
       Text
-        More generally, the method computes lower bounds for a polynomial optimization problem of the form
-        $$min_x \, f(x) \,\,\, s.t. \,\,\, h_i(x) = 0, \, i=1..m$$
+        {\bf Quotient rings:}
+        Given an ideal $I$, we can also find a lower bound for $f$ on the variety of $I$.
+        This can be done by constructing the associated quotient ring.
+        A degree bound must be provided.
+      Example
+        R = QQ[x,y];
+        S = R/ideal(x^2 - x, y^2 - y);
+        f = x - y;
+        (bound,sol) = lowerBound(f,2);
+        bound
+      Text
+        {\bf Avoiding quotient rings:}
+        Constructing the quotient ring is sometimes untractable (it requires Groebner bases).
+        Hence, we may also input any set of generators of the ideal $I = <h_1,h_2...h_m>$.
       Example
         R = QQ[x,y];
         f = y;
         h = matrix{{y-x^2}};
         (bound,sol) = lowerBound (f, h, 4);
-        bound
-      Text
-        The method also works in quotient rings.
-      Example
-        R = QQ[x,y]/ideal(x^2 - x, y^2 - y);
-        f = x - y;
-        (bound,sol) = lowerBound(f,2);
         bound
     SeeAlso
         recoverSolution
