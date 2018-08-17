@@ -24,7 +24,7 @@ newPackage(
     *-
     UseCachedExampleOutput => false,
     CacheExampleOutput => true,
-    PackageImports => {"SimpleDoc","FourierMotzkin","Polyhedra"},
+    PackageImports => {"SimpleDoc","FourierMotzkin"},
     PackageExports => {}
 )
 
@@ -570,10 +570,9 @@ choosemonp(Matrix) := o -> (F) -> (
      -- Compute Newton polytope:
      liftedpts := T*V || map (QQ^1,QQ^(size falt),i->1);
      dualpolytope := transpose substitute(first fourierMotzkin(liftedpts),QQ);
-     argmin := L -> (m:= min L; set positions(L, l->l==m));
-     idx := sum apply(entries(dualpolytope * liftedpts), i->argmin i);
-     polytope := points_(toList idx);
-     polytope = vertices convexHull polytope;
+     bidual := first fourierMotzkin transpose dualpolytope;
+     polytope := basV * matrix drop(entries bidual,-1);
+     polytope = matrix transpose apply(entries transpose polytope, i -> i + shift);
      polytope = sub(polytope,ZZ);
      oddverts := select(entries transpose polytope, i->any(i,odd));
      if #filterVerts(oddverts)>0 then(
