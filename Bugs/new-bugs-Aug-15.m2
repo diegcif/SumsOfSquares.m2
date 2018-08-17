@@ -1,4 +1,4 @@
-needsPackage ("SOS" , Configuration => { "CSDPexec" => "CSDP/csdp"})
+needsPackage ("SOS" , Configuration => { "CSDPexec" => "SDPsolvers/csdp"})
 
 -- the following two are not solved because dual infeasible
 R = QQ[x,y,z]

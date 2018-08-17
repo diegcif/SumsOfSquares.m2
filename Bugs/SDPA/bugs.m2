@@ -1,4 +1,4 @@
-needsPackage( "SOS", Configuration=>{"CSDPexec"=>"CSDP/csdp","SDPAexec"=>"CSDP/sdpa"} )
+needsPackage( "SOS", Configuration=>{"CSDPexec"=>"SDPsolvers/csdp","SDPAexec"=>"SDPsolvers/sdpa"} )
 
 -- Bug 1: sdp is feasible, bug sdpa doesn't believe it
 C = matrix(RR, {{1, 0, 0}, {0, 0, 0}, {0, 0, -1}} )

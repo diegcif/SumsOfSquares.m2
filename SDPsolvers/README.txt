@@ -1,5 +1,5 @@
-For convenience, this directory contains already-compiled binaries for
-two SDP solvers (SDPA and CSDP).
+For convenience, this directory contains already-compiled macOS
+binaries for two SDP solvers (SDPA and CSDP).
 
 Please see their respective websites for full documentation and additional versions.
 

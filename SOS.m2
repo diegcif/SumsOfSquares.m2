@@ -299,7 +299,6 @@ rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
     -- f is a polynomial to decompose
     -- mon is a vector of monomials
     -- objFcn is a linear objective function for the SDP solver
-    -- bounds can be empty or contain lower and upper bounds for the parameters
 
     checkInputs := (mon) -> (
         if numColumns mon > 1 then error("Monomial vector should be a column.");
@@ -739,7 +738,7 @@ sosInIdeal (Matrix,ZZ) := o -> (h,D) -> (
     -- D is a degree bound
     -- returns sos polynomial in <h>
 
-    -- The output consists of an SOSPoly and the multipliers that
+    -- The output is an SDPResult with the multipliers that
     -- express the SOS in terms of the generators.
     
     if numRows h > 1 then error "h must be a row vector";
@@ -1049,7 +1048,7 @@ simpleSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y) -> (
             if iter > NewtonIterMAX then (
                 verbose("Warning: exceeded maximum number of iterations", o);
                 break);
-            if (o.UntilObjNegative == true) and (obj_(0,0) < 0) then break;
+            if o.UntilObjNegative and (obj_(0,0) < 0) then break;
             if lambda < 0.4 then break;
             ); 
         );
