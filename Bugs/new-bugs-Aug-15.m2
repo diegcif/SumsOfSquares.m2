@@ -1,13 +1,15 @@
 needsPackage ("SOS" , Configuration => { "CSDPexec" => "SDPsolvers/csdp"})
 
--- the following two are not solved because dual infeasible
-R = QQ[x,y,z]
-f = (x+y+z)^2 -- dual infeasible without calling csdp?
-solveSOS (f, Solver=>"CSDP")
+-- Solved!
+---- the following two are not solved because dual infeasible
+--R = QQ[x,y,z]
+--f = (x+y+z)^2 -- dual infeasible without calling csdp?
+--solveSOS (f, Solver=>"CSDP")
 
-R = QQ[x,y,z,w]
-f = 1/4 * (x+y+z)^2 + 3*(x-w^3+2*z^2)^2
-solveSOS (f, Solver=>"CSDP")
+-- Solved!
+--R = QQ[x,y,z,w]
+--f = 1/4 * (x+y+z)^2 + 3*(x-w^3+2*z^2)^2
+--solveSOS (f, Solver=>"CSDP")
 
 -- This one is not solved but prints "Success: Dual infeasible"
 R = QQ[x,y,z]
@@ -22,9 +24,10 @@ h = x^2 + y^2 + z^2
 g4 = sosPoly (mon4,Q4)
 
 
--- Prints "Newton polytope has odd vertices", although sum of squares:
-f = (x+2*y)^2 + (x-y)^4
-solveSOS f
+-- Solved!
+---- Prints "Newton polytope has odd vertices", although sum of squares:
+--f = (x+2*y)^2 + (x-y)^4
+--solveSOS f
 
 
 

@@ -24,7 +24,7 @@ newPackage(
     *-
     UseCachedExampleOutput => false,
     CacheExampleOutput => true,
-    PackageImports => {"SimpleDoc","FourierMotzkin"},
+    PackageImports => {"SimpleDoc","FourierMotzkin","Polyhedra"},
     PackageExports => {}
 )
 
@@ -572,7 +572,9 @@ choosemonp(Matrix) := o -> (F) -> (
      dualpolytope := transpose substitute(first fourierMotzkin(liftedpts),QQ);
      argmin := L -> (m:= min L; set positions(L, l->l==m));
      idx := sum apply(entries(dualpolytope * liftedpts), i->argmin i);
-     polytope := substitute(points_(toList idx),ZZ);
+     polytope := points_(toList idx);
+     polytope = vertices convexHull polytope;
+     polytope = sub(polytope,ZZ);
      oddverts := select(entries transpose polytope, i->any(i,odd));
      if #filterVerts(oddverts)>0 then(
          print("Newton polytope has odd vertices. Terminate.");
@@ -948,9 +950,10 @@ toReal = (C,A,b) -> (
     )
 
 sdpNoConstraints = (C,A,b) -> (
+    tol := 1e-10;
     if #A==0 then(
         lambda := min eigenvalues(C, Hermitian=>true);
-        if lambda>=0 then(
+        if lambda>=-tol then(
             print "SDP solved";
             y0 := zeros(RR,#A,1);
             return (true, y0, 0*C, C);
