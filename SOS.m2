@@ -50,6 +50,8 @@ export {
 --Method options
     "GramMatrix",
     "MomentMatrix",
+    "Parameters",
+    "Multipliers",
     "RndTol",
     "UntilObjNegative",
     "Solver",
@@ -175,8 +177,8 @@ sdpResult = (mon,Q,X,tval,mult) -> (
         Monomials => mon,
         GramMatrix => Q,
         MomentMatrix => X,
-        "tval" => tval,
-        "mult" => mult
+        Parameters => tval,
+        Multipliers => mult
         }
     )
 
@@ -189,13 +191,16 @@ net SDPResult := sol -> (
         {"GramMatrix", mat2str sol#GramMatrix},
         {"Monomials", mat2str sol#Monomials}
         };
-    mult := sol#"mult";
+    tval := sol#Parameters;
+    if tval=!=null then
+        str = append(str,{"Parameters",toString tval});
+    mult := sol#Multipliers;
     if mult=!=null then
         str = append(str,{"Multipliers",mat2str mult});
     return netList(str,HorizontalSpace=>1,Alignment=>Center)
     )
 
-readSdpResult = sol -> (sol#Monomials, sol#GramMatrix, sol#MomentMatrix, sol#"tval")
+readSdpResult = sol -> (sol#Monomials, sol#GramMatrix, sol#MomentMatrix, sol#Parameters)
 
 --##########################################################################--
 -- METHODS
@@ -795,7 +800,7 @@ sosdecTernary(RingElement) := o -> (f) -> (
         sol := sosInIdeal(matrix{{fi}},2*di-4,o);
         Si := sosPoly sol;
         if Si===null then return (,);
-        mult := sol#"mult";
+        mult := sol#Multipliers;
         fi = mult_(0,0);
         if fi==0 then return (,);
         di = first degree fi;
@@ -1500,7 +1505,7 @@ checkSosInIdeal = solver -> (
     h:= matrix {{x+1}};
     sol = sosInIdeal (h,2, Solver=>solver);
     s = sosPoly sol;
-    mult = sol#"mult";
+    mult = sol#Multipliers;
     t0 := cmp(h,s,mult);
     
     -- Test 1 (similar to test 0)
@@ -1508,7 +1513,7 @@ checkSosInIdeal = solver -> (
     h= matrix {{x+1}};
     sol = sosInIdeal (h,4, Solver=>solver);
     s = sosPoly sol;
-    mult = sol#"mult";
+    mult = sol#Multipliers;
     t1 := cmp(h,s,mult);
 
     -- Test 2:
@@ -1516,7 +1521,7 @@ checkSosInIdeal = solver -> (
     h = matrix {{x-y, x+z}};
     sol = sosInIdeal (h,2, Solver=>solver);
     s = sosPoly sol;
-    mult = sol#"mult";
+    mult = sol#Multipliers;
     t2 := cmp(h,s,mult);
 
     -- Test 3: (similar to test 2)
@@ -1524,7 +1529,7 @@ checkSosInIdeal = solver -> (
     h = matrix {{x-y, x+z}};
     sol = sosInIdeal (h,6, Solver=>solver);
     s = sosPoly sol;
-    mult = sol#"mult";
+    mult = sol#Multipliers;
     t3 := cmp(h,s,mult);
 
     results := {t0,t1,t2,t3};
@@ -1583,7 +1588,7 @@ checkLowerBound = solver -> (
     h := matrix {{y-pi*x^2}};
     (bound,sol) = lowerBound (f, h, 4, Solver=>solver);
     (mon,Q,X,tval) := readSdpResult sol;
-    mult := sol#"mult";
+    mult := sol#Multipliers;
     t4 := equal(bound,0) and cmp(f,h,bound,mon,Q,mult);
 
     -- Test 5
@@ -1592,7 +1597,7 @@ checkLowerBound = solver -> (
     h = matrix {{x^2 + y^2 + z^2 - 1}};
     (bound,sol) = lowerBound (f, h, 4, Solver=>solver);
     (mon,Q,X,tval) = readSdpResult sol;
-    mult = sol#"mult";
+    mult = sol#Multipliers;
     t5 := equal(bound,-1) and cmp(f,h,bound,mon,Q,mult);
 
     -----------------QUOTIENT1-----------------
@@ -1604,7 +1609,7 @@ checkLowerBound = solver -> (
     h = matrix {{sub(y^2 - y,S)}};
     (bound,sol) = lowerBound(f, h, 2, Solver=>solver);
     (mon,Q,X,tval) = readSdpResult sol;
-    mult = sol#"mult";
+    mult = sol#Multipliers;
     t6 := equal(bound,-1) and cmp(f,h,bound,mon,Q,mult);
     
     results := {t0,t1,t2,t3,t4,t5,t6};

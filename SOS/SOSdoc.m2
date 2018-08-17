@@ -405,7 +405,7 @@ doc /// --solveSOS
         f = (t-1)*x^4+1/2*t*x+1;
         sol = solveSOS (f);
         sosPoly(sol)
-        sol#"tval"
+        sol#Parameters
       Text 
         {\bf SOS with parameter optimization:}
         Semidefinite programming also allows to optimize a linear functional of the decision variables.
@@ -414,7 +414,7 @@ doc /// --solveSOS
         R = QQ[x,z][t];
         f = x^4+x^2+z^6-3*x^2*z^2-t;
         sol = solveSOS (f,-t,RndTol=>12);
-        sol#"tval"
+        sol#Parameters
       Text
         Since there is a tradeoff between rounding and optimality, we specify the required rounding precision as an optional input argument.
       Text
@@ -669,7 +669,7 @@ doc /// --sosInIdeal
 	F = matrix {{x^2+y^2+y, y-z^2}}
 	sol = sosInIdeal (F, 2)
         sosPoly sol
-	mult = sol#"mult" -- the multipliers
+	mult = sol#Multipliers -- the multipliers
 	F * mult == sumSOS sosPoly sol
      Text
         The second invocation is on a quotient ring, also with a degree bound.  This tries to decompose the zero of the 
