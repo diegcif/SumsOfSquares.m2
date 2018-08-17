@@ -194,17 +194,23 @@ doc /// -- SDPResult
     Key
        SDPResult
        (net, SDPResult)
+       GramMatrix
+       MomentMatrix
     Headline
        result of an SDP computation
     Description
       Text
         This type encapsulates the result of an SDP computation that was outsourced to an external solver.
-	In the case of a succesful computation, the sum of squares can be recovered with @TO sosPoly@.
+        In the case of a succesful computation, the sum of squares can be recovered with @TO sosPoly@.
       Example
         R = QQ[x,y,z]
-	F = matrix {{x^2+y^2+y, y-z^2}}
-	sol = sosInIdeal (F, 2)
-	peek sol
+        F = matrix {{x^2+y^2+y, y-z^2}}
+        sol = sosInIdeal (F, 2)
+        peek sol
+      Text
+        The fields can be extracted with the operator "#"
+      Example
+        sol#GramMatrix
 ///
 
 doc ///
@@ -390,8 +396,8 @@ doc /// --solveSOS
         R = QQ[x,y];
         f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
         sol = solveSOS f;
-        Q = sol#"Q"
-        mon = sol#"mon"
+        Q = sol#GramMatrix
+        mon = sol#Monomials
         transpose(mon)*Q*mon - f
       Text
         The method can also solve parametric SOS problems that depend affinely of some decision variables. 
