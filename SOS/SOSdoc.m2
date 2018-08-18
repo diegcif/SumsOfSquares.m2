@@ -17,7 +17,7 @@ document {
     "The most basic application is to (try to) decompose a polynomial as a sum of squares using the function ", TO "solveSOS",
     EXAMPLE lines ///
       R = QQ[x,y];
-      f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y
+      f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
       sol = solveSOS f;
     ///,
     "The return value is an object of type ", TO "SDPResult", " which, in the case of success, contains in particular the SOS decomposition.",
@@ -32,17 +32,18 @@ document {
     ///,
     
     HEADER4 "Sums of squares modulo equality constraints",
-    "The package supports sums of squares decompositions modulo ideals.",  
-    "This can be useful to prove non-negativity of a polynomial on a variety.  The following example is 
+    "The package supports sums of squares decompositions in ",  
+    TO2 {"solveSOS(RingElement,Matrix)","quotient rings"},
+    ". This can be useful to prove non-negativity of a polynomial on a variety.  The following example is 
     taken from [P05].  Consider the problem
-    of proving that the polynomial ", TEX "F = 10-x^2-y", " is non-negative on the circle defined by ", TEX "G = x^2 + y^2 - 1", ". ",
-    "To do this we check if ", TEX "F", " is a sum-of-squares in the quotient ring modulo ", TEX "G", ". ",
+    of proving that the polynomial ", ITALIC TEX "f = 10-x^2-y", " is non-negative on the circle defined by ", ITALIC TEX "g = x^2 + y^2 - 1", ". ",
+    "To do this we check if ", ITALIC TEX "f", " is a sum-of-squares in the quotient ring modulo ", ITALIC TEX "g", ". ",
     "For such a computation, a suitable monomial basis must be given by the user",
     EXAMPLE lines ///
-        R = QQ[x,y]
-        S = R/ideal(x^2 + y^2 - 1)
-        F = 10-x^2-y
-        solveSOS (F, matrix {{1}, {x}, {y}})
+        R = QQ[x,y];
+        S = R/ideal(x^2 + y^2 - 1);
+        f = 10-x^2-y;
+        solveSOS (f, matrix {{1}, {x}, {y}})
     ///,
     "See ", TO "TraceObj", " for how to reduce the number of summands to 2.",
     
@@ -70,33 +71,12 @@ document {
 	 sosPoly sol
       ///,
       "Once the rational world has been left, there is usually now way back.
-      The package offers the function ", TO "(clean,RR,SOSPoly)", " which from an ", TO "sosPoly", " removes
+      The package offers the function ", TO "clean(RR,SOSPoly)", " which from an ", TO "sosPoly", " removes
       all summands whose coefficient is smaller than a given tolerance.  This can be useful sometimes and here is how to invoke it:",
       EXAMPLE lines ///
          clean (0.001, sosPoly sol)
       ///,
 
-    -- HEADER4 "Other useful functions in this package",
-    -- HEADER5 "SOS with parameters",
-    -- "If the coefficients of the polynomial are linearly parameterized, we can also search for parameters which render a polynomial to be a SOS. In the following example, the variable ", TT "t", " will be treated as a free parameter.",
-    -- EXAMPLE lines ///
-    --   R = QQ[x][t];
-    --   f = (t-1)*x^4+1/2*t*x+1;
-    --   sol = solveSOS (f);
-    --   sosPoly(sol)
-    --   tval
-    -- ///,
-
-    -- HEADER5 "SOS with parameter optimization",
-    -- "Semidefinite programming also allows to optimize a linear functional of the decision variables. As an example we compute a lower bound of a polynomial by minimizing its constant term. Since there is a tradeoff between rounding and optimality, we specify the required rounding precision as an optional input argument.",
-    -- EXAMPLE lines ///
-    --   R = QQ[x][t];
-    --   f = x^4 - 2*x + t;
-    --   sol = solveSOS (f,t);
-    --   sosPoly(sol)
-    --   tval
-    -- ///,
-    
     HEADER4 "Literature",
     UL {
 	LI {"[BPT12] ", EM "Semidefinite Optimization and Convex Algebraic Geometry", " SIAM Textbook, edited by G. Blekherman, P. Parrilo, and R. Thomas, (2012)"},
@@ -196,6 +176,7 @@ doc /// -- SDPResult
        (net, SDPResult)
        GramMatrix
        MomentMatrix
+       Parameters
     Headline
        result of an SDP computation
     Description
@@ -204,8 +185,8 @@ doc /// -- SDPResult
         In the case of a succesful computation, the sum of squares can be recovered with @TO sosPoly@.
       Example
         R = QQ[x,y,z]
-        F = matrix {{x^2+y^2+y, y-z^2}}
-        sol = sosInIdeal (F, 2)
+        f = matrix {{x^2+y^2+y, y-z^2}}
+        sol = sosInIdeal (f, 2)
         peek sol
       Text
         The fields can be extracted with the operator "#"
@@ -235,7 +216,7 @@ doc /// --cleanSOS
     Headline
         Remove terms with very small coefficients from a sum of squares.
     Usage
-        clean (tol, s)
+        clean (tol, s) 
     Inputs
 	  tol:RR
 	    the tolerance for the coefficients.
@@ -264,12 +245,12 @@ doc /// --sumSOS
     Key
         sumSOS
         (sumSOS,SOSPoly)
-	(sumSOS, List, List)
+        (sumSOS, List, List)
     Headline
         expansion of a weighted SOS decomposition
     Usage
-        sumSOS(s)
-	sumSOS(g,d)
+        sumSOS(s) 
+	sumSOS(g,d) 
     Inputs
         s:SOSPoly
 	g:List
@@ -307,9 +288,9 @@ doc /// --sosPoly
     Headline
         make an SOS polynomial
     Usage
-        s = sosPoly (SDPR)
-        s = sosPoly (mon,Q)
-        s = sosPoly (R,polys,coeffs)
+        s = sosPoly (SDPR) 
+        s = sosPoly (mon,Q) 
+        s = sosPoly (R,polys,coeffs) 
     Inputs
         SDPR:SDPResult
           the result of an SDP computation
@@ -355,31 +336,18 @@ doc /// --solveSOS
         solveSOS
         (solveSOS,RingElement)
         (solveSOS,RingElement,RingElement)
-        (solveSOS,RingElement,Matrix)
-        (solveSOS,RingElement,RingElement,Matrix)
     Headline
         solve a sum-of-squares problem
     Usage
-        sol = solveSOS(f)
-        sol = solveSOS(f,objFun)
-        sol = solveSOS(f,mon)
-        sol = solveSOS(f,objFun,mon)
+        solveSOS(f) 
+        solveSOS(f,objFun) 
     Inputs
         f:RingElement
           a polynomial
         objFun:RingElement
           a linear function of the parameters (optional)
-        mon:Matrix
-          a vector of monomials (optional)
     Outputs
-        Q:Matrix
-          the $n\times n$ Gram matrix of the polynomial f
-        mon:Matrix
-          a $n\times 1$ matrix of monomials
-        X:Matrix
-          the $n\times n$ moment matrix (dual to Q)
-        tval:List
-          of parameter values
+        :SDPResult
     Consequences
     Description
       Text
@@ -408,7 +376,7 @@ doc /// --solveSOS
         sol#Parameters
       Text 
         {\bf SOS with parameter optimization:}
-        Semidefinite programming also allows to optimize a linear functional of the decision variables.
+        Semidefinite programming also allows to optimize a linear function of the parameters.
         For instance, we can find an SOS lower bound for the dehomogenized Motzkin polynomial:
       Example
         R = QQ[x,z][t];
@@ -417,19 +385,60 @@ doc /// --solveSOS
         sol#Parameters
       Text
         Since there is a tradeoff between rounding and optimality, we specify the required rounding precision as an optional input argument.
-      Text
-        {\bf Quotient rings:}
-        We can also find SOS decompositions in quotient rings.
-      Example
-        R = QQ[x,y]
-        S = R/ideal(x^2 + y^2 - 1)
-        F = 10-x^2-y
-        solveSOS (F, matrix {{1}, {x}, {y}})
       Code
       Pre
     SeeAlso
-        (sosPoly,Matrix,Matrix)
+        (solveSOS,RingElement,Matrix)
+        sosPoly
+        SDPResult
         Solver
+///
+
+doc /// --solveSOS (quotient ring)
+    Key
+        (solveSOS,RingElement,RingElement,Matrix)
+        (solveSOS,RingElement,Matrix)
+        (solveSOS,RingElement,ZZ)
+        (solveSOS,RingElement,RingElement,ZZ)
+    Headline
+        sum-of-squares problem in a quotient ring
+    Usage
+        solveSOS(f,mon) 
+        solveSOS(f,objFun,mon) 
+        solveSOS(f,D) 
+        solveSOS(f,objFun,D) 
+    Inputs
+        f:RingElement
+          a polynomial
+        objFun:RingElement
+          a linear function of the parameters (optional)
+        mon:
+          a vector of monomials (alternatively a degree bound D)
+    Outputs
+        :SDPResult
+    Consequences
+    Description
+      Text
+        This method allows to compute SOS decompositions in quotient rings.
+        A vector of monomials must be provided in this case.
+      Example
+        R = QQ[x,y]/ideal(x^2 + y^2 - 1);
+        f = 10-x^2-y;
+        mon = matrix {{1}, {x}, {y}};
+        solveSOS (f, mon)
+      Text
+        If a degree bound $D$ is given, the method will use the vector of monomials of degree at most $D/2$.
+      Example
+        solveSOS (f, 2)
+      Text
+        Parametrized SOS problems can also be solved in quotient rings.
+      Example
+        S = R[t];
+        solveSOS(f-t,-t,mon,RndTol=>12)
+      Code
+      Pre
+    SeeAlso
+        solveSOS
 ///
 
 doc /// --roundPSDmatrix
@@ -438,7 +447,7 @@ doc /// --roundPSDmatrix
     Headline
         rational rounding of a PSD matrix
     Usage
-        (Qp,ispsd) = roundPSDmatrix(Q,A,b,d)
+        (Qp,ispsd) = roundPSDmatrix(Q,A,b,d) 
     Inputs
         Q:Matrix
           a symmetric matrix (real)
@@ -480,8 +489,8 @@ doc /// --smat2vec
     Headline
         vectorization of a symmetric matrix
     Usage
-        v = smat2vec A
-        A = vec2smat v
+        v = smat2vec A 
+        A = vec2smat v 
     Inputs
         A:Matrix
           symmetric
@@ -514,7 +523,7 @@ doc /// --LDLdecomposition
     Headline
         LDL factorization of a positive semidefinite matrix
     Usage
-        (L,D,P,err) = LDLdecomposition A
+        (L,D,P,err) = LDLdecomposition A 
     Inputs
         A:Matrix
     Outputs
@@ -554,8 +563,8 @@ doc /// --solveSDP
     Headline
         solve a semidefinite program
     Usage
-        (y,X,Q) = solveSDP(C,A,b)
-        (y,X,Q) = solveSDP(C,A,b,y0)
+        (y,X,Q) = solveSDP(C,A,b) 
+        (y,X,Q) = solveSDP(C,A,b,y0) 
     Inputs
         C:Matrix
           a symmetric $n\times n$ matrix
@@ -601,11 +610,11 @@ doc /// --solveSDP
 doc /// --sosdecTernary
     Key
         sosdecTernary
-	(sosdecTernary, RingElement)
+        (sosdecTernary, RingElement)
     Headline
        Sum of squares decomposition for ternary forms.
     Usage
-        (p,q) = sosdecTernary(f, Solver=>"CSDP")
+        (p,q) = sosdecTernary(f, Solver=>"CSDP") 
     Inputs
         f:RingElement
           a homogeneous polynomial in 3 variables
@@ -640,44 +649,46 @@ doc /// --sosdecTernary
 doc /// --sosInIdeal
     Key
         sosInIdeal
-	(sosInIdeal, Matrix, ZZ)
-	(sosInIdeal, Ring, ZZ)
+        (sosInIdeal, Matrix, ZZ)
+        (sosInIdeal, Ring, ZZ)
     Headline
-       Sum of squares polynomial in ideal
+        Sum of squares polynomial in ideal
     Usage
-        sol = sosInIdeal(F,d,Solver=>"CSDP")
-	sol = sosInIdeal(R,d,Solver=>"CSDP")
+        sol = sosInIdeal(f,d,Solver=>"CSDP") 
+        sol = sosInIdeal(R,d,Solver=>"CSDP") 
     Inputs
-        F:Matrix
+        f:Matrix
           a one-row matrix with polynomial entries.
-	R:QuotientRing
-	  a quotient of a polynomial ring.
+        R:QuotientRing
+          a quotient of a polynomial ring.
         d:ZZ
-          positive integer greater than the degrees of any polynomial in F.
+          positive integer greater than the degrees of any polynomial in $f$.
     Outputs
         sol:SDPResult
-	  the result of the SDP computation
+          the result of the SDP computation
     Consequences
     Description
       Text
-    	This methods finds sums of squares in ideals.  It accepts two types of inputs that are useful for different purposes.
-	The first invocation is to give a one row matrix with polynomial entries and a degree bound.  The method then tries
-	to find a sum of squares in the ideal generated by the entries of the matrix.  It returns and @TO SDPResult@ that also
-	contains multipliers that express the sum of squares in terms of the entries of F.
+    	This methods finds sums of squares in ideals.
+        It accepts two types of inputs that are useful for different purposes.
+        The first invocation is to give a one row matrix with polynomial entries and a degree bound.
+        The method then tries to find a sum of squares in the ideal generated by the entries of the matrix.
+        It returns and @TO SDPResult@ that also contains multipliers that express the sum of squares in terms of the entries of $f$.
      Example
         R = QQ[x,y,z]
-	F = matrix {{x^2+y^2+y, y-z^2}}
-	sol = sosInIdeal (F, 2)
+        f = matrix {{x^2+y^2+y, y-z^2}}
+        sol = sosInIdeal (f, 2)
         sosPoly sol
-	mult = sol#Multipliers -- the multipliers
-	F * mult == sumSOS sosPoly sol
+        mult = sol#Multipliers -- the multipliers
+        f * mult == sumSOS sosPoly sol
      Text
-        The second invocation is on a quotient ring, also with a degree bound.  This tries to decompose the zero of the 
-	quotient ring as a sum of squares.  In this invocation the multipliers are not readily available.
+        The second invocation is on a quotient ring, also with a degree bound.
+        This tries to decompose the zero of the quotient ring as a sum of squares.
+        In this invocation the multipliers are not readily available.
      Example
-        S = R/ideal F
-	sol = sosInIdeal (S, 2)
-	sosPoly sol
+        S = R/ideal f
+        sol = sosInIdeal (S, 2)
+        sosPoly sol
     Caveat
         This implementation only works with the solver CSDP.
 ///
@@ -691,9 +702,9 @@ doc /// --lowerBound
     Headline
         finds a lower bound for a polynomial
     Usage
-        (bound,sol) = lowerBound(f)
-        (bound,sol) = lowerBound(f,D)
-        (bound,sol) = lowerBound(f, h, D)
+        (bound,sol) = lowerBound(f) 
+        (bound,sol) = lowerBound(f,D) 
+        (bound,sol) = lowerBound(f,h,D) 
     Inputs
         f:RingElement
           a polynomial
@@ -782,8 +793,8 @@ doc /// --checkSolver
     Headline
         tests an SDP solver
     Usage
-        checkSolver(solver)
-        checkSolver(solver,fun)
+        checkSolver(solver) 
+        checkSolver(solver,fun) 
     Inputs
         solver:String
           either "M2" or "CSDP" or "SDPA"
@@ -810,7 +821,7 @@ doc /// --createSOSModel
     Headline
         space of Gram matrices of a polynomial (for developers)
     Usage
-        (C,Ai,Bi,A,B,b) = createSOSModel(f,mon)
+        (C,Ai,Bi,A,B,b) = createSOSModel(f,mon) 
     Inputs
         f:RingElement
           a polynomial
@@ -854,7 +865,7 @@ doc /// --choosemonp
     Headline
         create list of monomials based on the Newton polytope
     Usage
-        (lmf, lmsos) = choosemonp(f)
+        (lmf, lmsos) = choosemonp(f) 
     Inputs
         f:RingElement
           a polynomial
@@ -879,7 +890,7 @@ doc /// --project2linspace
     Headline
         project a rational point onto affine subspace
     Usage
-        xp = project2linspace(A,b,x0)
+        xp = project2linspace(A,b,x0) 
     Inputs
         A:Matrix
         b:Matrix
@@ -904,7 +915,7 @@ doc /// --project2linspace
 --     Headline
 --         Multiply a list of polynomials by monomials
 --     Usage
---         (H,m) = makeMultiples (h, D, homog)
+--         (H,m) = makeMultiples (h, D, homog) 
 --     Inputs
 --         h:List
 --           a list of polynomials
@@ -938,9 +949,9 @@ doc /// -- RndTol
     Key
         RndTol
         [solveSOS,RndTol]
-	[lowerBound,RndTol]
-	[sosdecTernary,RndTol]
-	[sosInIdeal,RndTol]
+        [lowerBound,RndTol]
+        [sosdecTernary,RndTol]
+        [sosInIdeal,RndTol]
     Headline
         rounding precision
     Consequences
@@ -955,11 +966,11 @@ doc /// -- RndTol
 doc /// -- Verbose
      Key
      	[solveSDP,Verbose]
- 	[sosdecTernary,Verbose]
- 	[roundPSDmatrix,Verbose]
- 	[solveSOS,Verbose]
- 	[sosInIdeal,Verbose]
- 	[lowerBound,Verbose]
+        [sosdecTernary,Verbose]
+        [roundPSDmatrix,Verbose]
+        [solveSOS,Verbose]
+        [sosInIdeal,Verbose]
+        [lowerBound,Verbose]
      Headline 
         non-essential but informative output
      Description
@@ -976,7 +987,7 @@ document { --Solver
         [sosdecTernary,Solver],
         [lowerBound,Solver],
         },
-    Headline => "Picking a semidefinite programming solver",
+    Headline => "picking a semidefinite programming solver",
     "Many important computations in this package rely on an efficient SDP solver.  There
     is a very rudimentary implementation of such a solver in the Macaulay2 language.  It is 
     called the M2 solver but for most applications it will be insufficient. For this reason it is
@@ -1005,13 +1016,13 @@ doc /// --TraceObj
     Description
       Text
         Using the trace as the objective function is a heuristic for obtaining SOS decompositions with small number of summands.  
-	Here we repeat Example 5 from [P05] and recover the shorter solution from that paper:
+        Here we repeat Example 5 from [P05] and recover the shorter solution from that paper:
       Example
         R = QQ[x,y]
-	S = R/ideal(x^2 + y^2 - 1)
-	F = 10-x^2-y
-	sosPoly solveSOS (F, matrix {{1}, {x}, {y}})
-        sosPoly solveSOS (F, matrix {{1}, {x}, {y}}, TraceObj=>true)
+        S = R/ideal(x^2 + y^2 - 1)
+        f = 10-x^2-y
+        sosPoly solveSOS (f, matrix {{1}, {x}, {y}})
+        sosPoly solveSOS (f, matrix {{1}, {x}, {y}}, TraceObj=>true)
       Code
       Pre
     SeeAlso

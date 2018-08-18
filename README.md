@@ -11,9 +11,9 @@ exact rational decomposition from the numerical solution.
 
 ***
 
-Author: Helfried Peyrl (ETH Zurich), Pablo A. Parrilo (MIT), Diego Cifuentes (MIT) 
+Author: Diego Cifuentes (MIT), Thomas Kahle (OvGU Magdeburg), Pablo A. Parrilo (MIT), Helfried Peyrl (ABB Corporate Research)
 
-Special thanks: Anton Leykin.
+Special thanks: Nidhi Kaihnsa, Anton Leykin.
 
 ***
 
