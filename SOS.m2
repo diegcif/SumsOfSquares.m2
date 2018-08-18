@@ -79,7 +79,7 @@ makeGlobalPath = (fname) -> (
     )
 
 csdpexec = makeGlobalPath ((options SOS).Configuration)#"CSDPexec"
-sdpaexec = ((options SOS).Configuration)#"SDPAexec"
+sdpaexec = makeGlobalPath ((options SOS).Configuration)#"SDPAexec"
 defaultSolver = ((options SOS).Configuration)#"DefaultSolver"
 
 StatusFeas = "Status: SDP solved, primal-dual feasible"
@@ -355,7 +355,7 @@ rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
     )
 
 rawSolveSOS(Matrix,Matrix) := o -> (F,objP) -> (
-    mon := choosemonp (F,Verbose=>o.Verbose);
+    mon := chooseMons (F,Verbose=>o.Verbose);
     if mon===null then return (,,,);
     return rawSolveSOS(F,objP,mon,o);
     )
@@ -376,7 +376,7 @@ solveSOS(RingElement,Matrix) := o -> (f,mon) ->
 
 solveSOS(RingElement,RingElement) := o -> (f,objFcn) -> (
     (F,objP) := parameterVector(f,objFcn);
-    mon := choosemonp (F,Verbose=>o.Verbose);
+    mon := chooseMons (F,Verbose=>o.Verbose);
     if mon===null then return (,mon,,);
     return rawSolveSOS(F,objP,mon,o);
     )
@@ -385,19 +385,11 @@ solveSOS(RingElement) := o -> (f) ->
 
 solveSOS(RingElement,RingElement,ZZ) := o -> (f,objFcn,D) -> (
     (F,objP) := parameterVector(f,objFcn);
-    mon := choosemonD(F,D);
+    mon := chooseMons(F,D);
     return solveSOS(f,objFcn,mon,o);
     )
 solveSOS(RingElement,ZZ) := o -> (f,D) -> 
     solveSOS(f,0_(ring f),D,o)
-
-choosemonD = (F,D) -> (
-    if D<=0 or odd D then error "Expected even positive integer";
-    R := ring F;
-    mon := if isHomogeneous R and isHomogeneous F then basis(D//2,R)
-        else basis(0,D//2,R);
-    return transpose mon;
-    )
 
 changeRingField = (kk,R) -> kk(monoid[gens R])
 
@@ -559,79 +551,88 @@ parameterVector(RingElement,RingElement) := (f,objFcn) -> (
     )
 parameterVector(RingElement) := (f) -> first parameterVector(f,0_(ring f))
 
-choosemonp = method(
+chooseMons = method(
     Options => {Verbose => false} )
-choosemonp(RingElement) := o -> (f) -> (
+chooseMons(RingElement) := o -> (f) -> (
     F := parameterVector(f);
-    mon := choosemonp(F);
+    mon := chooseMons(F);
     if mon===null then return;
     return sub(mon,ring f);
     )
-choosemonp(Matrix) := o -> (F) -> (
-     R := ring F;
-     if F==0 then error "Expected nonzero inputs.";
-     if isQuotientRing R then error("Monomial vector must be provided in quotient rings.");
-     n:= numgens R;
-     mons := g -> set first entries monomials g;
-     lm0 := mons F_(0,0);
-     filterVerts := (verts) -> (
-         -- only consider those without parameters (this is a hack!)
-         return select(verts, v -> member(R_v,lm0));
-         );
-     lmf := sum \\ mons \ flatten entries F;
-     falt := sum lmf;
-     
-     -- Get exponent-points for Newton polytope:
-     points := substitute(matrix (transpose exponents falt),QQ);
-     maxdeg := first degree falt;
-     mindeg := floor first min entries (transpose points*matrix map(ZZ^n,ZZ^1,i->1));
-     maxdegs := apply(entries points, i-> max i);
-     mindegs := apply(entries points, i-> min i);
-     
-     -- Regard exponent-points in a possible subspace
-     numpoints := numColumns points;
-     shift := first entries transpose points;
-     V := matrix transpose apply(entries transpose points, i -> i - shift);
-     basV := mingens image V;
-     basVdim := numgens image basV;
-     if basVdim != n then T := id_(QQ^n)//basV else T = id_(QQ^n);
-     basVtrans := kernelGens transpose basV;
-     
-     -- Compute Newton polytope:
-     liftedpts := T*V || map (QQ^1,QQ^(size falt),i->1);
-     dualpolytope := transpose substitute(first fourierMotzkin(liftedpts),QQ);
-     bidual := first fourierMotzkin transpose dualpolytope;
-     polytope := basV * matrix drop(entries bidual,-1);
-     polytope = matrix transpose apply(entries transpose polytope, i -> i + shift);
-     polytope = sub(polytope,ZZ);
-     oddverts := select(entries transpose polytope, i->any(i,odd));
-     if #filterVerts(oddverts)>0 then(
-         print("Newton polytope has odd vertices. Terminate.");
-         return;
-         );
+chooseMons(Matrix) := o -> (F) -> (
+    R := ring F;
+    if F==0 then error "Expected nonzero inputs.";
+    if isQuotientRing R then error("A monomial vector or degree bound must be provided in quotient rings.");
+    n:= numgens R;
+    mons := g -> set first entries monomials g;
+    lm0 := mons F_(0,0);
+    filterVerts := (verts) -> (
+        -- only consider those without parameters (this is a hack!)
+        return select(verts, v -> member(R_v,lm0));
+        );
+    lmf := sum \\ mons \ flatten entries F;
+    falt := sum lmf;
+    
+    -- Get exponent-points for Newton polytope:
+    points := substitute(matrix (transpose exponents falt),QQ);
+    maxdeg := first degree falt;
+    mindeg := floor first min entries (transpose points*matrix map(ZZ^n,ZZ^1,i->1));
+    maxdegs := apply(entries points, i-> max i);
+    mindegs := apply(entries points, i-> min i);
+    
+    -- Regard exponent-points in a possible subspace
+    numpoints := numColumns points;
+    shift := first entries transpose points;
+    V := matrix transpose apply(entries transpose points, i -> i - shift);
+    basV := mingens image V;
+    basVdim := numgens image basV;
+    if basVdim != n then T := id_(QQ^n)//basV else T = id_(QQ^n);
+    basVtrans := kernelGens transpose basV;
+    
+    -- Compute Newton polytope:
+    liftedpts := T*V || map (QQ^1,QQ^(size falt),i->1);
+    dualpolytope := transpose substitute(first fourierMotzkin(liftedpts),QQ);
+    bidual := first fourierMotzkin transpose dualpolytope;
+    polytope := basV * matrix drop(entries bidual,-1);
+    polytope = matrix transpose apply(entries transpose polytope, i -> i + shift);
+    polytope = sub(polytope,ZZ);
+    oddverts := select(entries transpose polytope, i->any(i,odd));
+    if #filterVerts(oddverts)>0 then(
+        print("Newton polytope has odd vertices. Terminate.");
+        return;
+        );
 
-     -- Get candidate points
-     cp := pointsInBox(mindeg,maxdeg,mindegs,maxdegs);
-     verbose("#candidate points: " | #cp, o);
-     -- Only the even ones
-     cpf := select(cp,i-> all(i,even)); 
-     verbose("#even points: " | #cpf, o);
-     -- Drop points that do not live on the subspace: 
-     cpf2 := select(cpf,i-> matrix{i-shift}*basVtrans==0);
-     verbose("#points in subspace of exponent-points: " | #cpf2, o);
-     
-     -- Find points within the polytope:
-     lexponents := select(cpf2, i-> 
-           max flatten entries (dualpolytope * ((T * transpose matrix {i-shift})||1)) <=0)/2;
-     isInteger := l -> denominator l == 1;
-     assert all(flatten lexponents, isInteger );
-     lexponents = apply(lexponents, i -> numerator \ i);
-     lmSOS := for i in lexponents list R_i;
-     verbose("#points inside Newton polytope: " | #lmSOS, o);
+    -- Get candidate points
+    cp := pointsInBox(mindeg,maxdeg,mindegs,maxdegs);
+    verbose("#candidate points: " | #cp, o);
+    -- Only the even ones
+    cpf := select(cp,i-> all(i,even)); 
+    verbose("#even points: " | #cpf, o);
+    -- Drop points that do not live on the subspace: 
+    cpf2 := select(cpf,i-> matrix{i-shift}*basVtrans==0);
+    verbose("#points in subspace of exponent-points: " | #cpf2, o);
+    
+    -- Find points within the polytope:
+    lexponents := select(cpf2, i-> 
+          max flatten entries (dualpolytope * ((T * transpose matrix {i-shift})||1)) <=0)/2;
+    isInteger := l -> denominator l == 1;
+    assert all(flatten lexponents, isInteger );
+    lexponents = apply(lexponents, i -> numerator \ i);
+    lmSOS := for i in lexponents list R_i;
+    verbose("#points inside Newton polytope: " | #lmSOS, o);
 
-     if #lmSOS==0 then return;
-     return matrix transpose {lmSOS};
-     )
+    if #lmSOS==0 then return;
+    return matrix transpose {lmSOS};
+    )
+
+chooseMons(Matrix,ZZ) := o -> (F,D) -> (
+    if D<=0 or odd D then error "Expected even positive integer";
+    R := ring F;
+    mon := if isHomogeneous R and isHomogeneous F then basis(D//2,R)
+        else basis(0,D//2,R);
+    verbose("#monomials: " | numColumns mon, o);
+    return transpose mon;
+    )
 
 pointsInBox = (mindeg,maxdeg,mindegs,maxdegs) -> (
     -- integer vectors within specified bounds
@@ -755,8 +756,7 @@ sosInIdeal = method(
 sosInIdeal (Ring, ZZ) := o -> (R,D) -> (
     -- find sos polynomial in a quotient ring
     if odd D then error "D must be even";
-    mon := if isHomogeneous R then transpose basis(D//2,R)
-        else transpose basis(0,D//2,R);
+    mon := chooseMons(matrix{{0_R}}, D);
     (mon',Q,X,tval) := readSdpResult solveSOS (0_R, mon, o);
     if Q===null or Q==0 or (not isExactField Q and norm Q<1e-6) then (
         print("no sos polynomial in degree "|D);
@@ -887,8 +887,8 @@ lowerBound(RingElement,Matrix,ZZ) := o -> (f,h,D) -> (
     -- call solveSOS
     o' := new OptionTable from
         {RndTol=>o.RndTol, Solver=>o.Solver, Verbose=>o.Verbose};
-    mon := if isQuotientRing R then transpose basis(0,D//2,R)
-        else choosemonp (F,Verbose=>o.Verbose);
+    mon := if isQuotientRing R then chooseMons(F,D)
+        else chooseMons (F,Verbose=>o.Verbose);
     if mon===null then return (,sdpResult(,,,,));
     (mon',Q,X,tval) := readSdpResult rawSolveSOS(F,objP,mon,o');
     if tval=!=null then(
@@ -1123,20 +1123,33 @@ solveCSDP(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     fout2 := getFileName "";
     writeSDPA(fin,C,A,b);
     writeCSDPparam(fparam);
-    print("Executing CSDP on file " | fin);
-    r := run("cd " | dir | " && " | csdpexec | " " | fin1 | " " | fout | ">" | fout2);
-    if r == 32512 then error "csdp executable not found";
-    print("Output saved on file " | fout);
+    print("Executing CSDP");
+    print("Input file: " | fin);
+    runcmd("cd " | dir | " && " | csdpexec | " " | fin1 | " " | fout | ">" | fout2);
+    print("Output file: " | fout);
     (y,X,Z) := readCSDP(fout,fout2,n,o.Verbose);
     y = checkDualSol(C,A,y,Z,o.Verbose);
     return (y,X,Z);
-)
+    )
+
+runcmd = (cmd) -> (
+    tmp := getFileName ".err";
+    r := run(cmd | " 2> " | tmp);
+    if r == 32512 then error "Executable not found.";
+    if r == 11 then error "Segmentation fault.";
+    if r>0 then (
+        txt := get tmp;
+        if #txt>0 then(
+            print txt;
+            error "Command could not be executed." );
+        );
+    )
 
 getFileName = (ext) -> (
      filename := temporaryFileName() | ext;
      while fileExists(filename) do filename = temporaryFileName();
      return filename
-)
+    )
 
 splitFileName = (fname) -> (
     s := separate("/",fname);
@@ -1168,7 +1181,7 @@ writeSDPA = (fin,C,A,b) -> (
         inputMatrix(l);
     );
     f << close;
-)
+    )
 
 writeCSDPparam = (fparam) -> (
     f := openOut fparam;
@@ -1201,6 +1214,7 @@ readCSDP = (fout,fout2,n,Verbose) -> (
     --READ SOLUTIONS
     tmp := getFileName "";
     r := run("cat " | fout | " | tr -d + > " | tmp);
+    if r>0 then error "Output file could not be read";
     L := lines get openIn tmp;
     y := transpose matrix{readLine L_0};
     S := readLine \ drop(L,1);
@@ -1247,14 +1261,13 @@ solveSDPA(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     fin := getFileName ".dat-s";
     fout := getFileName "";
     writeSDPA(fin,C,A,b);
-    print("Executing SDPA on file " | fin);
-    r := run(sdpaexec | " " | fin | " " | fout | "> /dev/null");
-    if r == 32512 then error "sdpa executable not found";
-    if r == 11 then error "Segmentation fault running sdpa.";
-    print("Output saved on file " | fout);
+    print("Executing SDPA");
+    print("Input file: " | fin);
+    runcmd(sdpaexec | " " | fin | " " | fout | "> /dev/null");
+    print("Output file: " | fout);
     (y,X,Z) := readSDPA(fout,n,o.Verbose);
     return (y,X,Z);
-)
+    )
 
 readSDPA = (fout,n,Verbose) -> (
     readVec := l -> (
@@ -1554,7 +1567,14 @@ checkSosInIdeal = solver -> (
     mult = sol#Multipliers;
     t3 := cmp(h,s,mult);
 
-    results := {t0,t1,t2,t3};
+    -----------------QUOTIENT1-----------------
+    -- Test 4:
+    R = QQ[x,y]/ideal(x^2+y^2);
+    sol = sosInIdeal(R,2,Solver=>solver);
+    s = sosPoly sol;
+    t4 := s=!=null and sumSOS s==0;
+
+    results := {t0,t1,t2,t3,t4};
     informAboutTests (results);
     return results
     )
@@ -1724,26 +1744,26 @@ TEST /// --sosdec
     assert(f=!=null and sumSOS f==transpose mon * Q *mon)
 ///
 
-TEST /// --choosemonp
+TEST /// --chooseMons
     debug needsPackage "SOS"
     R = QQ[x,y];
     f = x^4+2*x*y-x+y^4
-    lmsos = choosemonp(f)
+    lmsos = chooseMons(f)
     assert( lmsos === null )
 
     R = QQ[x,y]
     f = (x+2*y)^2 + (x-y)^4
-    lmsos = choosemonp f
+    lmsos = chooseMons f
     assert( lmsos=!=null and numRows lmsos == 5 )
 
     R = QQ[x,y][t];
     f = x^4+2*x*y-x+y^4
-    lmsos = choosemonp(f-t)
+    lmsos = chooseMons(f-t)
     assert( lmsos=!=null and ring lmsos===R and numRows lmsos == 6 )
     
     R = RR[x,y][t];
     f = x^4+2*x*y-x+y^4
-    lmsos = choosemonp(f-t)
+    lmsos = chooseMons(f-t)
     assert( lmsos=!=null and ring lmsos===R and numRows lmsos == 6 )
 ///
 
