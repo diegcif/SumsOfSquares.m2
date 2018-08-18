@@ -194,18 +194,6 @@ doc /// -- SDPResult
         sol#GramMatrix
 ///
 
-doc ///
-    Key
-    	UntilObjNegative
-    Headline
-        an internal object signaling stopping conditions of a solver
-    Description
-      Text
-        This is an internal symbol that is used as an option of a non-exported function.  It has no significance
-	to the user of the package.
-///
-    
-
 --###################################
 -- Methods
 --###################################

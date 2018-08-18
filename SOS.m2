@@ -57,7 +57,6 @@ export {
     "Parameters",
     "Multipliers",
     "RndTol",
-    "UntilObjNegative",
     "Solver",
     "TraceObj",
     "Scaling"
@@ -953,7 +952,7 @@ solveSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y0) -> (
     if chooseSolver o != "M2" then return solveSDP(C,A,b,o);
     (ok,y,X,Z) = trivialSDP(C,A,b);
     if ok then return (y,X,Z);
-    (y,Z) = simpleSDP(C,A,b,y0,Verbose=>o.Verbose);
+    (y,Z) = simpleSDP2(C,A,b,y0,false,Verbose=>o.Verbose);
     return (y,,Z);
     )
 
@@ -1006,11 +1005,7 @@ trivialSDP = (C,A,b) -> (
 
 --simpleSDP
 
-simpleSDP = method(
-    TypicalValue => Matrix,
-    Options => {UntilObjNegative => false, Verbose => false} )
-
-simpleSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
+simpleSDP = {Verbose => false} >> o -> (C,A,b) -> (
     R := RR;
     n := numRows C;
 
@@ -1023,15 +1018,15 @@ simpleSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
         verbose("Computing strictly feasible solution...", o);
         y =  zeros(R,#A,1) || matrix{{lambda*1.1}};
         obj :=  zeros(R,#A,1) || matrix{{-1_R}};
-        (y,Z) = simpleSDP(C,append(A,id_(R^n)), obj, y, UntilObjNegative=>true, Verbose=>o.Verbose);
+        (y,Z) = simpleSDP2(C,append(A,id_(R^n)), obj, y, true, Verbose=>o.Verbose);
         if y===null then return (,);
         y = transpose matrix {take (flatten entries y,numRows y - 1)};
         );
     verbose("Computing an optimal solution...", o);
-    return simpleSDP(C, A, b, y, o);
+    return simpleSDP2(C, A, b, y, false, o);
     )
 
-simpleSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y) -> (
+simpleSDP2 = {Verbose => false} >> o -> (C,A,b,y,UntilObjNegative) -> (
     print "Running M2 solver";
     R := RR;
     n := numgens target C;
@@ -1074,7 +1069,7 @@ simpleSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y) -> (
             if iter > NewtonIterMAX then (
                 verbose("Warning: exceeded maximum number of iterations", o);
                 break);
-            if o.UntilObjNegative and (obj_(0,0) < 0) then break;
+            if UntilObjNegative and (obj_(0,0) < 0) then break;
             if lambda < 0.4 then break;
             ); 
         );
