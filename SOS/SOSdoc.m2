@@ -51,7 +51,7 @@ document {
     UL {
 	LI {"The package implements Hilbert's algorithm to decompose a non-negative ternary form into a sum of squares of rational functions: ", TO "sosdecTernary"},
 	LI {"Sums of squares problems can be solved parametrically: ", TO "solveSOS"},
-	LI {"Optimization over varieties and parametrically can run using ", TO "lowerBound"},
+	LI {"Optimization over varieties can run using ", TO "lowerBound"},
 	},
     
     HEADER4 "On the role of coefficient fields",  

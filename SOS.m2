@@ -82,6 +82,13 @@ csdpexec = makeGlobalPath ((options SOS).Configuration)#"CSDPexec"
 sdpaexec = ((options SOS).Configuration)#"SDPAexec"
 defaultSolver = ((options SOS).Configuration)#"DefaultSolver"
 
+StatusFeas = "Status: SDP solved, primal-dual feasible"
+StatusPFeas = "Status: SDP solved, primal feasible"
+StatusDFeas = "Status: SDP solved, dual feasible"
+StatusPInfeas = "Status: SDP solved, primal infeasible"
+StatusDInfeas = "Status: SDP solved, dual infeasible"
+StatusFailed = "Status: SDP failed"
+
 --##########################################################################--
 -- TYPES
 --##########################################################################--
@@ -926,6 +933,7 @@ solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
     )
 
 findNonZeroSolution = (C,A,b,o,y,Z,ntries) -> (
+    if y===null then return (y,Z);
     if not(C==0 and b==0 and y==0) then return (y,Z);
     print "Zero solution obtained. Trying again.";
     m := numRows b;
@@ -1010,7 +1018,7 @@ simpleSDP = {Verbose => false} >> o -> (C,A,b) -> (
     n := numRows C;
 
     -- try to find strictly feasible starting point --
-    (y,Z) := (,);
+    local y; local Z;
     lambda := min eigenvalues (C, Hermitian=>true);
     if lambda > 0 then
         y = zeros(R,#A,1)
@@ -1023,7 +1031,9 @@ simpleSDP = {Verbose => false} >> o -> (C,A,b) -> (
         y = transpose matrix {take (flatten entries y,numRows y - 1)};
         );
     verbose("Computing an optimal solution...", o);
-    return simpleSDP2(C, A, b, y, false, o);
+    (y,Z) = simpleSDP2(C, A, b, y, false, o);
+    print if y=!=null then StatusDFeas else StatusFailed;
+    return (y,Z);
     )
 
 simpleSDP2 = {Verbose => false} >> o -> (C,A,b,y,UntilObjNegative) -> (
@@ -1201,13 +1211,19 @@ readCSDP = (fout,fout2,n,Verbose) -> (
     -- READ STATUS
     text := get openIn fout2;
     s := select(lines text, l -> match("Success",l));
-    if #s==0 then( print "SDP failed"; return (,,) );
+    if #s==0 then( print StatusFailed; return (,,) );
     s = first s;
-    print if Verbose then text else s;
-    if match("SDP solved",s) then null
-    else if match("primal infeasible",s) then X=null
-    else if match("dual infeasible",s) then (y=null;Z=null;)
-    else error "unknown message";
+    if Verbose then print text;
+    if match("SDP solved",s) then 
+        print StatusFeas
+    else if match("primal infeasible",s) then(
+        print StatusPInfeas;
+        X=null; )
+    else if match("dual infeasible",s) then (
+        print StatusDInfeas;
+        y=null;Z=null; )
+    else 
+        print("Warning: Solver returns unknown message!!! " |s);
     return (y,X,Z);
 )
 
@@ -1263,17 +1279,23 @@ readSDPA = (fout,n,Verbose) -> (
     --READ STATUS
     if Verbose then print text;
     s := first select(L, l -> match("phase.value",l));
-    if match("pdOPT",s) or match("pdFEAS",s) then 
-        print "SDP solved"
-    else if match("dUNBD",s) then(
-        print "dual infeasible";
+    if match("pdOPT|pdFEAS",s) then 
+        print StatusFeas
+    else if match("dFEAS",s) then 
+        print StatusPFeas
+    else if match("pFEAS",s) then 
+        print StatusDFeas
+    else if match("dUNBD|pINF_dFEAS",s)  then(
+        print StatusDInfeas;
         y=null;Z=null; )
-    else if match("pUNBD",s) then(
-        print "primal infeasible";
+    else if match("pUNBD|pFEAS_dINF",s) then(
+        print StatusPInfeas;
         X=null; )
-    else( 
+    else if match("noINFO|pdINF",s) then(
+        print StatusFailed;
+        y=null;Z=null;X=null; )
+    else
         print("Warning: Solver returns unknown message!!! " |s);
-        );
     return (y,X,Z);
     )
 
@@ -1318,6 +1340,8 @@ informAboutTests = t -> (
 checkSolveSDP = solver -> (
     tol := .001;
     equal := (y0,y) -> y=!=null and norm(y0-y)<tol*(1+norm(y0));
+    checkZ := (C,A,y,Z) -> if y===null then false
+        else ( yA := sum for i to #A-1 list y_(i,0)*A_i; norm(Z-C+yA)<1e-5 );
     local C; local b; local A; local A1; local A2; local A3; 
     local y0; local y; local X; local Z; local yopt;
     ---------------TEST0---------------
@@ -1370,8 +1394,7 @@ checkSolveSDP = solver -> (
     A = (A1,A2,A3);
     b = matrix(RR, {{0}, {0}, {0}});
     (y,X,Z) = solveSDP(C, A, b, Solver=>solver);
-    yA := sum for i to #A-1 list y_(i,0)*A_i;
-    t4 := norm(Z-C+yA)<1e-5;
+    t4 := checkZ(C,A,y,Z);
     -----------------------------------
     test := {t0,t1,t2,t3,t4};
     informAboutTests test;

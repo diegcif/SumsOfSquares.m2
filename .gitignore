@@ -3,3 +3,8 @@
 
 ## Examples files
 SOS/examples/*
+
+## Dropbox/Apple files
+.dropbox
+*DS_Store
+Icon*
