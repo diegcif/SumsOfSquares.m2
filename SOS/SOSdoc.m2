@@ -43,7 +43,9 @@ document {
         R = QQ[x,y];
         S = R/ideal(x^2 + y^2 - 1);
         f = 10-x^2-y;
-        solveSOS (f, matrix {{1}, {x}, {y}})
+        mon = matrix {{1},{x},{y}};
+        sol = solveSOS (f, mon);
+        sosPoly sol
     ///,
     "See ", TO "TraceObj", " for how to reduce the number of summands to 2.",
     
@@ -64,18 +66,17 @@ document {
 	rational SOS decomposition exists or not.  In this case of failure, a real result is returned. 
 	The following example of Scheiderer is SOS, but does not admit any
 	rational SOS decomposition.  Consequently the package must return a real solution:",
-     EXAMPLE lines ///
-         R = QQ[x,y,z];
-	 f = x^4 + x*y^3 + y^4 - 3*x^2*y*z - 4*x*y^2*z + 2*x^2*z^2 + x*z^3 + y*z^3 + z^4;
-	 sol = solveSOS (f, Solver=>"CSDP");
-	 sosPoly sol
-      ///,
-      "Once the rational world has been left, there is usually now way back.
-      The package offers the function ", TO "clean(RR,SOSPoly)", " which from an ", TO "sosPoly", " removes
-      all summands whose coefficient is smaller than a given tolerance.  This can be useful sometimes and here is how to invoke it:",
-      EXAMPLE lines ///
-         clean (0.001, sosPoly sol)
-      ///,
+    EXAMPLE lines ///
+        f = nonnegativeForm("Scheiderer", QQ[x,y,z])
+        sol = solveSOS (f, Solver=>"CSDP");
+        sosPoly sol
+    ///,
+    "Once the rational world has been left, there is usually now way back.
+    The package offers the function ", TO "clean(RR,SOSPoly)", " which from an ", TO "sosPoly", " removes
+    all summands whose coefficient is smaller than a given tolerance.  This can be useful sometimes and here is how to invoke it:",
+    EXAMPLE lines ///
+        clean (0.001, sosPoly sol)
+    ///,
 
     HEADER4 "Literature",
     UL {
@@ -534,9 +535,8 @@ doc /// --LDLdecomposition
         L*D*transpose(L) == transpose(P)*A*P
       Text
         {\bf References:}
-        {\it Gene Golub and Charles van Loan: Matrix Computations}, Johns Hopkins
-        series in the Mathematical Science, 2 ed., pp. 133-148,
-        Baltimore Maryland, 1989.
+        {\it Matrix Computations}, Gene Golub and Charles van Loan. Johns Hopkins
+        series in the Mathematical Science (1989), 2 ed., pp. 133-148.
       Code
       Pre
     SeeAlso
@@ -591,8 +591,7 @@ doc /// --solveSDP
         y
       Text
         {\bf References:}
-        Boyd, Vandenberghe: Convex Optimization, Cambridge University Press,
-        2004, pp. 618-619, pp. 463-466
+        {\it Convex Optimization}, Boyd, Vandenberghe, Cambridge University Press (2004), pp. 618-619, pp. 463-466
       Code
       Pre
     Caveat
@@ -635,7 +634,7 @@ doc /// --sosdecTernary
 	 norm residual
       Text
         {\bf References:}
-        de Klerk, Etienne and Pasechnik, Dmitrii V.: Products of positive forms, linear matrix inequalities, and Hilbert 17th problem for ternary forms, European J. Oper. Res., 39-45 (2004).
+        {\it Products of positive forms, linear matrix inequalities, and Hilbert 17th problem for ternary forms}, E. de Klerk, and D.V. Pasechnik, European J. Oper. Res. (2004), pp. 39-45.
     Caveat
         This implementation only works with the @TO Solver@ CSDP.
 ///
@@ -814,6 +813,62 @@ doc /// --checkSolver
       Pre
     SeeAlso
         Solver
+///
+
+doc /// --nonnegativeForm
+    Key
+        nonnegativeForm
+        (nonnegativeForm,String,List)
+        (nonnegativeForm,String,Ring)
+    Headline
+        dictionary of interesting nonnegative forms
+    Usage
+        nonnegativeForm(name,R) 
+        nonnegativeForm(name,var) 
+    Inputs
+        name:String
+          either "Motzkin", "Robinson", "Schmudgen", "Lax-Lax", "Choi-Lam", "Scheiderer", "Harris"
+        R:Ring
+          a polynomial ring
+        var:List
+          of variables
+    Outputs
+        :RingElement
+          a nonnegative form
+    Consequences
+    Description
+      Text
+        This method contains a dictinary of some 'interesting' nonnegative forms.
+      Text
+        The Motzkin polynomial is a ternary sextic that is not SOS.
+        It was the first example of a nonnegative polynomial that is not SOS.
+      Example
+        R = QQ[x,y,z,w];
+        nonnegativeForm("Motzkin", R)
+      Text
+        The Robinson and Schmudgen polynomials are also ternary sextics that are not SOS.
+      Example
+        nonnegativeForm("Robinson", R)
+        nonnegativeForm("Schmudgen", R)
+      Text
+        The Lax-Lax and Choi-Lam polynomials are quaternary quartics that are not SOS.
+      Example
+        nonnegativeForm("Lax-Lax", R)
+        nonnegativeForm("Choi-Lam", R)
+      Text
+        Scheiderer polynomial is SOS over the reals, but not over the rationals.
+      Example
+        nonnegativeForm("Scheiderer", R)
+      Text
+        Harris polynomial is a ternary form of degree 10 with 30 projective zeros (the largest known).
+      Example
+        nonnegativeForm("Harris", R)
+      Text
+        {\bf References:}
+        {\it Some concrete aspects of Hilbert's 17th problem}. B. Reznick. Contemporary mathematics (2000), 253, pp. 251-272
+      Code
+      Pre
+    SeeAlso
 ///
 
 --###################################
@@ -1012,11 +1067,11 @@ doc /// --TraceObj
         Using the trace as the objective function is a heuristic for obtaining SOS decompositions with small number of summands.  
         Here we repeat Example 5 from [P05] and recover the shorter solution from that paper:
       Example
-        R = QQ[x,y]
-        S = R/ideal(x^2 + y^2 - 1)
-        f = 10-x^2-y
-        sosPoly solveSOS (f, matrix {{1}, {x}, {y}})
-        sosPoly solveSOS (f, matrix {{1}, {x}, {y}}, TraceObj=>true)
+        R = QQ[x,y]/ideal(x^2 + y^2 - 1);
+        f = 10-x^2-y;
+        mon = matrix {{1}, {x}, {y}};
+        sosPoly solveSOS (f, mon)
+        sosPoly solveSOS (f, mon, TraceObj=>true)
       Code
       Pre
     SeeAlso

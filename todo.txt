@@ -54,10 +54,10 @@ Known bugs:
     f = x^4+x^2+z^6-3*x^2*z^2;
     (bound,mon,Q,X) = lowerBound (f,Solver=>"SDPA");
 
-8) The following doesn't work
+8) The following doesn't work with CSDP
     R = QQ[x,y];
     h = matrix{{y-x^2}};
-    (bound,sol,mult) = lowerBound (y, h, 4);
+    (bound,sol,mult) = lowerBound (y, h, 4, Solver=>"CSDP");
 
 #########################
 ##### DOCUMENTATION #####

@@ -50,6 +50,7 @@ export {
     "smat2vec",
     "vec2smat",
     "recoverSolution",
+    "nonnegativeForm",
 --only for debugging
 --Method options
     "GramMatrix",
@@ -212,6 +213,37 @@ readSdpResult = sol -> (sol#Monomials, sol#GramMatrix, sol#MomentMatrix, sol#Par
 --##########################################################################--
 
 verbose = (s,o) -> if o.Verbose then print s
+
+nonnegativeForm = method()
+nonnegativeForm(String,List) := (name,X) -> (
+    if #X<3 then error "Insufficient variables";
+    x := X_0; y := X_1; z := X_2;
+    if name=="Motzkin" then
+        return  x^4*y^2 + x^2*y^4 - 3*x^2*y^2*z^2 + z^6;
+    if name=="Robinson" then
+        return x^6 + y^6 + z^6 - (x^4*y^2 + x^2*y^4 + x^4*z^2 + x^2*z^4 + y^4*z^2 + y^2*z^4) + 3*x^2*y^2*z^2;
+    if name=="Schmudgen" then
+        return 200*(x^3 - 4*x*z^2)^2 + 200*(y^3 - 4*y*z^2)^2 + 
+           (y^2 - x^2)*x*(x + 2*z)*(x^2 - 2*x*z + 2*y^2 - 8*z^2);
+    if name=="Scheiderer" then
+        return x^4 + x*y^3 + y^4 - 3*x^2*y*z - 4*x*y^2*z + 2*x^2*z^2 + x*z^3 + y*z^3 + z^4;
+    if name=="Harris" then(
+        (a,b,c,d,e) := (16,-36,20,57,-38);
+        return a*( x^10 + y^10 + z^10)+ 
+            b*( x^8* y^2 + x^2* y^8 + x^8* z^2 + x^2* z^8 + y^8* z^2 + y^2* z^8 ) +
+            c*( x^6* y^4 + x^4* y^6 + x^6* z^4 + x^4* z^6 + y^6* z^4 + y^4* z^6 ) + 
+            d*( x^6* y^2* z^2 + x^2* y^6* z^2 + x^2* y^2* z^6) +
+            e*( x^4* y^4* z^2 + x^4* y^2* z^4 + x^2* y^4* z^4);
+        );
+    if #X<4 then error "Insufficient variables";
+    w := X_3;
+    if name=="Lax-Lax" then
+        return (x-y)*(x-z)*(x-w)*x+(y-x)*(y-z)*(y-w)*y+(z-x)*(z-y)*(z-w)*z+(w-x)*(w-y)*(w-z)*w+x*y*z*w;
+    if name=="Choi-Lam" then
+        return x^2*y^2 + y^2*z^2 + x^2*z^2 + w^4 - 4*x*y*z*w;
+    error "Name was not recognized.";
+    )
+nonnegativeForm(String,Ring) := (name,R) -> nonnegativeForm(name,gens R)
 
 --###################################
 -- basicLinearAlgebra
