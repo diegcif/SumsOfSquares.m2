@@ -55,7 +55,7 @@ export {
     "GramMatrix",
     "MomentMatrix",
     "Parameters",
-    "RndTol",
+    "RoundTol",
     "Solver",
     "TraceObj",
     "Scaling"
@@ -303,7 +303,7 @@ sosPoly(SDPResult) := sol -> if sol#GramMatrix=!=null then sosPoly(sol#Monomials
 
 -- internal way to call solveSOS
 rawSolveSOS = method(
-     Options => {RndTol => 3, Solver=>null, Verbose => false, TraceObj => false} )
+     Options => {RoundTol => 3, Solver=>null, Verbose => false, TraceObj => false} )
  
 rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
     -- f is a polynomial to decompose
@@ -339,11 +339,11 @@ rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
     pvec0 := flatten entries(p0 + V*y);
 
     if not isExactField kk then return sdpResult(mon,Q,X,pvec0);
-    if o.RndTol==infinity then
+    if o.RoundTol==infinity then
         return sdpResult(changeMatrixField(RR,mon),Q,X,pvec0);
 
     -- rational rounding --
-    (ok,Qp,pVec) := roundSolution(pvec0,Q,A,B,b,o.RndTol);
+    (ok,Qp,pVec) := roundSolution(pvec0,Q,A,B,b,o.RoundTol);
     if ok then return sdpResult(mon,Qp,X,pVec);
     print "rounding failed, returning real solution";
     return sdpResult(changeMatrixField(RR,mon),Q,X,pvec0);
@@ -360,7 +360,7 @@ rawSolveSOS(Matrix) := o -> (F) ->
 -- This is the main method to decompose a polynomial as a 
 -- sum of squares using an SDP solver.
 solveSOS = method(
-     Options => {RndTol => 3, Solver=>null, Verbose => false, TraceObj => false} )
+     Options => {RoundTol => 3, Solver=>null, Verbose => false, TraceObj => false} )
 
 solveSOS(RingElement,RingElement,Matrix) := o -> (f,objFcn,mon) -> (
     (F,objP) := parameterVector(f,objFcn);
@@ -438,12 +438,12 @@ liftMonomial = (S,f) -> (
     return S_e;
     )
 
-roundSolution = {Verbose=>false} >> o -> (pvec0,Q,A,B,b,RndTol) -> (
+roundSolution = {Verbose=>false} >> o -> (pvec0,Q,A,B,b,RoundTol) -> (
     -- round and project --
     Qnum := matrix applyTable(entries Q, a -> round(a*2^52)/2^52);
 
     dhi := 52;
-    d := RndTol;
+    d := RoundTol;
     np := numColumns B;
     
     while (d < dhi) do (
@@ -747,7 +747,7 @@ makeMultiples = (h, D, homog) -> (
     )
 
 sosInIdeal = method(
-     Options => {RndTol => 3, Solver=>"CSDP", Verbose => false} )
+     Options => {RoundTol => 3, Solver=>"CSDP", Verbose => false} )
 sosInIdeal (Ring, ZZ) := o -> (R,D) -> (
     -- find sos polynomial in a quotient ring
     if odd D then error "D must be even";
@@ -793,7 +793,7 @@ getMultipliers = (mon,tval,S) -> (
     )
 
 sosdecTernary = method(
-     Options => {RndTol => 3, Solver=>"CSDP", Verbose => false} )
+     Options => {RoundTol => 3, Solver=>"CSDP", Verbose => false} )
 sosdecTernary(RingElement) := o -> (f) -> (
     -- Implements Hilbert's algorithm to write a non-negative ternary
     -- form as sos of rational functions.
@@ -846,7 +846,7 @@ recoverSolution = (mon,X) -> (
 -- Unconstrained minimization 
 -- sos lower bound for the polynomial f
 lowerBound = method(
-     Options => {RndTol => 3, Solver=>null, Verbose => false} )
+     Options => {RoundTol => 3, Solver=>null, Verbose => false} )
 lowerBound(RingElement) := o -> (f) -> lowerBound(f,-1,o)
 lowerBound(RingElement,ZZ) := o -> (f,D) -> drop(lowerBound(f,zeros(ring f,1,0),D,o),-1)
 
@@ -882,7 +882,7 @@ lowerBound(RingElement,Matrix,ZZ) := o -> (f,h,D) -> (
 
     -- call solveSOS
     o' := new OptionTable from
-        {RndTol=>o.RndTol, Solver=>o.Solver, Verbose=>o.Verbose};
+        {RoundTol=>o.RoundTol, Solver=>o.Solver, Verbose=>o.Verbose};
     mon := if isQuotientRing R then chooseMons(F,D)
         else chooseMons (F,Verbose=>o.Verbose);
     if mon===null then return (,sdpResult(,,,),);
@@ -1610,13 +1610,13 @@ checkLowerBound = solver -> (
     -- Test 2
     R = QQ[x,z];
     f = x^4+x^2+z^6-3*x^2*z^2;
-    (bound,sol) = lowerBound (f,Solver=>solver,RndTol=>infinity);
+    (bound,sol) = lowerBound (f,Solver=>solver,RoundTol=>infinity);
     t2 := equal(bound,-.17798);
 
     -- Test 3 (rational function)
     R = QQ[x];
     f = (x^2-x)/(x^2+1);
-    (bound,sol) = lowerBound(f, Solver=>solver, RndTol=>infinity);
+    (bound,sol) = lowerBound(f, Solver=>solver, RoundTol=>infinity);
     t3 := equal(bound,1/2-1/sqrt(2));
 
     ---------------CONSTRAINED1---------------

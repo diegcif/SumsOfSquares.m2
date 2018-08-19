@@ -5,8 +5,8 @@ document {
     TT "SOS", " is a package to solve sum-of-squares (SOS) problems.",
     
     HEADER4 "Introduction",
-    "Writing a polynomial as a sum of squares polynomials proves its non-negativity for all arguments,
-    but not all non-negative polynomials are sums of squares.  
+    "Writing a polynomial as a sum-of-squares proves its non-negativity for all arguments,
+    but not all non-negative polynomials are sum-of-squares.  
     While non-negativity of a polynomial is hard to check, there are efficient methods to find
     sums-of-squares decompositions and this package makes some of them available in Macaulay2.  
     These methods rely on semi-definite-programming solvers from 
@@ -14,7 +14,7 @@ document {
     it is highly recommended to configure an external ", TO Solver, ".",
     
     HEADER4 "Usage examples",
-    "The most basic application is to (try to) decompose a polynomial as a sum of squares using the function ", TO "solveSOS",
+    "The most basic application is to (try to) decompose a polynomial as a sum-of-squares using the function ", TO "solveSOS",
     EXAMPLE lines ///
       R = QQ[x,y];
       f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
@@ -32,7 +32,7 @@ document {
     ///,
     
     HEADER4 "Sums of squares modulo equality constraints",
-    "The package supports sums of squares decompositions in ",  
+    "The package supports SOS decompositions in ",  
     TO2 {"solveSOS(RingElement,Matrix)","quotient rings"},
     ". This can be useful to prove non-negativity of a polynomial on a variety.  The following example is 
     taken from [P05].  Consider the problem
@@ -49,7 +49,7 @@ document {
     
     HEADER4 "Other cool stuff",
     UL {
-	LI {"The package implements Hilbert's algorithm to decompose a non-negative ternary form into a sum of squares of rational functions: ", TO "sosdecTernary"},
+	LI {"The package implements Hilbert's algorithm to decompose a non-negative ternary form into a sum-of-squares of rational functions: ", TO "sosdecTernary"},
 	LI {"Sums of squares problems can be solved parametrically: ", TO "solveSOS"},
 	LI {"Optimization over varieties can run using ", TO "lowerBound"},
 	},
@@ -62,7 +62,7 @@ document {
 	input was a polynomial with rational coefficients, the result is numerical.  The package makes some 
 	effort to round and return a rational result, but this can fail, independent of whether a 
 	rational SOS decomposition exists or not.  In this case of failure, a real result is returned. 
-	The following example of Scheiderer is a sum of squares, but does not admit any
+	The following example of Scheiderer is SOS, but does not admit any
 	rational SOS decomposition.  Consequently the package must return a real solution:",
      EXAMPLE lines ///
          R = QQ[x,y,z];
@@ -121,7 +121,7 @@ doc /// --SOSPoly
         A polynomial $f\in K[x]$ is a sum-of-squares (SOS) if it can be written as
         $$f = \sum_i d_i g_i^2,$$
         where the $g_i$ are polynomials in $K[x]$ and the $d_i$ are weights in $K$.
-        This data type stores sums of squares in terms of the summands.  
+        This data type stores SOS polynomials in terms of the summands.  
         The type is a hash table consisting of the polynomials to be 
         squared and summed (the 'generators'), corresponding coefficients,
         and the base ring.  The most common way an SOSPoly comes to life is
@@ -182,7 +182,7 @@ doc /// -- SDPResult
     Description
       Text
         This type encapsulates the result of an SDP computation.
-        In the case of a succesful computation, the sum of squares can be recovered with @TO sosPoly@.
+        In the case of a succesful computation, the SOS polynomial can be recovered with @TO sosPoly@.
       Example
         R = QQ[x,y,z]
         f = matrix {{x^2+y^2+y, y-z^2}}
@@ -202,7 +202,7 @@ doc /// --cleanSOS
     Key
         (clean,RR,SOSPoly)
     Headline
-        Remove terms with very small coefficients from a sum of squares.
+        Remove terms with very small coefficients from a sum-of-squares.
     Usage
         clean (tol, s) 
     Inputs
@@ -369,10 +369,11 @@ doc /// --solveSOS
       Example
         R = QQ[x,z][t];
         f = x^4+x^2+z^6-3*x^2*z^2-t;
-        sol = solveSOS (f,-t,RndTol=>12);
+        sol = solveSOS (f,-t,RoundTol=>12);
         sol#Parameters
       Text
-        Since there is a tradeoff between rounding and optimality, we specify the required rounding precision as an optional input argument.
+        By default the method tries to obtain rational values of the parameters.
+        Since there is a tradeoff between rounding and optimality, we specify the @TO2 {RoundTol,"rounding precision"}@ as an optional input argument.
       Code
       Pre
     SeeAlso
@@ -422,7 +423,7 @@ doc /// --solveSOS (quotient ring)
         Parametrized SOS problems can also be solved in quotient rings.
       Example
         S = R[t];
-        solveSOS(f-t,-t,mon,RndTol=>12)
+        solveSOS(f-t,-t,mon,RoundTol=>12)
       Code
       Pre
     SeeAlso
@@ -460,9 +461,8 @@ doc /// --roundPSDmatrix
       Code
       Pre
     SeeAlso
-        createSOSModel
-        project2linspace
         smat2vec
+        RoundTol
 ///
 
 doc /// --smat2vec
@@ -474,6 +474,7 @@ doc /// --smat2vec
         (vec2smat,Matrix)
         (vec2smat,List)
         Scaling
+     	[smat2vec,Scaling]
     Headline
         vectorization of a symmetric matrix
     Usage
@@ -533,7 +534,7 @@ doc /// --LDLdecomposition
         L*D*transpose(L) == transpose(P)*A*P
       Text
         {\bf References:}
-        Gene Golub and Charles van Loan: Matrix Computations, Johns Hopkins
+        {\it Gene Golub and Charles van Loan: Matrix Computations}, Johns Hopkins
         series in the Mathematical Science, 2 ed., pp. 133-148,
         Baltimore Maryland, 1989.
       Code
@@ -620,7 +621,7 @@ doc /// --sosdecTernary
     Description
       Text
         Given a non-negative ternary form $f$, this method uses Hilbert's algorithm to compute a decomposition of 
-	$f$ as sum of squares of rational functions: $f=\frac{\prod_ip_i}{\prod_iq_i}$. 
+	$f$ as sum-of-squares of rational functions: $f=\frac{\prod_ip_i}{\prod_iq_i}$. 
         The method returns null if $f$ is not non-negative.  
 	As an example, consider the homogenous Motzkin polynomial:
       Example
@@ -663,7 +664,7 @@ doc /// --sosInIdeal
     Consequences
     Description
       Text
-    	This methods finds sums of squares in ideals.
+    	This methods finds sum-of-squares in ideals.
         It accepts two types of inputs that are useful for different purposes.
         The first invocation is to give a one row matrix with polynomial entries and a degree bound.
         The method then tries to find an SOS polynomial in the generated ideal.
@@ -676,7 +677,7 @@ doc /// --sosInIdeal
         h * mult == sumSOS sosPoly sol
      Text
         The second invocation is on a quotient ring, also with a degree bound.
-        This tries to decompose the zero of the quotient ring as a sum of squares.
+        This tries to decompose the zero of the quotient ring as a sum-of-squares.
      Example
         S = R/ideal h;
         sol = sosInIdeal (S, 2, Solver=>"CSDP");
@@ -727,6 +728,9 @@ doc /// --lowerBound
         (bound,sol) = lowerBound(f);
         bound
         f - bound == sosPoly sol
+      Text
+        By default the method tries to obtain a rational lower bound.
+        Since there is a tradeoff between rounding and optimality, we specify the @TO2 {RoundTol,"rounding precision"}@ as an optional input argument.
       Text
         {\bf Quotient rings:}
         Given an ideal $I$, we can also find a lower bound for $f$ on the variety of $I$.
@@ -913,22 +917,44 @@ doc /// --project2linspace
 -- Symbols
 --###################################
 
-doc /// -- RndTol
+doc /// -- RoundTol
     Key
-        RndTol
-        [solveSOS,RndTol]
-        [lowerBound,RndTol]
-        [sosdecTernary,RndTol]
-        [sosInIdeal,RndTol]
+        RoundTol
+        [solveSOS,RoundTol]
+        [lowerBound,RoundTol]
+        [sosdecTernary,RoundTol]
+        [sosInIdeal,RoundTol]
     Headline
-        rounding precision
+        tolerance for rational rounding
     Consequences
     Description
       Text
-        Minimal rounding precision in $x$ binary digits.
+        The optional argument {\tt RoundTol} specifies the minimal rounding precision in $d$ binary digits.
+        
+        SOS problems are solved numerically using an SDP solver, and afterwards the package attempts to round the floating point solution to rational numbers.
+        The rounding strategy is guaranteed to work whenever the space of Gram matrices is full dimensional.
+        For SOS optimization problems the rounding may cause a loss in optimality.
+        The argument {\tt RoundTol} allows to control the tradeoff between optimality and simplicity.
+        Higher values of {\tt RoundTol} end up in better solutions.
+      Example
+        R = QQ[x,z];
+        f = x^4+x^2+z^6-3*x^2*z^2;
+        (bound,sol) = lowerBound (f,RoundTol=>4);
+        bound
+        (bound,sol) = lowerBound (f,RoundTol=>12);
+        bound
+      Text
+        One can also skip the rounding by setting {\tt RoundTol => infinity}.
+      Example
+        (bound,sol) = lowerBound (f,RoundTol=>infinity);
+        bound
+      Text
+        {\bf References:}
+        {\it Computing sum-of-squares decompositions with rational coefficients}, H. Peyrl and P. Parrilo, in Theoretical Computer Science 409 (2008) p. 269–281
       Code
       Pre
     SeeAlso
+        roundPSDmatrix
 ///
 
 doc /// -- Verbose
