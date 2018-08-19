@@ -327,13 +327,13 @@ rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
 
     obj := 
         if o.TraceObj then
-            map(RR^(#Ai),RR^1,(i,j)-> -trace Ai#i)
+            map(RR^(#Ai),RR^1,(i,j)-> trace Ai#i)
         else
-            -(transpose V * objP); 
+            (transpose V * objP); 
     if obj==0 then verbose( "Solving SOS feasibility problem...", o)
     else verbose("Solving SOS optimization problem...", o);
 
-    (my,X,Q) := solveSDP(C, Ai, obj, Solver=>o.Solver, Verbose=>o.Verbose);
+    (X,my,Q) := solveSDP(C, Ai, obj, Solver=>o.Solver, Verbose=>o.Verbose);
     if Q===null then return sdpResult(mon,Q,X,);
     y := -my;
     pvec0 := flatten entries(p0 + V*y);
@@ -910,24 +910,24 @@ solveSDP(Matrix, Matrix, Matrix, Matrix) := o -> (C,A,b,y) -> solveSDP(C,sequenc
 solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
     if numRows b=!=#A then error "Bad matrix dimensions.";
     (C,A,b) = toReal(C,A,b);
-    (ok,y,X,Z) := (,,,);
-    (ok,y,X,Z) = sdpNoConstraints(C,A,b);
-    if ok then return (y,X,Z);
+    (ok,X,y,Z) := (,,,);
+    (ok,X,y,Z) = sdpNoConstraints(C,A);
+    if ok then return (X,y,Z);
     solver := chooseSolver o;
     if solver == "M2" then(
-        (ok,y,X,Z) = trivialSDP(C,A,b);
-        if ok then return (y,X,Z)
+        (ok,X,y,Z) = trivialSDP(C,A,b);
+        if ok then return (X,y,Z)
         else (y,Z) = simpleSDP(C,A,b,Verbose=>o.Verbose)
         )
     else if solver == "CSDP" then
-        (y,X,Z) = solveCSDP(C,A,b,Verbose=>o.Verbose)
+        (X,y,Z) = solveCSDP(C,A,b,Verbose=>o.Verbose)
     else if solver == "SDPA" then
-        (y,X,Z) = solveSDPA(C,A,b,Verbose=>o.Verbose)
+        (X,y,Z) = solveSDPA(C,A,b,Verbose=>o.Verbose)
     else
         error "unknown SDP solver";
     ntries := 10;
     (y,Z) = findNonZeroSolution(C,A,b,o,y,Z,ntries);
-    return (y,X,Z);
+    return (X,y,Z);
     )
 
 findNonZeroSolution = (C,A,b,o,y,Z,ntries) -> (
@@ -941,9 +941,9 @@ findNonZeroSolution = (C,A,b,o,y,Z,ntries) -> (
         if #badCoords==m then break;
         b' := map(RR^m,RR^1, (j,l) -> 
             if member(j,badCoords) then 0 else random(RR)-.5 );
-        (y',X',Z') := solveSDP(C,A,b',o);
+        (X',y',Z') := solveSDP(C,A,b',o);
         if Z'=!=null and not iszero Z' then return (y',Z');
-        if X'===null and y'=!=null and (transpose b' * y')_(0,0) < -.1 then
+        if X'===null and y'=!=null and (transpose(-b') * y')_(0,0) < -.1 then
             badCoords = badCoords + set select(0..m-1, j -> not iszero y'_(j,0));
         );
     return (y,Z);
@@ -952,14 +952,14 @@ findNonZeroSolution = (C,A,b,o,y,Z,ntries) -> (
 solveSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y0) -> (
     (C,A,b) = toReal(C,A,b);
     y0 = promote(y0,RR);
-    (ok,y,X,Z) := (,,,);
-    (ok,y,X,Z) = sdpNoConstraints(C,A,b);
-    if ok then return (y,X,Z);
+    (ok,X,y,Z) := (,,,);
+    (ok,X,y,Z) = sdpNoConstraints(C,A);
+    if ok then return (X,y,Z);
     if chooseSolver o != "M2" then return solveSDP(C,A,b,o);
-    (ok,y,X,Z) = trivialSDP(C,A,b);
-    if ok then return (y,X,Z);
+    (ok,X,y,Z) = trivialSDP(C,A,b);
+    if ok then return (X,y,Z);
     (y,Z) = simpleSDP2(C,A,b,y0,false,Verbose=>o.Verbose);
-    return (y,,Z);
+    return (,y,Z);
     )
 
 chooseSolver = o -> (
@@ -977,14 +977,14 @@ toReal = (C,A,b) -> (
     return (C,A,b);
     )
 
-sdpNoConstraints = (C,A,b) -> (
+sdpNoConstraints = (C,A) -> (
     tol := 1e-10;
     if #A==0 then(
         lambda := min eigenvalues(C, Hermitian=>true);
         if lambda>=-tol then(
             print "SDP solved";
             y0 := zeros(RR,#A,1);
-            return (true, y0, 0*C, C);
+            return (true, 0*C, y0, C);
         )else(
             print "dual infeasible";
             return (true,,,);
@@ -1000,7 +1000,7 @@ trivialSDP = (C,A,b) -> (
         if lambda>=0 then(
             print "SDP solved";
             y0 := zeros(RR,#A,1);
-            return (true, y0, 0*C, C);
+            return (true, 0*C, y0, C);
         )else if #A==0 then(
             print "dual infeasible";
             return (true,,,);
@@ -1023,7 +1023,7 @@ simpleSDP = {Verbose => false} >> o -> (C,A,b) -> (
     else(
         verbose("Computing strictly feasible solution...", o);
         y =  zeros(R,#A,1) || matrix{{lambda*1.1}};
-        obj :=  zeros(R,#A,1) || matrix{{-1_R}};
+        obj :=  zeros(R,#A,1) || matrix{{1_R}};
         (y,Z) = simpleSDP2(C,append(A,id_(R^n)), obj, y, true, Verbose=>o.Verbose);
         if y===null then return (,);
         y = transpose matrix {take (flatten entries y,numRows y - 1)};
@@ -1034,10 +1034,11 @@ simpleSDP = {Verbose => false} >> o -> (C,A,b) -> (
     return (y,Z);
     )
 
-simpleSDP2 = {Verbose => false} >> o -> (C,A,b,y,UntilObjNegative) -> (
-    print "Running M2 solver";
+simpleSDP2 = {Verbose => false} >> o -> (C,A,mb,y,UntilObjNegative) -> (
+    print "Running M2 Solver";
     R := RR;
     n := numgens target C;
+    b := -mb;
 
     m := numgens target y;
     mu := 1_R;
@@ -1125,9 +1126,9 @@ solveCSDP(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     print("Input file: " | fin);
     runcmd("cd " | dir | " && " | csdpexec | " " | fin1 | " " | fout | ">" | fout2);
     print("Output file: " | fout);
-    (y,X,Z) := readCSDP(fout,fout2,n,o.Verbose);
+    (X,y,Z) := readCSDP(fout,fout2,n,o.Verbose);
     y = checkDualSol(C,A,y,Z,o.Verbose);
-    return (y,X,Z);
+    return (X,y,Z);
     )
 
 runcmd = (cmd) -> (
@@ -1174,7 +1175,7 @@ writeSDPA = (fin,C,A,b) -> (
     f << toString m << " =mdim" << endl;
     f << "1 =nblocks" << endl;
     f << toString n << endl;
-    f << demark(" ", toString\flatten entries b) << endl;
+    f << demark(" ", toString\flatten entries(-b)) << endl;
     for l to m do(
         inputMatrix(l);
     );
@@ -1236,7 +1237,7 @@ readCSDP = (fout,fout2,n,Verbose) -> (
         y=null;Z=null; )
     else 
         print("Warning: Solver returns unknown message!!! " |s);
-    return (y,X,Z);
+    return (X,y,Z);
 )
 
 checkDualSol = (C,A,y,Z,Verbose) -> (
@@ -1263,8 +1264,8 @@ solveSDPA(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     print("Input file: " | fin);
     runcmd(sdpaexec | " " | fin | " " | fout | "> /dev/null");
     print("Output file: " | fout);
-    (y,X,Z) := readSDPA(fout,n,o.Verbose);
-    return (y,X,Z);
+    (X,y,Z) := readSDPA(fout,n,o.Verbose);
+    return (X,y,Z);
     )
 
 readSDPA = (fout,n,Verbose) -> (
@@ -1307,7 +1308,7 @@ readSDPA = (fout,n,Verbose) -> (
         y=null;Z=null;X=null; )
     else
         print("Warning: Solver returns unknown message!!! " |s);
-    return (y,X,Z);
+    return (X,y,Z);
     )
 
 --###################################
@@ -1364,8 +1365,8 @@ checkSolveSDP = solver -> (
      {0,0,0,0,0,0},{0,0,0,1,0,0},{0,0,0,0,0,0},{0,0,0,0,0,-1}};
     A = (A1,A2);
     y0 = matrix{{7},{9}};
-    b = matrix{{1},{1}};
-    (y,X,Z) = solveSDP(C,A,b,y0,Solver=>solver);
+    b = matrix{{-1},{-1}};
+    (X,y,Z) = solveSDP(C,A,b,y0,Solver=>solver);
     yopt = matrix{{2.},{2.}};
     t0 := equal(yopt,y);
     ---------------TEST1---------------
@@ -1373,9 +1374,9 @@ checkSolveSDP = solver -> (
     A1 = matrix {{0,0,1/2},{0,-1,0},{1/2,0,0}};
     A2 = matrix {{1,0,0},{0,1,0},{0,0,1}};
     A = (A1,A2);
-    b = matrix {{0},{-1}};
+    b = matrix {{0},{1}};
     y0 = matrix {{0},{-.486952}};
-    (y,X,Z) = solveSDP(C,A,b,y0,Solver=>solver);
+    (X,y,Z) = solveSDP(C,A,b,y0,Solver=>solver);
     yopt = matrix{{1.97619},{.466049}};
     t1 := equal(yopt,y);
     ---------------TEST2---------------
@@ -1383,8 +1384,8 @@ checkSolveSDP = solver -> (
     A1 = matrix{{-1,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}};
     A2 = matrix{{0,0,0,1/2},{0,-1,0,0},{0,0,0,0},{1/2,0,0,0}};
     A = (A1,A2);
-    b = matrix{{1},{0}};
-    (y,X,Z) = solveSDP(C,A,b,Solver=>solver);
+    b = matrix{{-1},{0}};
+    (X,y,Z) = solveSDP(C,A,b,Solver=>solver);
     yopt = matrix{{0.},{4.}};
     t2 := equal(yopt,y); 
     ---------------TEST3---------------
@@ -1392,8 +1393,8 @@ checkSolveSDP = solver -> (
     C = matrix {{2,2,-1,3},{2,0,0,2},{-1,0,1,0},{3,2,0,1}};
     A1 = matrix {{0,0,0,1/2},{0,-1,0,0},{0,0,0,0},{1/2,0,0,0}};
     A = sequence A1;
-    b = matrix {{1}};
-    (y,X,Z) = solveSDP(C,A,b,Solver=>solver);
+    b = matrix {{-1}};
+    (X,y,Z) = solveSDP(C,A,b,Solver=>solver);
     yopt = 4.;
     t3 := equal(yopt,y);
     ---------------TEST4---------------
@@ -1404,15 +1405,15 @@ checkSolveSDP = solver -> (
     A3 = matrix(RR, {{0, 0, 1/2}, {0, -1, 0}, {1/2, 0, 0}});
     A = (A1,A2,A3);
     b = matrix(RR, {{0}, {0}, {0}});
-    (y,X,Z) = solveSDP(C, A, b, Solver=>solver);
+    (X,y,Z) = solveSDP(C, A, b, Solver=>solver);
     t4 := checkZ(C,A,y,Z);
     -----------------------------------
     test := {t0,t1,t2,t3,t4};
     informAboutTests test;
     -- trivial cases
-    (y,X,Z) = solveSDP (matrix{{1,0},{0,-1}},(),zeros(QQ,0,1),Solver=>solver);
+    (X,y,Z) = solveSDP (matrix{{1,0},{0,-1}},(),zeros(QQ,0,1),Solver=>solver);
     assert(y===null and X===null);
-    (y,X,Z) = solveSDP (matrix{{1,0},{0,1}},(),zeros(QQ,0,1),Solver=>solver);
+    (X,y,Z) = solveSDP (matrix{{1,0},{0,1}},(),zeros(QQ,0,1),Solver=>solver);
     assert(y==0);
     return test;
     )
