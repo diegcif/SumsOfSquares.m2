@@ -38,13 +38,12 @@ document {
     taken from [P05].  Consider the problem
     of proving that the polynomial ", ITALIC TEX "f = 10-x^2-y", " is non-negative on the circle defined by ", ITALIC TEX "g = x^2 + y^2 - 1", ". ",
     "To do this we check if ", ITALIC TEX "f", " is a sum-of-squares in the quotient ring modulo ", ITALIC TEX "g", ". ",
-    "For such a computation, a suitable monomial basis must be given by the user",
+    "For such a computation, a degree bound must be given by the user",
     EXAMPLE lines ///
         R = QQ[x,y];
         S = R/ideal(x^2 + y^2 - 1);
         f = 10-x^2-y;
-        mon = matrix {{1},{x},{y}};
-        sol = solveSOS (f, mon);
+        sol = solveSOS (f, 2);
         sosPoly sol
     ///,
     "See ", TO "TraceObj", " for how to reduce the number of summands to 2.",
@@ -183,16 +182,19 @@ doc /// -- SDPResult
     Description
       Text
         This type encapsulates the result of an SDP computation.
-        In the case of a succesful computation, the SOS polynomial can be recovered with @TO sosPoly@.
       Example
-        R = QQ[x,y,z]
-        f = matrix {{x^2+y^2+y, y-z^2}}
-        (sol,mult) = sosInIdeal (f, 2)
+        R = QQ[x][t];
+        f = x^2 - 3*x - t;
+        sol = solveSOS (f, -t, RoundTol=>12)
         peek sol
       Text
         The fields can be extracted with the operator "#"
       Example
         sol#GramMatrix
+      Text
+        If the Gram matrix is different from null, then the SOS polynomial can be recovered with @TO sosPoly@.
+      Example
+        sosPoly sol
 ///
 
 --###################################
@@ -341,8 +343,8 @@ doc /// --solveSOS
     Description
       Text
         This method solves SOS problems.
-        Given a rational polynomial $f$, it attempts to find a rational positive semidefinite matrix $Q$ and a vector of monomials $mon$ such that
-        $$f = mon' Q mon.$$ 
+        Given a rational polynomial $f(x)$, it attempts to find a rational positive semidefinite matrix $Q$ and a vector of monomials $mon$ such that
+        $$f(x) = mon' Q mon.$$ 
         The algorithm first computes a floating point solution, 
         and then tries to obtain an exact solution by rounding the numerical result. 
         If the rounding fails, the numerical solution is returned.
@@ -355,7 +357,7 @@ doc /// --solveSOS
         transpose(mon)*Q*mon - f
       Text
         {\bf SOS with parameters:}
-        If the coefficients of the polynomial are linearly parameterized, we can also search for parameters which render a polynomial to be a SOS. 
+        If the coefficients of the polynomial are linearly parameterized, we can search for parameters which render a polynomial to be a SOS. 
         In the following example, the variable $t$ will be treated as a free parameter.
       Example
         R = QQ[x][t];
@@ -365,12 +367,16 @@ doc /// --solveSOS
         sol#Parameters
       Text 
         {\bf SOS with parameter optimization:}
-        Semidefinite programming also allows to optimize a linear function of the parameters.
-        For instance, we can find an SOS lower bound for the dehomogenized Motzkin polynomial:
+        The method also allows to optimize a linear function of the parameters.
+        More precisely, given a polynomial $f(x;p)$ that depends affinely on some parameters $p$, we can solve the problem
+
+        $$min_{p} \, objFun(p) \,\,\, s.t. \,\,\, f(x; p) \, is SOS $$
+
+        In the following example we minimize $-t$ in order to find a lower bound for the polynomial $x^2-3x$:
       Example
-        R = QQ[x,z][t];
-        f = x^4+x^2+z^6-3*x^2*z^2-t;
-        sol = solveSOS (f,-t,RoundTol=>12);
+        R = QQ[x][t];
+        f = x^2 - 3*x - t;
+        sol = solveSOS (f, -t, RoundTol=>12);
         sol#Parameters
       Text
         By default the method tries to obtain rational values of the parameters.
@@ -402,7 +408,7 @@ doc /// --solveSOS (quotient ring)
           a polynomial
         objFun:RingElement
           a linear function of the parameters (optional)
-        mon:
+        mon:Matrix
           a vector of monomials (alternatively a degree bound D)
     Outputs
         :SDPResult
@@ -838,12 +844,12 @@ doc /// --nonnegativeForm
     Consequences
     Description
       Text
-        This method contains a dictinary of some 'interesting' nonnegative forms.
+        This method contains a dictionary of some 'interesting' nonnegative forms.
       Text
         The Motzkin polynomial is a ternary sextic that is not SOS.
         It was the first example of a nonnegative polynomial that is not SOS.
       Example
-        R = QQ[x,y,z,w];
+        R = QQ[x,y,z];
         nonnegativeForm("Motzkin", R)
       Text
         The Robinson and Schmudgen polynomials are also ternary sextics that are not SOS.
@@ -853,11 +859,13 @@ doc /// --nonnegativeForm
       Text
         The Lax-Lax and Choi-Lam polynomials are quaternary quartics that are not SOS.
       Example
+        R = QQ[x,y,z,w];
         nonnegativeForm("Lax-Lax", R)
         nonnegativeForm("Choi-Lam", R)
       Text
         Scheiderer polynomial is SOS over the reals, but not over the rationals.
       Example
+        R = QQ[x,y,z];
         nonnegativeForm("Scheiderer", R)
       Text
         Harris polynomial is a ternary form of degree 10 with 30 projective zeros (the largest known).
@@ -990,7 +998,7 @@ doc /// -- RoundTol
         The rounding strategy is guaranteed to work whenever the space of Gram matrices is full dimensional.
         For SOS optimization problems the rounding may cause a loss in optimality.
         The argument {\tt RoundTol} allows to control the tradeoff between optimality and simplicity.
-        Higher values of {\tt RoundTol} end up in better solutions.
+        Higher values of {\tt RoundTol} lead to better solutions.
       Example
         R = QQ[x,z];
         f = x^4+x^2+z^6-3*x^2*z^2;
@@ -1069,9 +1077,8 @@ doc /// --TraceObj
       Example
         R = QQ[x,y]/ideal(x^2 + y^2 - 1);
         f = 10-x^2-y;
-        mon = matrix {{1}, {x}, {y}};
-        sosPoly solveSOS (f, mon)
-        sosPoly solveSOS (f, mon, TraceObj=>true)
+        sosPoly solveSOS (f, 2)
+        sosPoly solveSOS (f, 2, TraceObj=>true)
       Code
       Pre
     SeeAlso
