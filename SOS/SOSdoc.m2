@@ -444,15 +444,16 @@ doc /// --solveSOS (quotient ring)
         f = 10-x^2-y;
         mon = matrix {{1}, {x}, {y}};
         s = solveSOS (f, mon, RoundTol=>infinity);
-	R' = ring sosPoly s
+        ring sosPoly s
       Text
         In this case, one option is to construct a new quotient ring and work there.
 	However, this will only work somewhat reliably in the case of a quotient
 	modulo a principal ideal, as otherwise the Gröbner basis engine might
 	fail on inexact computations.
       Example
+        R' = ring sosPoly s;
         S = R'/(sub (ideal (x^2 + y^2 - 1), R'))
-	sub (f, S) == sub (sumSOS sosPoly s, S)
+        sub (f, S) == sub (sumSOS sosPoly s, S)
       Code
       Pre
     SeeAlso
