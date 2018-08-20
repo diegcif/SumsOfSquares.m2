@@ -724,7 +724,8 @@ LDLdecomposition = (A) -> (
     tol := if isExactField kk then 0 else 1e-9;
 
     n := numRows A;
-    Ah := new MutableHashTable; map (kk^n,kk^n,(i,j)->Ah#(i,j) = A_(i,j));
+    Ah := new MutableHashTable;
+    for i to n-1 do for j to n-1 do Ah#(i,j) = A_(i,j);
     v := new MutableList from for i to n-1 list 0_kk;
     d := new MutableList from for i to n-1 list 0_kk;
     piv := new MutableList from toList(0..n-1);
@@ -866,7 +867,8 @@ sosdecTernary(RingElement) := o -> (f) -> (
 -- SOS OPTIMIZATION
 --###################################
 
-recoverSolution = (mon,X) -> (
+recoverSolution = method()
+recoverSolution(Matrix,Matrix) := (mon,X) -> (
     if X===null then return {};
     e := eigenvalues(X,Hermitian=>true);
     if e#(-1)<=0 or e#0/e#(-1) < -1e-9 then 
@@ -882,6 +884,7 @@ recoverSolution = (mon,X) -> (
         y => X_(i,i0) );
     return sol;
     )
+recoverSolution(SDPResult) := sol -> recoverSolution(sol#Monomials,sol#MomentMatrix)
 
 -- Unconstrained minimization 
 -- sos lower bound for the polynomial f
@@ -1501,24 +1504,33 @@ checkSolveSOS = solver -> (
     (mon,Q,X,tval) = readSdpResult solveSOS(f,Solver=>solver);
     t3 := isGram(f,mon,Q);
 
+    ---------------PARAMETRIC1---------------
     -- Test 4 (parametric)
     R = QQ[x][t];
     f = (t-1)*x^4+1/2*t*x+1;
     (mon,Q,X,tval) = readSdpResult solveSOS (f,Solver=>solver);
     t4 := isGramParam(f,mon,Q,tval);
 
-    ---------------BAD CASES1---------------
+    ---------------QUOTIENT1---------------
     -- Test 5
+    R = QQ[x,y];
+    S := R/ideal(x^2 + y^2 - 1);
+    f = sub(10-x^2-y,S);
+    (mon,Q,X,tval) = readSdpResult solveSOS (f, 2, TraceObj=>true);
+    t5 := isGram(f,mon,Q);
+
+    ---------------BAD CASES1---------------
+    -- Test 6
     R = QQ[x,y][t];
     f = x^4*y^2 + x^2*y^4 - 3*x^2*y^2 + 1; --Motzkin
     (mon,Q,X,tval) = readSdpResult solveSOS(f,Solver=>solver); 
-    t5 := ( Q === null );
-
-    -- Test 6
-    (mon,Q,X,tval) = readSdpResult solveSOS(f-t,-t, Solver=>solver); 
     t6 := ( Q === null );
 
-    results := {t0,t1,t2,t3,t4,t5,t6};
+    -- Test 7
+    (mon,Q,X,tval) = readSdpResult solveSOS(f-t,-t, Solver=>solver); 
+    t7 := ( Q === null );
+
+    results := {t0,t1,t2,t3,t4,t5,t6,t7};
     informAboutTests (results);
     return results
     )
