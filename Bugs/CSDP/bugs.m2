@@ -13,3 +13,7 @@ Ai = matrix{{.707106781186547,0,0},{0,0,0},{0,0,0}}
 b = matrix{{-.707107}}
 (y,X,Z) = solveSDP(C,Ai,b,Solver=>"CSDP")
 
+-- Bug3: this fails, but works with SDPA (true solution is zero)
+R = QQ[x,y];
+h = matrix{{y-x^2}};
+(bound,sol,mult) = lowerBound (y, h, 4, Solver=>"CSDP");

@@ -28,7 +28,3 @@ WOULD BE NICE TO HAVE
 -) realZeros should work on a nontrivial example
 -) createSOSModel should be faster than solving the SDP
 
-8) The following doesn't work with CSDP
-    R = QQ[x,y];
-    h = matrix{{y-x^2}};
-    lowerBound (y, h, 2, Solver=>"CSDP");
