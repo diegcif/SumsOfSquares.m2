@@ -22,8 +22,6 @@ TODO:
 
 5) Create Quickstart page / section
 
-6) Example for lower bound with rational function (see test)
-
 7) solveSOS has no test in quotient rings and only one which is
 parametric
 
