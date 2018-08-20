@@ -1,3 +1,14 @@
+Manual to commit changes to this package to the main M2 repository:
+
+1) There are example outputs with CSDP that need to be created and
+committed.  They are to be found in the directory SOS/examples,
+but are not currently part of our git.  A submission to M2 main repo
+consists of
+
+a) SOS.m2
+b) SOS/SOSdoc.m2
+c) SOS/examples/*.out for all files with CSDP output
+
 TODO:
 
 1) Describe how "DefaultSolver" works?
