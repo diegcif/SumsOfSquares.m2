@@ -714,6 +714,9 @@ PSDdecomposition = (A) -> (
     )
     
 LDLdecomposition = (A) -> (
+    -- This implements Algorithm 4.1.1 from [Golub-VanLoan-2012]
+    -- The algorithm works under the assumption that
+    -- all the leading principal minors are nonzero
     kk := ring A;
     if kk=!=QQ and kk=!=RR and not instance(kk,RealField) then
        error "field must be QQ or RR";
@@ -741,20 +744,25 @@ LDLdecomposition = (A) -> (
                 err = k+1; break;);
 
         -- Perform LDL factorization step:
-        if Ah#(k,k) > 0 then (
+        if Ah#(k,k) > tol then (
             for i to k-1 do (v#i = Ah#(k,i)*Ah#(i,i));
             Ah#(k,k) = Ah#(k,k) - sum for i to k-1 list Ah#(k,i)*v#i;
             if Ah#(k,k) < -tol then (err = k+1; break;);
-            if Ah#(k,k) > 0 then
+            if Ah#(k,k) > tol then
                 for i from k+1 to n-1 do
                     Ah#(i,k) = (Ah#(i,k)-sum for j to k-1 list Ah#(i,j)*v#j) / Ah#(k,k);
         );
     );
 
-    A = map(kk^n,kk^n,(i,j)-> if i>j then Ah#(i,j) else if i==j then 1_kk else 0_kk);
+    L := map(kk^n,kk^n,(i,j)-> if i>j then Ah#(i,j) else if i==j then 1_kk else 0_kk);
     D := map(kk^n,kk^n,(i,j)->if i==j then Ah#(i,j) else 0_kk);
     P := submatrix(id_(kk^n),toList piv);
-    (A,D,P,err)
+
+    -- Last check, in case assumption was not satisfied
+    iszero := (a) -> if isExactField kk then a==0 else norm(a)<10*tol;
+    if not iszero(L*D*transpose L - transpose P * A * P) then err = n;
+
+    (L,D,P,err)
 )
 
 --###################################
@@ -1834,6 +1842,11 @@ TEST /// --LDLdecomposition
     A = V * transpose V 
     (L,D,P,err) = LDLdecomposition(A)
     assert(err==0 and equal(L*D*transpose L, transpose P * A * P))
+
+    -- this matrix is not psd, but its principal minors are zero
+    A = matrix(QQ,{{1,-1,1},{-1,1,1},{1,1,1}})
+    (L,D,P,err) = LDLdecomposition A
+    assert(err>0)
 ///
 
 TEST /// --roundPSDmatrix

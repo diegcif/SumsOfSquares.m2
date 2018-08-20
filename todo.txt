@@ -11,9 +11,6 @@ TODO:
 
 5) Create Quickstart page / section
 
-7) LDLdecomposition decomposes (matrix{{1,-1,1},{-1,1,1},{1,1,1}})
-   but fails the test. Of course it has one eigenvalue negative, so it shouldn't decompose.
-
 
 WOULD BE NICE TO HAVE
 -) realZeros should work on a nontrivial example
