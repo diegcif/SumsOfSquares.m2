@@ -30,6 +30,8 @@ parametric
 8) Check the doc of recoverSolution, it can now be called on
 SDPResults too
 
+9) Support for Mosek
+
 WOULD BE NICE TO HAVE
 -) realZeros should work on a nontrivial example
 -) createSOSModel should be faster than solving the SDP
