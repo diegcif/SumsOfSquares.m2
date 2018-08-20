@@ -1600,8 +1600,18 @@ checkSosInIdeal = solver -> (
     sol = sosInIdeal(R,2,Solver=>solver);
     s = sosPoly sol;
     t4 := s=!=null and sumSOS s==0;
-
-    results := {t0,t1,t2,t3,t4};
+    
+    -- Test 5:
+    R = QQ[x,y,z];
+    F := matrix {{x^2+y^2+y, y-z^2}};
+    (s,mult) = sosInIdeal (F, 2);
+    t51 := cmp (F,sosPoly s,mult);
+    S := R / ideal F;
+    s2 := sosPoly sosInIdeal (S,2);
+    t52 := sub(sumSOS sosPoly s, S) == sumSOS s2; -- == 0_S
+    t5 := t51 and t52;
+    
+    results := {t0,t1,t2,t3,t4,t5};
     informAboutTests (results);
     return results
     )
