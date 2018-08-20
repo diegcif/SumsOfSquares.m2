@@ -299,7 +299,7 @@ doc /// --sosPoly
     Consequences
     Description
       Text
-        This method creats an object of type @TO SOSPoly@.  Very often this is applied to an 
+        This method creates an object of type @TO SOSPoly@.  Very often this is applied to an
 	object of type @TO SDPResult@, the result of an SDP computation.
       Example
         R = QQ[x,y];
@@ -357,7 +357,7 @@ doc /// --solveSOS
         transpose(mon)*Q*mon - f
       Text
         {\bf SOS with parameters:}
-        If the coefficients of the polynomial are linearly parameterized, we can search for parameters which render a polynomial to be a SOS. 
+        If the coefficients of the polynomial are linearly parametrized, we can search for parameters which render a polynomial to be a SOS.
         In the following example, the variable $t$ will be treated as a free parameter.
       Example
         R = QQ[x][t];
@@ -380,7 +380,7 @@ doc /// --solveSOS
         sol#Parameters
       Text
         By default the method tries to obtain rational values of the parameters.
-        Since there is a tradeoff between rounding and optimality, we specify the @TO2 {RoundTol,"rounding precision"}@ as an optional input argument.
+        Since there is a trade-off between rounding and optimality, we specify the @TO2 {RoundTol,"rounding precision"}@ as an optional input argument.
       Code
       Pre
     SeeAlso
@@ -505,7 +505,7 @@ doc /// --smat2vec
         v = smat2vec A
         vec2smat v
       Text
-        The scaling of the off-diagonal entries can be controled with the optional parameter.
+        The scaling of the off-diagonal entries can be controlled with the optional parameter.
       Example
         smat2vec(A,Scaling=>2)
       Code
@@ -628,16 +628,16 @@ doc /// --sosdecTernary
         Given a non-negative ternary form $f$, this method uses Hilbert's algorithm to compute a decomposition of 
 	$f$ as sum-of-squares of rational functions: $f=\frac{\prod_ip_i}{\prod_iq_i}$. 
         The method returns null if $f$ is not non-negative.  
-	As an example, consider the homogenous Motzkin polynomial:
+	As an example, consider the homogeneous Motzkin polynomial:
       Example
          R = RR[x,y,z];
-    	 f = x^4*y^2 + x^2*y^4 + z^6 - 3*x^2 *y^2 * z^2;
+    	 f = nonnegativeForm ("Motzkin");
     	 (p,q) = sosdecTernary (f, Solver=>"CSDP");
       Text
-        The result is a real decomposition that is sufficiently close:
+        The result is just a quotient of two sums of squares.
       Example
-         residual := product(sumSOS\p) - f*product(sumSOS\q)
-	 norm residual
+         (#p, #q)
+         f * sumSOS q#0 == sumSOS p#0
       Text
         {\bf References:}
         {\it Products of positive forms, linear matrix inequalities, and Hilbert 17th problem for ternary forms}, E. de Klerk, and D.V. Pasechnik, European J. Oper. Res. (2004), pp. 39-45.
@@ -735,7 +735,7 @@ doc /// --lowerBound
         f - bound == sosPoly sol
       Text
         By default the method tries to obtain a rational lower bound.
-        Since there is a tradeoff between rounding and optimality, we specify the @TO2 {RoundTol,"rounding precision"}@ as an optional input argument.
+        Since there is a trade-off between rounding and optimality, we specify the @TO2 {RoundTol,"rounding precision"}@ as an optional input argument.
       Text
         {\bf Quotient rings:}
         Given an ideal $I$, we can also find a lower bound for $f$ on the variety of $I$.
@@ -749,8 +749,8 @@ doc /// --lowerBound
         f - bound == sosPoly sol
       Text
         {\bf Avoiding quotient rings:}
-        Constructing the quotient ring is sometimes too expensive since it requires Groebner bases.
-        There is an alternative (though weaker) relaxation that avoids Groebner bases computation.
+        Constructing the quotient ring is sometimes too expensive since it requires Gröbner bases.
+        There is an alternative (though weaker) relaxation that avoids Gröbner bases computation.
         Given equations $h_1(x),...h_m(x)$, we can look for multipliers $l_i(x)$ such that $f(x) - t + \sum_i l_i(x) h_i(x)$ is SOS.
       Example
         R = QQ[x,y];
@@ -844,7 +844,7 @@ doc /// --nonnegativeForm
     Consequences
     Description
       Text
-        This method contains a dictionary of some 'interesting' nonnegative forms.
+        This method contains a dictionary of some interesting nonnegative forms.
       Text
         The Motzkin polynomial is a ternary sextic that is not SOS.
         It was the first example of a nonnegative polynomial that is not SOS.
@@ -863,12 +863,12 @@ doc /// --nonnegativeForm
         nonnegativeForm("Lax-Lax", R)
         nonnegativeForm("Choi-Lam", R)
       Text
-        Scheiderer polynomial is SOS over the reals, but not over the rationals.
+        The Scheiderer polynomial is SOS over the reals, but not over the rationals.
       Example
         R = QQ[x,y,z];
         nonnegativeForm("Scheiderer", R)
       Text
-        Harris polynomial is a ternary form of degree 10 with 30 projective zeros (the largest known).
+        The Harris polynomial is a ternary form of degree 10 with 30 projective zeros (the largest number known in August 2018).
       Example
         nonnegativeForm("Harris", R)
       Text
@@ -997,7 +997,7 @@ doc /// -- RoundTol
         SOS problems are solved numerically using an SDP solver, and afterwards the package attempts to round the floating point solution to rational numbers.
         The rounding strategy is guaranteed to work whenever the space of Gram matrices is full dimensional.
         For SOS optimization problems the rounding may cause a loss in optimality.
-        The argument {\tt RoundTol} allows to control the tradeoff between optimality and simplicity.
+        The argument {\tt RoundTol} allows to control the trade-off between optimality and simplicity.
         Higher values of {\tt RoundTol} lead to better solutions.
       Example
         R = QQ[x,z];
