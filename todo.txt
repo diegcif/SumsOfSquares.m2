@@ -11,16 +11,11 @@ c) SOS/examples/*.out for all files with CSDP output
 
 TODO:
 
-1) Describe how "DefaultSolver" works?
-  Default solver can be used to prever e.g. SDPA over CSDP.
-
 2) Create bigger and more complicated tests for solveSOS 
 
 3) Check doc of SOSdecTernary
 
 4) Doc of checkSolver
-
-5) Create Quickstart page / section
 
 6) Discuss "Mon and Q lie in different rings"
 

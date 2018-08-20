@@ -1090,6 +1090,8 @@ document { --Solver
     EXAMPLE lines ///
        needsPackage ("SOS", Configuration=>{"DefaultSolver"=>"CSDP"});
     ///,
+    "If no default solver is specified, the package tries to use, in this order,
+    CSDP, SDPA, M2.",
 
     HEADER2 "Saving the configuration",
     "The configuration options \"CSDPexec\", \"SDPAexec\", \"DefaultSolver\" can be saved by editing the file \"init-SOS.m2\", which is located in the application directory:",
