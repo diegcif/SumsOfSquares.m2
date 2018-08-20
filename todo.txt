@@ -15,8 +15,6 @@ TODO:
 
 4) Doc of checkSolver
 
-6) Discuss "Mon and Q lie in different rings"
-
 7) solveSOS has no test in quotient rings and only one which is
 parametric
 
