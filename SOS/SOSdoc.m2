@@ -55,27 +55,10 @@ document {
 	LI {"Optimization over varieties can run using ", TO "lowerBound"},
 	},
     
-    HEADER4 "On the role of coefficient fields",  
+    HEADER4 "On the role of coefficients field",  
     "The ", TT "SOS", " package interfaces tries to hide 
     some of the difficulties that arise from using these numerical procedures. ", 
-    "The SOS package works with two coefficient rings: the rational numbers ", TO "QQ", " and the real numbers ", TO "RR",". ",
-    "Almost all operations in this package rely on a numerical SDP ", TO "Solver", ".  When calling such a solver, even if the 
-	input was a polynomial with rational coefficients, the result is numerical.  The package makes some 
-	effort to round and return a rational result, but this can fail, independent of whether a 
-	rational SOS decomposition exists or not.  In this case of failure, a real result is returned. 
-	The following example of Scheiderer is SOS, but does not admit any
-	rational SOS decomposition.  Consequently the package must return a real solution:",
-    EXAMPLE lines ///
-        f = nonnegativeForm("Scheiderer", QQ[x,y,z])
-        sol = solveSOS (f, Solver=>"CSDP");
-        sosPoly sol
-    ///,
-    "Once the rational world has been left, there is usually now way back.
-    The package offers the function ", TO "clean(RR,SOSPoly)", " which from an ", TO "sosPoly", " removes
-    all summands whose coefficient is smaller than a given tolerance.  This can be useful sometimes and here is how to invoke it:",
-    EXAMPLE lines ///
-        clean (0.001, sosPoly sol)
-    ///,
+    "See ", TO "coefficients field", " for more information.",
 
     HEADER4 "Literature",
     UL {
@@ -85,13 +68,31 @@ document {
 	}
     }
 
-doc /// 
-    Key 
-        "Coefficients"
+doc /// --coefficients field
+    Key
+        "coefficients field"
     Headline
-    	Coefficient rings in the SOS package
+        the role of the coefficients field
     Description
       Text
+        The SOS package works with two coefficient rings: the rational numbers $\QQ$ and the real numbers $\RR$.
+        Almost all operations in this package rely on a numerical SDP @TO Solver@.  
+        When calling such a solver, even if the input was a polynomial with rational coefficients, the result is numerical.  
+        The package makes some effort to round and return a rational result, but this can fail, independent of whether a rational SOS decomposition exists or not.
+        In this case of failure, a real result is returned. 
+        The following example of Scheiderer is SOS, but does not admit any rational SOS decomposition.  Consequently the package must return a real solution:,
+      Example
+        f = nonnegativeForm("Scheiderer", QQ[x,y,z])
+        sol = solveSOS (f, Solver=>"CSDP");
+        sosPoly sol
+      Text
+        Once the rational world has been left, there is usually now way back.
+        The package offers the function @TO (clean,RR,SOSPoly)@ which from an @TO sosPoly@ removes all summands whose coefficient is smaller than a given tolerance.
+        This can be useful sometimes and here is how to invoke it:
+      Example
+        clean (0.001, sosPoly sol)
+    SeeAlso
+        RoundTol
 ///
 
 --###################################
