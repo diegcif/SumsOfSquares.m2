@@ -7,9 +7,9 @@ document {
     "See ", TO "Solver", " for a discussion of the required SDP solvers. ",
     
     HEADER4 "Introduction",
-    "Writing a polynomial as a sum-of-squares proves its non-negativity for all arguments,
-    but not all non-negative polynomials are sum-of-squares.  
-    While non-negativity of a polynomial is hard to check, there are efficient methods to find
+    "Writing a polynomial as a sum-of-squares proves its nonnegativity for all arguments,
+    but not all nonnegative polynomials are sum-of-squares.  
+    While nonnegativity of a polynomial is hard to check, there are efficient methods to find
     sums-of-squares decompositions and this package makes some of them available in Macaulay2.  
     These methods rely on semi-definite-programming solvers from 
     mathematical optimization.  While there is a built in solver in the package, 
@@ -36,9 +36,9 @@ document {
     HEADER4 "Sums of squares modulo equality constraints",
     "The package supports SOS decompositions in ",  
     TO2 {"solveSOS(RingElement,Matrix)","quotient rings"},
-    ". This can be useful to prove non-negativity of a polynomial on a variety.  The following example is 
+    ". This can be useful to prove nonnegativity of a polynomial on a variety.  The following example is 
     taken from [P05].  Consider the problem
-    of proving that the polynomial ", ITALIC TEX "f = 10-x^2-y", " is non-negative on the circle defined by ", ITALIC TEX "g = x^2 + y^2 - 1", ". ",
+    of proving that the polynomial ", ITALIC TEX "f = 10-x^2-y", " is nonnegative on the circle defined by ", ITALIC TEX "g = x^2 + y^2 - 1", ". ",
     "To do this we check if ", ITALIC TEX "f", " is a sum-of-squares in the quotient ring modulo ", ITALIC TEX "g", ". ",
     "For such a computation, a degree bound must be given by the user",
     EXAMPLE lines ///
@@ -52,7 +52,7 @@ document {
     
     HEADER4 "Other cool stuff",
     UL {
-	LI {"The package implements Hilbert's algorithm to decompose a non-negative ternary form into a sum-of-squares of rational functions: ", TO "sosdecTernary"},
+	LI {"The package implements Hilbert's algorithm to decompose a nonnegative ternary form into a sum-of-squares of rational functions: ", TO "sosdecTernary"},
 	LI {"Sums of squares problems can be solved parametrically: ", TO "solveSOS"},
 	LI {"Optimization over varieties can run using ", TO "lowerBound"},
 	},
@@ -629,9 +629,9 @@ doc /// --sosdecTernary
     Consequences
     Description
       Text
-        Given a non-negative ternary form $f$, this method uses Hilbert's algorithm to compute a decomposition of 
+        Given a nonnegative ternary form $f$, this method uses Hilbert's algorithm to compute a decomposition of 
         $f$ as sum-of-squares of rational functions: $f=\frac{\prod_ip_i}{\prod_iq_i}$. 
-        The method returns null if $f$ is not non-negative.  
+        The method returns null if $f$ is not nonnegative.  
         As an example, consider the homogeneous Motzkin polynomial:
       Example
          R = RR[x,y,z];
