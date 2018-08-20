@@ -2,7 +2,9 @@
 document { 
     Key => SOS,
     Headline => "A package for sums-of-squares problems",
-    TT "SOS", " is a package to solve sum-of-squares (SOS) problems.",
+    TT "SOS", " is a package to solve sum-of-squares (SOS) problems. ",
+    "The main tool behind this package is semidefinite programming (SDP). ",
+    "See ", TO "Solver", " for a discussion of the required SDP solvers. ",
     
     HEADER4 "Introduction",
     "Writing a polynomial as a sum-of-squares proves its non-negativity for all arguments,
@@ -602,8 +604,9 @@ doc /// --solveSDP
       Code
       Pre
     Caveat
-        The "M2" solver does not return the primal solution.
-        It might also fail if the dual problem is not strictly feasible.
+        $\bullet$ The "M2" solver does not return the primal solution.
+
+        $\bullet$ The "M2" solver might fail if the dual problem is not strictly feasible.
     SeeAlso
 ///
 
@@ -627,9 +630,9 @@ doc /// --sosdecTernary
     Description
       Text
         Given a non-negative ternary form $f$, this method uses Hilbert's algorithm to compute a decomposition of 
-	$f$ as sum-of-squares of rational functions: $f=\frac{\prod_ip_i}{\prod_iq_i}$. 
+        $f$ as sum-of-squares of rational functions: $f=\frac{\prod_ip_i}{\prod_iq_i}$. 
         The method returns null if $f$ is not non-negative.  
-	As an example, consider the homogeneous Motzkin polynomial:
+        As an example, consider the homogeneous Motzkin polynomial:
       Example
          R = RR[x,y,z];
     	 f = nonnegativeForm ("Motzkin", {x,y,z});
@@ -643,7 +646,9 @@ doc /// --sosdecTernary
         {\bf References:}
         {\it Products of positive forms, linear matrix inequalities, and Hilbert 17th problem for ternary forms}, E. de Klerk, and D.V. Pasechnik, European J. Oper. Res. (2004), pp. 39-45.
     Caveat
-        This implementation only works with the @TO Solver@ CSDP.
+        $\bullet$ This implementation only works with the @TO Solver@ CSDP.
+
+        $\bullet$ Due to the iterative nature of the algorithm, it could happen that some of the the output SOS polynomials are rational while some are real.
 ///
 
 doc /// --sosInIdeal
@@ -1046,24 +1051,38 @@ document { --Solver
         [lowerBound,Solver],
         },
     Headline => "picking a semidefinite programming solver",
-    "Many important computations in this package rely on an efficient SDP solver.  There
-    is a very rudimentary implementation of such a solver in the Macaulay2 language.  It is 
-    called the M2 solver but for most applications it will be insufficient. For this reason it is
-    almost mandatory to install another solver.  The package supports csdp and sdpa which are open
-    source.  This option can take the following values:" ,
+    "Many important computations in this package rely on an efficient SDP solver. ",
+    "There is a very rudimentary implementation of such a solver in the Macaulay2 language. ",
+    "It is called the M2 solver but for most applications it will be insufficient. ",
+    "For this reason it is almost mandatory to install another solver. ",
+    "The package supports ", TT "csdp", " and ", TT "sdpa", " which are open source. ",
+    "This option can take the following values:" ,
     UL{
       {"\"M2\"", " -- use a simple dual interior point method implemented in Macaulay2"},
        {"\"CSDP\"", " -- use the CSDP solver, available at ", TT "https://projects.coin-or.org/Csdp/" },
        {"\"SDPA\"", " -- use the SDPA solver, available at ", TT "http://sdpa.sourceforge.net/" },
       },
-    "Before any serious computation the user should install CSDP or SDPA.  In our experience CSDP gives
-    the best results.  An easy way to a solver available to Macaulay2  
-    is to add the executable to the PATH environment variable.  Another way is
-    to explicitly specify the location of the executable when loading the package:",
+    "Before any serious computation the user should install CSDP or SDPA. ",
+    "In our experience CSDP gives the best results. ",
+    "An easy way to make a solver available to Macaulay2  is to add the executable to the PATH environment variable. ",
+    "Another way is to explicitly specify the location of the executable when loading the package:",
     EXAMPLE lines ///
-       needsPackage ("SOS", Configuration=>{"CSDPexec"=>"/some/path/csdp", "SDPAexec"=>"/some/path/sdpa"})
+       needsPackage ("SOS", Configuration=>{"CSDPexec"=>"/some/path/csdp", "SDPAexec"=>"/some/path/sdpa"});
     ///,
     "The method ", TO "checkSolver", " can be used to check if a solver works.",
+    BR{},
+    BR{},
+
+    "The default solver can also be specified when loading the package:",
+    EXAMPLE lines ///
+       needsPackage ("SOS", Configuration=>{"DefaultSolver"=>"CSDP"});
+    ///,
+
+    HEADER2 "Saving the configuration",
+    "The configuration options \"CSDPexec\", \"SDPAexec\", \"DefaultSolver\" can be saved by editing the file \"init-SOS.m2\", which is located in the application directory:",
+    EXAMPLE lines ///
+        applicationDirectory()
+    ///,
     }
 
 doc /// --TraceObj
