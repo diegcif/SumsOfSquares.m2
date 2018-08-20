@@ -726,12 +726,11 @@ doc /// --lowerBound
     Consequences
     Description
       Text
-        This method finds a lower bound for a polynomial function $f(x)$.
+        This method finds a lower bound for a polynomial or rational function $x\mapsto f(x)$.
         More precisely, this method solves the following relaxation
 
-        $$max_{t} \, t \,\,\, s.t. \,\,\, f(x) - t \, is SOS $$
+        $$max \, t \,\,\, s.t. \,\,\, f(x) - t \, is SOS $$
 
-        Lower bounds for rational functions can be obtained in a similar way.
         In some cases the minimizer can be extracted with the method @TO recoverSolution@.
       Example
         R=QQ[x];
@@ -765,6 +764,13 @@ doc /// --lowerBound
         (bound,sol,mult) = lowerBound (f, h, 2);
         bound
         f - bound + h*mult == sumSOS sosPoly sol
+      Text
+        Finally, the following is an example of how to optimize a rational function.
+      Example
+        R = QQ[x];
+        f = (x^2-x)/(x^2+1);
+        (bound,sol) = lowerBound f;
+        (bound, recoverSolution sol)
     SeeAlso
         recoverSolution
 ///
