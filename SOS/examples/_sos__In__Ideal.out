@@ -1,0 +1,62 @@
+-- -*- M2-comint -*- hash: 702591529
+--loading configuration for package "SOS" from file /Users/cifuente/Library/Application Support/Macaulay2/init-SOS.m2
+
+i1 : R = QQ[x,y,z];
+
+i2 : h = matrix {{x^2+y^2+y, y-z^2}};
+
+             1       2
+o2 : Matrix R  <--- R
+
+i3 : (sol,mult) = sosInIdeal (h, 2, Solver=>"CSDP");
+Executing CSDP
+Input file: /var/folders/sq/kjjz8k0s6956nsg8q16d4sx00000gq/T/M2-69729-0/2.dat-s
+Output file: /var/folders/sq/kjjz8k0s6956nsg8q16d4sx00000gq/T/M2-69729-0/3
+Status: SDP solved, primal-dual feasible
+
+i4 : sosPoly sol
+
+o4 = coeffs:
+      63  63  63
+     {--, --, --}
+       4   4   4
+     gens:
+     {x, y, z}
+
+o4 : SOSPoly
+
+i5 : h * mult == sumSOS sosPoly sol
+
+o5 = true
+
+i6 : S = R/ideal h;
+
+i7 : sol = sosInIdeal (S, 2, Solver=>"CSDP");
+Executing CSDP
+Input file: /var/folders/sq/kjjz8k0s6956nsg8q16d4sx00000gq/T/M2-69729-0/7.dat-s
+Output file: /var/folders/sq/kjjz8k0s6956nsg8q16d4sx00000gq/T/M2-69729-0/8
+Status: SDP solved, primal-dual feasible
+Zero solution obtained. Trying again.
+Executing CSDP
+Input file: /var/folders/sq/kjjz8k0s6956nsg8q16d4sx00000gq/T/M2-69729-0/12.dat-s
+Output file: /var/folders/sq/kjjz8k0s6956nsg8q16d4sx00000gq/T/M2-69729-0/13
+Status: SDP solved, primal infeasible
+
+i8 : sosPoly sol
+
+o8 = coeffs:
+      7  7  7
+     {-, -, -}
+      4  4  4
+     gens:
+     {x, y, z}
+
+o8 : SOSPoly
+
+i9 : sumSOS sosPoly sol
+
+o9 = 0
+
+o9 : S
+
+i10 : 

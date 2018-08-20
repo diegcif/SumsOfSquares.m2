@@ -1,0 +1,27 @@
+-- -*- M2-comint -*- hash: -442535137
+--loading configuration for package "SOS" from file /Users/cifuente/Library/Application Support/Macaulay2/init-SOS.m2
+
+i1 : R = RR[x,y,z];
+
+i2 : f = nonnegativeForm ("Motzkin", {x,y,z});
+
+i3 : (p,q) = sosdecTernary (f, Solver=>"CSDP");
+-- warning: experimental computation over inexact field begun
+--          results not reliable (one warning given per session)
+Executing CSDP
+Input file: /var/folders/sq/kjjz8k0s6956nsg8q16d4sx00000gq/T/M2-93863-0/2.dat-s
+Output file: /var/folders/sq/kjjz8k0s6956nsg8q16d4sx00000gq/T/M2-93863-0/3
+Status: SDP solved, primal-dual feasible
+SDP solved
+
+i4 : (#p, #q)
+
+o4 = (1, 1)
+
+o4 : Sequence
+
+i5 : f * sumSOS q#0 == sumSOS p#0
+
+o5 = false
+
+i6 : 
