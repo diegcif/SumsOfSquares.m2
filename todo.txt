@@ -13,8 +13,6 @@ TODO:
 
 2) Create bigger and more complicated tests for solveSOS 
 
-3) Check doc of SOSdecTernary
-
 4) Doc of checkSolver
 
 6) Discuss "Mon and Q lie in different rings"

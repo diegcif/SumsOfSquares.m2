@@ -617,7 +617,7 @@ doc /// --sosdecTernary
     Headline
        Sum of squares decomposition for ternary forms.
     Usage
-        (p,q) = sosdecTernary(f, Solver=>"CSDP") 
+        (p,q) = sosdecTernary(f, Solver=>"CSDP")
     Inputs
         f:RingElement
           a homogeneous polynomial in 3 variables
@@ -629,19 +629,21 @@ doc /// --sosdecTernary
     Consequences
     Description
       Text
-        Given a nonnegative ternary form $f$, this method uses Hilbert's algorithm to compute a decomposition of 
-        $f$ as sum-of-squares of rational functions: $f=\frac{\prod_ip_i}{\prod_iq_i}$. 
-        The method returns null if $f$ is not nonnegative.  
+        Given a nonnegative ternary form $f$, this method uses Hilbert's
+	algorithm to compute a decomposition of
+        $f$ as f=\frac{\prod_ip_i}{\prod_iq_i}$ where each factor $p_i$
+	and $q_i$ is SOS.
+        The method returns null if $f$ is not nonnegative.
         As an example, consider the homogeneous Motzkin polynomial:
       Example
-         R = RR[x,y,z];
-    	 f = nonnegativeForm ("Motzkin", {x,y,z});
-    	 (p,q) = sosdecTernary (f, Solver=>"CSDP");
+        R = RR[x,y,z];
+        f = nonnegativeForm ("Motzkin", {x,y,z});
+        (p,q) = sosdecTernary (f, Solver=>"CSDP");
       Text
-        The result, in this case, is just a quotient of two sums of squares.
+        The result, in this case, is a quotient of two sums of squares.
       Example
-         (#p, #q)
-         f * sumSOS q#0 == sumSOS p#0
+        (#p, #q)
+        f * sumSOS q#0 == sumSOS p#0
       Text
         {\bf References:}
         {\it Products of positive forms, linear matrix inequalities, and Hilbert 17th problem for ternary forms}, E. de Klerk, and D.V. Pasechnik, European J. Oper. Res. (2004), pp. 39-45.
