@@ -346,9 +346,10 @@ doc /// --solveSOS
     Description
       Text
         This method solves SOS problems.
-        Given a rational polynomial $f(x)$, it attempts to find a rational positive semidefinite matrix $Q$ and a vector of monomials $mon$ such that
+        Given a rational (or real) polynomial $f(x)$, it attempts to find a rational (or real) 
+	positive semidefinite matrix $Q$ and a vector of monomials $mon$ such that
         $$f(x) = mon' Q mon.$$ 
-        The algorithm first computes a floating point solution, 
+        The algorithm first computes a floating point solution,
         and then tries to obtain an exact solution by rounding the numerical result. 
         If the rounding fails, the numerical solution is returned.
       Example
@@ -434,10 +435,21 @@ doc /// --solveSOS (quotient ring)
       Example
         S = R[t];
         solveSOS(f-t,-t,mon,RoundTol=>12)
+      Text 
+        If an SOS decomposition is undertaken in the quotient ring with rational coefficients
+	it can happen that rounding fails.  In this case, an @TO SOSPoly@ constructed from the 
+	@TO SDPResult@ can live in a newly created ring, instead of the quotient that one started with.
+      Example
+        R = QQ[x,y]/ideal(x^2 + y^2 - 1);
+        f = 10-x^2-y;
+        mon = matrix {{1}, {x}, {y}};
+        s = solveSOS (f, mon, RoundTol=>infinity);
+	ring sosPoly s
       Code
       Pre
     SeeAlso
         solveSOS
+    Caveat
 ///
 
 doc /// --roundPSDmatrix
@@ -631,7 +643,7 @@ doc /// --sosdecTernary
       Text
         Given a nonnegative ternary form $f$, this method uses Hilbert's
 	algorithm to compute a decomposition of
-        $f$ as f=\frac{\prod_ip_i}{\prod_iq_i}$ where each factor $p_i$
+        $f$ as $f=\frac{\prod_ip_i}{\prod_iq_i}$ where each factor $p_i$
 	and $q_i$ is SOS.
         The method returns null if $f$ is not nonnegative.
         As an example, consider the homogeneous Motzkin polynomial:
