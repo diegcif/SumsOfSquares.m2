@@ -222,7 +222,7 @@ nonnegativeForm(String,List) := (name,X) -> (
         return  x^4*y^2 + x^2*y^4 - 3*x^2*y^2*z^2 + z^6;
     if name=="Robinson" then
         return x^6 + y^6 + z^6 - (x^4*y^2 + x^2*y^4 + x^4*z^2 + x^2*z^4 + y^4*z^2 + y^2*z^4) + 3*x^2*y^2*z^2;
-    if name=="Schmudgen" then
+    if name=="Schmuedgen" then
         return 200*(x^3 - 4*x*z^2)^2 + 200*(y^3 - 4*y*z^2)^2 + 
            (y^2 - x^2)*x*(x + 2*z)*(x^2 - 2*x*z + 2*y^2 - 8*z^2);
     if name=="Scheiderer" then

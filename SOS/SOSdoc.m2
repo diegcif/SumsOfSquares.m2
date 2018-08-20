@@ -833,7 +833,7 @@ doc /// --nonnegativeForm
         nonnegativeForm(name,var) 
     Inputs
         name:String
-          either "Motzkin", "Robinson", "Schmudgen", "Lax-Lax", "Choi-Lam", "Scheiderer", "Harris"
+          either "Motzkin", "Robinson", "Schmuedgen", "Lax-Lax", "Choi-Lam", "Scheiderer", "Harris"
         R:Ring
           a polynomial ring
         var:List
@@ -852,10 +852,10 @@ doc /// --nonnegativeForm
         R = QQ[x,y,z];
         nonnegativeForm("Motzkin", R)
       Text
-        The Robinson and Schmudgen polynomials are also ternary sextics that are not SOS.
+        The Robinson and Schmüdgen polynomials are also ternary sextics that are not SOS.
       Example
         nonnegativeForm("Robinson", R)
-        nonnegativeForm("Schmudgen", R)
+        nonnegativeForm("Schmuedgen", R)
       Text
         The Lax-Lax and Choi-Lam polynomials are quaternary quartics that are not SOS.
       Example
