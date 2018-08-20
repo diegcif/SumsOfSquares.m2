@@ -34,8 +34,8 @@ document {
     ///,
     
     HEADER4 "Sums of squares modulo equality constraints",
-    "The package supports SOS decompositions in ",  
-    TO2 {"solveSOS(RingElement,Matrix)","quotient rings"},
+    "The package supports ",  
+    TO2 {"solveSOS(RingElement,Matrix)","SOS decompositions in quotient rings"},
     ". This can be useful to prove nonnegativity of a polynomial on a variety.  The following example is 
     taken from [P05].  Consider the problem
     of proving that the polynomial ", ITALIC TEX "f = 10-x^2-y", " is nonnegative on the circle defined by ", ITALIC TEX "g = x^2 + y^2 - 1", ". ",
