@@ -789,7 +789,7 @@ doc /// --recoverSolution
           of monomials
         X:Matrix
           the moment matrix
-	sdpsol:SDPresult
+	sdpsol:SDPResult
     Outputs
         sol:List
           the optimal solution
@@ -804,8 +804,9 @@ doc /// --recoverSolution
         mon = matrix {{1},{x},{y}};
         X = matrix(RR, {{1,0,1},{0,0,0},{1,0,1}} );
         sol = recoverSolution(mon,X)
-      See @TO lowerBound@ for how to use it to find a point realizing a
-      lower bound.
+      Text
+        See @TO lowerBound@ for how to use it to find a point realizing a
+        lower bound.
       Code
       Pre
     SeeAlso
