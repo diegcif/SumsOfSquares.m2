@@ -631,10 +631,10 @@ doc /// --sosdecTernary
 	As an example, consider the homogeneous Motzkin polynomial:
       Example
          R = RR[x,y,z];
-    	 f = nonnegativeForm ("Motzkin");
+    	 f = nonnegativeForm ("Motzkin", {x,y,z});
     	 (p,q) = sosdecTernary (f, Solver=>"CSDP");
       Text
-        The result is just a quotient of two sums of squares.
+        The result, in this case, is just a quotient of two sums of squares.
       Example
          (#p, #q)
          f * sumSOS q#0 == sumSOS p#0
@@ -814,7 +814,7 @@ doc /// --checkSolver
     Consequences
     Description
       Text
-        This method tests that a function works works properly using a specified solver.
+        This method tests that a function works properly using a specified solver.
       Code
       Pre
     SeeAlso
@@ -1049,18 +1049,20 @@ document { --Solver
     is a very rudimentary implementation of such a solver in the Macaulay2 language.  It is 
     called the M2 solver but for most applications it will be insufficient. For this reason it is
     almost mandatory to install another solver.  The package supports csdp and sdpa which are open
-    source and available here:",
+    source.  This option can take the following values:" ,
     UL{
       {"\"M2\"", " -- use a simple dual interior point method implemented in Macaulay2"},
        {"\"CSDP\"", " -- use the CSDP solver, available at ", TT "https://projects.coin-or.org/Csdp/" },
        {"\"SDPA\"", " -- use the SDPA solver, available at ", TT "http://sdpa.sourceforge.net/" },
       },
-    "Before any serious computation the user should install CSDP or SDPA.  An easy way to make 
-    it available is to add the executable to the PATH environment variable.  Another way is
+    "Before any serious computation the user should install CSDP or SDPA.  In our experience CSDP gives
+    the best results.  An easy way to a solver available to Macaulay2  
+    is to add the executable to the PATH environment variable.  Another way is
     to explicitly specify the location of the executable when loading the package:",
     EXAMPLE lines ///
        needsPackage ("SOS", Configuration=>{"CSDPexec"=>"/some/path/csdp", "SDPAexec"=>"/some/path/sdpa"})
     ///,
+    "The method ", TO "checkSolver", " can be used to check if a solver works.",
     }
 
 doc /// --TraceObj
