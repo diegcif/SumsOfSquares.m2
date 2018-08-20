@@ -765,11 +765,12 @@ doc /// --lowerBound
         bound
         f - bound + h*mult == sumSOS sosPoly sol
       Text
-        Finally, the following is an example of how to optimize a rational function.
+        {\bf Optimizing rational functions:}
+        The following is an example of how to optimize a rational function.
       Example
         R = QQ[x];
         f = (x^2-x)/(x^2+1);
-        (bound,sol) = lowerBound f;
+        (bound,sol) = lowerBound (f, Solver=>"CSDP");
         (bound, recoverSolution sol)
     SeeAlso
         recoverSolution
@@ -779,27 +780,33 @@ doc /// --recoverSolution
     Key
         recoverSolution
     Headline
-        recover the solution of an SOS problem
+        Factor a rank one PSD matrix
     Usage
         sol = recoverSolution(mon,X)
+	sol = recoverSolution(sdpsol)
     Inputs
         mon:Matrix
           of monomials
         X:Matrix
           the moment matrix
+	sdpsol:SDPResult
     Outputs
         sol:List
-          the solution
+          the optimal solution
     Consequences
     Description
       Text
-        This method attempts to find the solution of an SOS problem
-        by checking if the moment matrix is rank one.
+        This method attempts to find the optimizing solutions of an SOS problem
+        by checking if the moment matrix is rank one.  In this case it
+        factorizes the matrix and returns the defining vector.
       Example
         R = RR[x,y];
         mon = matrix {{1},{x},{y}};
         X = matrix(RR, {{1,0,1},{0,0,0},{1,0,1}} );
         sol = recoverSolution(mon,X)
+      Text
+        See @TO lowerBound@ for how to use it to find a point realizing a
+        lower bound.
       Code
       Pre
     SeeAlso
