@@ -718,7 +718,6 @@ LDLdecomposition = (A) -> (
     kk := ring A;
     if kk=!=QQ and kk=!=RR and not instance(kk,RealField) then
        error "field must be QQ or RR";
-    if transpose A != A then error("Matrix must be symmetric.");
     tol := if isExactField kk then 0 else 1e-9;
 
     n := numRows A;
@@ -757,13 +756,12 @@ LDLdecomposition = (A) -> (
                 Ah#(i,j) = Ah#(i,j) - (v#i*v#j)/a;
             );
     );
-    --print map(kk^n,kk^n,(i,j)-> if i>j then Ah#(i,j) else Ah#(j,i));
 
     L := map(kk^n,kk^n,(i,j)-> if i>j then Ah#(i,j) else if i==j then 1_kk else 0_kk);
     D := map(kk^n,kk^n,(i,j)->if i==j then Ah#(i,j) else 0_kk);
     P := submatrix(id_(kk^n),toList piv);
 
-    (L,D,P,err)
+    return (L,D,P,err);
 )
 
 --###################################

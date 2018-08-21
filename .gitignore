@@ -10,6 +10,7 @@ SOS/examples/*
 Icon*
 
 ## Latex
+SOS.pdf
 *.aux
 *.lof
 *.log
