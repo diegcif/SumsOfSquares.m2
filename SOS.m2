@@ -714,9 +714,7 @@ PSDdecomposition = (A) -> (
     )
     
 LDLdecomposition = (A) -> (
-    -- This implements Algorithm 4.1.1 from [Golub-VanLoan-2012]
-    -- The algorithm works under the assumption that
-    -- all the leading principal minors are nonzero
+    -- This implements Algorithm 4.2.2 from [Golub-VanLoan-2012]
     kk := ring A;
     if kk=!=QQ and kk=!=RR and not instance(kk,RealField) then
        error "field must be QQ or RR";
@@ -727,41 +725,43 @@ LDLdecomposition = (A) -> (
     Ah := new MutableHashTable;
     for i to n-1 do for j to n-1 do Ah#(i,j) = A_(i,j);
     v := new MutableList from for i to n-1 list 0_kk;
-    d := new MutableList from for i to n-1 list 0_kk;
     piv := new MutableList from toList(0..n-1);
     err := 0;
 
-    for k from 0 to n-1 do (
-        q := k + maxPosition apply(k..n-1, i->Ah#(i,i));
-        -- Symmetric Matrix Permutation:
+    permuteMat := (k,q) -> (  -- k<=q
+        if k==q then return;
         tmp := piv#q; piv#q = piv#k; piv#k = tmp;
         for i to n-1 do (tmp := Ah#(i,q); Ah#(i,q) = Ah#(i,k); Ah#(i,k) = tmp;);
         for i to n-1 do (tmp := Ah#(q,i); Ah#(q,i) = Ah#(k,i); Ah#(k,i) = tmp;);
+        );
+
+    for k from 0 to n-1 do (
+        q := k + maxPosition apply(k..n-1, i->Ah#(i,i));
+        permuteMat(k,q);
 
         --  positive semidefinite?
-        if Ah#(k,k) < -tol then (err = k+1; break;);
-        if abs(Ah#(k,k))<=tol then 
-            if any(0..n-1, i->abs(Ah#(i,k))>tol) then (
+        a := Ah#(k,k);
+        if a < -tol then (err = k+1; break;);
+        if a <= tol then(
+            if any(k+1..n-1, i->abs(Ah#(i,k))>tol) then (
                 err = k+1; break;);
+            continue;
+            );
 
-        -- Perform LDL factorization step:
-        if Ah#(k,k) > tol then (
-            for i to k-1 do (v#i = Ah#(k,i)*Ah#(i,i));
-            Ah#(k,k) = Ah#(k,k) - sum for i to k-1 list Ah#(k,i)*v#i;
-            if Ah#(k,k) < -tol then (err = k+1; break;);
-            if Ah#(k,k) > tol then
-                for i from k+1 to n-1 do
-                    Ah#(i,k) = (Ah#(i,k)-sum for j to k-1 list Ah#(i,j)*v#j) / Ah#(k,k);
-        );
+        -- Schur complement
+        for i from k+1 to n-1 do 
+            v#i = Ah#(i,k);
+        for i from k+1 to n-1 do(
+            Ah#(i,k) = v#i/a;
+            for j from k+1 to n-1 do
+                Ah#(i,j) = Ah#(i,j) - (v#i*v#j)/a;
+            );
     );
+    --print map(kk^n,kk^n,(i,j)-> if i>j then Ah#(i,j) else Ah#(j,i));
 
     L := map(kk^n,kk^n,(i,j)-> if i>j then Ah#(i,j) else if i==j then 1_kk else 0_kk);
     D := map(kk^n,kk^n,(i,j)->if i==j then Ah#(i,j) else 0_kk);
     P := submatrix(id_(kk^n),toList piv);
-
-    -- Last check, in case assumption was not satisfied
-    iszero := (a) -> if isExactField kk then a==0 else norm(a)<10*tol;
-    if not iszero(L*D*transpose L - transpose P * A * P) then err = n;
 
     (L,D,P,err)
 )
