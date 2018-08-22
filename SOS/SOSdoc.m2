@@ -436,6 +436,8 @@ doc /// --solveSOS (quotient ring)
         S = R[t];
         solveSOS(f-t,-t,mon,RoundTol=>12)
       Text 
+        {\bf Caveat}
+      Text
         If an SOS decomposition is undertaken in the quotient ring with rational coefficients
 	it can happen that rounding fails.  In this case, an @TO SOSPoly@ constructed from the 
 	@TO SDPResult@ can live in a newly created ring, instead of the quotient that one started with.
@@ -458,7 +460,6 @@ doc /// --solveSOS (quotient ring)
       Pre
     SeeAlso
         solveSOS
-    Caveat
 ///
 
 doc /// --roundPSDmatrix
