@@ -17,8 +17,6 @@ TODO:
 
 1) Talk to Pablo (or you talk to us if you are reading this :)
 
-2) Internal documentation of undocumented functions
-
 6) Install multi-parameter SOS example in doc
 
 7) solveSOS has no test in quotient rings and only one which is

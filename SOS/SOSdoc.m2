@@ -84,7 +84,7 @@ doc /// --coefficients field
         In this case of failure, a real result is returned.
         The following example of Scheiderer is SOS, but does not admit any rational SOS decomposition.  Consequently the package must return a real solution:,
       Example
-        f = nonnegativeForm("Scheiderer", QQ[x,y,z])
+        f = library("Scheiderer", QQ[x,y,z])
         sol = solveSOS (f, Solver=>"CSDP");
         sosPoly sol
       Text
@@ -661,7 +661,7 @@ doc /// --sosdecTernary
         As an example, consider the homogeneous Motzkin polynomial:
       Example
         R = RR[x,y,z];
-        f = nonnegativeForm ("Motzkin", {x,y,z});
+        f = library ("Motzkin", {x,y,z});
         (p,q) = sosdecTernary (f, Solver=>"CSDP");
       Text
         The result, in this case, is a quotient of two sums of squares.
@@ -871,16 +871,16 @@ doc /// --checkSolver
         Solver
 ///
 
-doc /// --nonnegativeForm
+doc /// --library
     Key
-        nonnegativeForm
-        (nonnegativeForm,String,List)
-        (nonnegativeForm,String,Ring)
+        library
+        (library,String,List)
+        (library,String,Ring)
     Headline
-        dictionary of interesting nonnegative forms
+        library of interesting nonnegative forms
     Usage
-        nonnegativeForm(name,R)
-        nonnegativeForm(name,var)
+        library(name,R)
+        library(name,var)
     Inputs
         name:String
           either "Motzkin", "Robinson", "Schmuedgen", "Lax-Lax", "Choi-Lam", "Scheiderer", "Harris"
@@ -894,33 +894,33 @@ doc /// --nonnegativeForm
     Consequences
     Description
       Text
-        This method contains a dictionary of some interesting nonnegative forms.
+        This method contains a library of some interesting nonnegative forms.
       Text
         The Motzkin polynomial is a ternary sextic that is not SOS.
         It was the first example of a nonnegative polynomial that is not SOS.
       Example
         R = QQ[x,y,z];
-        nonnegativeForm("Motzkin", R)
+        library("Motzkin", R)
       Text
         The Robinson and Schmüdgen polynomials are also ternary sextics that are not SOS.
       Example
-        nonnegativeForm("Robinson", R)
-        nonnegativeForm("Schmuedgen", R)
+        library("Robinson", R)
+        library("Schmuedgen", R)
       Text
         The Lax-Lax and Choi-Lam polynomials are quaternary quartics that are not SOS.
       Example
         R = QQ[x,y,z,w];
-        nonnegativeForm("Lax-Lax", R)
-        nonnegativeForm("Choi-Lam", R)
+        library("Lax-Lax", R)
+        library("Choi-Lam", R)
       Text
         The Scheiderer polynomial is SOS over the reals, but not over the rationals.
       Example
         R = QQ[x,y,z];
-        nonnegativeForm("Scheiderer", R)
+        library("Scheiderer", R)
       Text
         The Harris polynomial is a ternary form of degree 10 with 30 projective zeros (the largest number known in August 2018).
       Example
-        nonnegativeForm("Harris", R)
+        library("Harris", R)
       Text
         {\bf References:}
         {\it Some concrete aspects of Hilbert's 17th problem}. B. Reznick. Contemporary mathematics (2000), 253, pp. 251-272

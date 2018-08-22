@@ -188,12 +188,12 @@ Hence this procedure terminates, and we can write
 \]
 This method is implemented in the \SOS package as \verb|sosdecTernary|.  
 For instance, consider the Motzkin polynomial.
-The package contains a small library of interesting nonnegative forms available under \verb|nonnegativeForm|.
+The package contains a small library of interesting nonnegative forms available under \verb|library|.
 We use it here.
 {\small
 \begin{verbatim}
 i2 : R = QQ[x,y,z]
-i3 : f = nonnegativeForm ("Motzkin", {x,y,z})
+i3 : f = library ("Motzkin", {x,y,z})
       4 2    2 4     2 2 2    6
 o3 = x y  + x y  - 3x y z  + z
 i4 : (nums,dens) = sosdecTernary f;
@@ -214,7 +214,7 @@ That this is the case can easily be checked with \verb|solveSOS (x^2+y^2+z^2)*f|
 % {\small
 % \begin{verbatim}
 % i3 : R = QQ[x,y,z]
-% i4 : nonnegativeForm ("Harris", {x,y,z})
+% i4 : library ("Harris", {x,y,z})
 
 %         10      8 2      6 4      4 6      2 8      10      8 2      6 2 2      4 4 2
 % o4 = 16x   - 36x y  + 20x y  + 20x y  - 36x y  + 16y   - 36x z  + 57x y z  - 38x y z  +
@@ -259,7 +259,7 @@ Here we apply this method to the dehomogenized Motzkin polynomial.
 {\small
 \begin{verbatim}
 i12 : R = QQ[x,z][t];
-i13 : f = nonnegativeForm ("Motzkin", {x,1,z});
+i13 : f = library ("Motzkin", {x,1,z});
 i14 : sol = solveSOS (f-t, -t, RoundTol=>12);
 Running M2 Solver
 Status: SDP solved, dual feasible
@@ -271,7 +271,7 @@ The function \verb|lowerBound| does this construction automatically.
 {\small
 \begin{verbatim}
 i1 : R = QQ[x,z];
-i2 : f = nonnegativeForm ("Motzkin", {x,1,z});
+i2 : f = library ("Motzkin", {x,1,z});
 i3 : (t,sol) = lowerBound (f, RoundTol=>12);
 Running M2 Solver
 Status: SDP solved, dual feasible

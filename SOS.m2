@@ -45,7 +45,7 @@ export {
     "smat2vec",
     "vec2smat",
     "recoverSolution",
-    "nonnegativeForm",
+    "library",
 --Method options
     "GramMatrix",
     "MomentMatrix",
@@ -219,8 +219,8 @@ readSdpResult = sol -> (sol#Monomials, sol#GramMatrix, sol#MomentMatrix, sol#Par
 
 verbose = (s,o) -> if o.Verbose then print s
 
-nonnegativeForm = method()
-nonnegativeForm(String,List) := (name,X) -> (
+library = method()
+library(String,List) := (name,X) -> (
     if #X<3 then error "Insufficient variables";
     x := X_0; y := X_1; z := X_2;
     if name=="Motzkin" then
@@ -248,7 +248,7 @@ nonnegativeForm(String,List) := (name,X) -> (
         return x^2*y^2 + y^2*z^2 + x^2*z^2 + w^4 - 4*x*y*z*w;
     error "Name was not recognized.";
     )
-nonnegativeForm(String,Ring) := (name,R) -> nonnegativeForm(name,gens R)
+library(String,Ring) := (name,R) -> library(name,gens R)
 
 --###################################
 -- basicLinearAlgebra
