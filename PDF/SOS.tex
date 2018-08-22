@@ -86,14 +86,9 @@ i6 : R = QQ[x,y];
 i7 : f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
 i8 : sosPoly solveSOS f
 Executing CSDP
-[...]
 Status: SDP solved, primal-dual feasible
-
-o8 = coeffs:  {5, 43/20, 231773/344000}              
-
-     gens:            2    2         2         2    
-           {- 83/200 x  + y , 20/43 x  + x*y, x }
-o8 : SOSPoly
+o8 = coeffs: {5, 43/20, 231773/344000}              
+     gens: {- 83/200 x^2  + y^2 , 20/43 x^2  + x*y, x^2 }
 \end{verbatim}
 }
 This output has been reformatted for the paper, but contains the same information as the actual output.
@@ -124,11 +119,10 @@ This is the second argument to \verb|solveSOS| in the following example.
 i2 : R = QQ[x,y]/ideal(x^2 + y^2 - 1);
 i3 : f = 10-x^2-y;
 i4 : sosPoly solveSOS (f, 2)
-[...]
+Executing CSDP
 Status: SDP solved, primal-dual feasible
-
-o4 = coeffs:            gens:         
-     {7, 6, 83/28}      {y - 1/14, x, 1}
+o4 = coeffs: {7, 6, 83/28}      
+     gens: {y - 1/14, x, 1}
 \end{verbatim}
 }
 The above decomposition involves three squares.
@@ -136,12 +130,11 @@ It is possible to obtain a decomposition with only two squares by setting the op
 This option tells the SDP solver to use the matrix trace as an objective function for the SDP.
 {\small
 \begin{verbatim}
-sosPoly solveSOS (f, 2, TraceObj=>true)
-[...]
+i5 : sosPoly solveSOS (f, 2, TraceObj=>true)
+Executing CSDP
 Status: SDP solved, primal-dual feasible
-
-o5 = coeffs:      gens:          
-     {9, 35/36}      {- 1/18 y + 1, y} 
+o5 = coeffs: {9, 35/36}      
+     gens: {- 1/18 y + 1, y} 
 \end{verbatim}
 }
 
@@ -224,19 +217,16 @@ Here we apply it to the homogeneous Motzkin polynomial.
 \begin{verbatim}
 i2 : R = QQ[x,y,z]
 i3 : f = nonnegativeForm ("Motzkin", {x,y,z})
-
       4 2    2 4     2 2 2    6
 o3 = x y  + x y  - 3x y z  + z
-
-sosdecTernary f
+i4 : (nums,dens) = sosdecTernary f;
 Executing CSDP
-[...]
-
-o4 = ({coeffs:        },     {coeffs:                     })
-       {2059/64 , ...        {2059/64, 3851/256, 3851/256 }
-       gens:                 gens:
-         2 2    4              
-       {x y  - z , ...}        {z, y, x}
+i5 : first nums
+o5 = coeffs: {2059/64, 28, 3851/256, 3851/256, 2059/256}
+     gens: {x^2*y^2-z^4, -(1/2)*x^3*y-(1/2)*x*y^3+x*y*z^2, ... }
+i6 : first dens
+     coeffs: {2059/64, 3851/256, 3851/256}
+     gens: {z, y, x}
 \end{verbatim}
 }
 The result consist of two sums of squares only, the second being the denomenator.
@@ -277,10 +267,8 @@ i9 : sol = solveSOS (f);
 Running M2 Solver
 Status: SDP solved, dual feasible
 i10 : sosPoly(sol)
-o10 = coeffs:
-      {5/2, 7/4, 41/160}
-      gens:
-      {x^2  - 7/20, x - 1/2, 1}
+o10 = coeffs: {5/2, 7/4, 41/160}
+      gens: {x^2  - 7/20, x - 1/2, 1}
 i11 : sol#Parameters
 o11 = {7/2}
 \end{verbatim}
@@ -292,8 +280,8 @@ This allows, in particular, to find lower bounds for a polynomial functions.
 The following example finds a lower bound for the dehomogenized Motzkin polynomial $f(x)=x^4{+}x^2{+}z^6{-}3 x^2 z^2$, by finding the largest value of $t$ such that $f(x)-t$ is SOS.
 {\small
 \begin{verbatim}
-i12 : R = QQ[x][t];
-i13 : f = x^4+x^2+z^6-3*x^2*z^2;
+i12 : R = QQ[x,z][t];
+i13 : f = nonnegativeForm ("Motzkin", {x,1,z});
 i14 : sol = solveSOS (f-t, -t, RoundTol=>12);
 Running M2 Solver
 Status: SDP solved, dual feasible
@@ -304,7 +292,7 @@ o15 = {- 729/4096}
 The function \verb|lowerBound| does this construction automatically.
 {\small
 \begin{verbatim}
-i1 : R = QQ[x];
+i1 : R = QQ[x,z];
 i2 : f = x^4+x^2+z^6-3*x^2*z^2;
 i3 : (t,sol) = lowerBound (f, RoundTol=>12);
 Running M2 Solver
