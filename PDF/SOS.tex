@@ -165,7 +165,7 @@ i3 : (sol,mult) = sosInIdeal (h, 2);
 i4 : sosPoly sol
 o4 = coeffs: {63/4, 63/4, 63/4}
      gens: {x, y, z}
-i5 : h * mult == sumSOS sosPoly sol
+i5 : h * mult == sosPoly sol
 \end{verbatim}
 }
 The same computation can be carried out in the quotient ring.
@@ -173,9 +173,9 @@ In this case the argument to \verb|sosInIdeal| is simply the quotient ring.
 {\small
 \begin{verbatim}
 i6 : S = R/ideal h;
-i7 : sol = sosInIdeal (S, 2);
-i8 : sumSOS sosPoly sol
-o8 = 0
+i7 : sosPoly sosInIdeal (S, 2);
+o7 = coeffs: {59/2, 59/2, 59/2}
+     gens: {x, y, z}
 \end{verbatim}
 }
 
@@ -322,7 +322,7 @@ Executing CSDP
 Status: SDP solved, primal-dual feasible
 i15 : t
 o15 = -1
-i16 : f - t + h*mult == sumSOS sosPoly sol
+i16 : f - t + h*mult == sosPoly sol
 o16 = true
 \end{verbatim}
 }

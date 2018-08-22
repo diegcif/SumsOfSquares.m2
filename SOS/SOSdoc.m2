@@ -117,6 +117,8 @@ doc /// --SOSPoly
         (symbol ==, SOSPoly, SOSPoly)
         (symbol ==, SOSPoly, RingElement)
         (symbol ==, RingElement, SOSPoly)
+        (symbol ==, SOSPoly, Matrix)
+        (symbol ==, Matrix, SOSPoly)
     Headline
         A type to store SOS decompositions of polynomials
     Description
@@ -455,7 +457,7 @@ doc /// --solveSOS (quotient ring)
       Example
         R' = ring sosPoly s;
         S = R'/(sub (ideal (x^2 + y^2 - 1), R'))
-        sub (f, S) == sub (sumSOS sosPoly s, S)
+        sub (f, S) == sub (sosPoly s, S)
       Code
       Pre
     SeeAlso
@@ -709,7 +711,7 @@ doc /// --sosInIdeal
         h = matrix {{x^2+y^2+y, y-z^2}};
         (sol,mult) = sosInIdeal (h, 2, Solver=>"CSDP");
         sosPoly sol
-        h * mult == sumSOS sosPoly sol
+        h * mult == sosPoly sol
      Text
         The second invocation is on a quotient ring, also with a degree bound.
         This tries to decompose the zero of the quotient ring as a sum-of-squares.
@@ -717,7 +719,7 @@ doc /// --sosInIdeal
         S = R/ideal h;
         sol = sosInIdeal (S, 2, Solver=>"CSDP");
         sosPoly sol
-        sumSOS sosPoly sol
+        sosPoly sol
     Caveat
         This implementation only works with the solver CSDP.
 ///
@@ -787,7 +789,7 @@ doc /// --lowerBound
         h = matrix{{x^2 - x, y^2 - y}};
         (bound,sol,mult) = lowerBound (f, h, 2);
         bound
-        f - bound + h*mult == sumSOS sosPoly sol
+        f - bound + h*mult == sosPoly sol
       Text
         {\bf Optimizing rational functions:}
         The following is an example of how to optimize a rational function.
@@ -803,11 +805,13 @@ doc /// --lowerBound
 doc /// --recoverSolution
     Key
         recoverSolution
+        (recoverSolution,Matrix,Matrix)
+        (recoverSolution,SDPResult)
     Headline
         Factor a rank one PSD matrix
     Usage
         sol = recoverSolution(mon,X)
-	sol = recoverSolution(sdpsol)
+        sol = recoverSolution(sdpsol)
     Inputs
         mon:Matrix
           of monomials

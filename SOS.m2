@@ -154,6 +154,14 @@ RingElement == SOSPoly := (f, S) -> S == f
 
 SOSPoly == SOSPoly := (S, S') -> S == sumSOS S'
 
+SOSPoly == Matrix := (S, F) -> (
+    if numRows F!=1 or numColumns F!=1 then
+        error "matrices have different shapes"
+    else S == F_(0,0)
+    )
+
+Matrix == SOSPoly := (F, S) -> S == F
+
 sumSOS = method()
 
 sumSOS (List, List) := (g,d) -> sum for i to #g-1 list g_i^2 * d_i
