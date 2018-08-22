@@ -353,6 +353,7 @@ rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
          
     -- build SOS model --     
     (C,Ai,p0,V,A,B,b) := createSOSModel(F,mon,Verbose=>o.Verbose);
+    if C===null then return sdpResult(mon,,,);
 
     ndim := numRows C;
     np := numRows objP;
@@ -541,6 +542,9 @@ getImageModel = (A,B,b) -> (
     n2 := numColumns B;
     AB := A|B;
     x := linsolve(AB,b);
+    if x===null then(
+        print "No Gram matrix exists. Terminate.";
+        return (,,,) );
     c := x^{0..n1-1};
     p0 := x^{n1..n1+n2-1};
     C := vec2smat(c);
@@ -1053,6 +1057,7 @@ trivialSDP = (C,A,b) -> (
 --simpleSDP
 
 simpleSDP = {Verbose => false} >> o -> (C,A,b) -> (
+    print "Running M2 Solver";
     R := RR;
     n := numRows C;
 
@@ -1066,7 +1071,9 @@ simpleSDP = {Verbose => false} >> o -> (C,A,b) -> (
         y =  zeros(R,#A,1) || matrix{{lambda*1.1}};
         obj :=  zeros(R,#A,1) || matrix{{1_R}};
         (y,Z) = simpleSDP2(C,append(A,id_(R^n)), obj, y, true, Verbose=>o.Verbose);
-        if y===null then return (,);
+        if y===null then (
+            print StatusFailed;
+            return (,) );
         y = transpose matrix {take (flatten entries y,numRows y - 1)};
         );
     verbose("Computing an optimal solution...", o);
@@ -1076,7 +1083,6 @@ simpleSDP = {Verbose => false} >> o -> (C,A,b) -> (
     )
 
 simpleSDP2 = {Verbose => false} >> o -> (C,A,mb,y,UntilObjNegative) -> (
-    print "Running M2 Solver";
     R := RR;
     n := numgens target C;
     b := -mb;
@@ -1094,7 +1100,7 @@ simpleSDP2 = {Verbose => false} >> o -> (C,A,mb,y,UntilObjNegative) -> (
         while true do (
             S := C - sum toList apply(0..m-1, i-> y_(i,0) * A_i);
             try Sinv := solve(S, id_(target S)) else (
-                print "slack matrix is singular, terminate";
+                print "Slack matrix is singular";
                 return (,) );
             -- compute Hessian:
             H := map(R^m,R^m,(i,j) -> trace(Sinv*A_i*Sinv*A_j));
