@@ -40,12 +40,17 @@
 \title[SOS.m2]{Sums of squares in Macaulay2}
 
 \author{Diego Cifuentes}
-\address{Massachusetts Institute of Technology \\ Boston, USA}
+\address{Massachusetts Institute of Technology \\ Cambridge, MA, USA}
 \email{diegcif@mit.edu}
 
 \author{Thomas Kahle}
 \address{Otto-von-Guericke University \\ Magdeburg, Germany}
 \email{thomas.kahle@ovgu.de}
+
+\author{Pablo A. Parrilo}
+\address{Massachusetts Institute of Technology \\ Cambridge, MA, USA}
+\email{parrilo@mit.edu}
+
 
 \begin{abstract}
   The package \SOS implements sums of squares (SOS) decompositions in
@@ -96,13 +101,13 @@ The type \verb|SOSPoly| stores a sum of squares $f$ as coefficients $\lambda_{1}
 Storing the coefficients separately avoids the necessity to adjoin square roots to~$\QQ$.
 
 In the above example the package is configured to use the SDP solver CSDP which is called by \verb|solveSOS|.
-The SOS decomposition of the input polynomial solves an SDP numerically and then rounts the result to obtain a rational SOS decomposition.
+The SOS decomposition of the input polynomial solves an SDP numerically and then rounds the result to obtain a rational SOS decomposition.
 The return value of \verb|solveSOS| is an object \verb|SDPresult| which contains details about the numerical computation.
 Then \verb|sosPoly| extracts the SOS.
 In this case there are three squares:
 \[
-  f = 5(-\frac{83}{200} x^{2}+y^{2})^{2} + \frac{43}{20}
-  (\frac{20}{43}x^{2} + xy)^{2} + \frac{231773}{344000} (x^{2})^{2}
+  f = 5(-\tfrac{83}{200} x^{2}+y^{2})^{2} + \tfrac{43}{20}
+  (\tfrac{20}{43}x^{2} + xy)^{2} + \tfrac{231773}{344000} (x^{2})^{2}
 \]
 This decomposition is not the simplest one, but it is fully rational. 
 Simplifications can be done in post-processing.
@@ -127,7 +132,7 @@ o4 = coeffs: {7, 6, 83/28}
 }
 The above decomposition involves three squares.
 It is possible to obtain a decomposition with only two squares by setting the option \verb|TraceObj=>true|.
-This option tells the SDP solver to use the matrix trace as an objective function for the SDP.
+This option tells \Mac to use the matrix trace as an objective function for the SDP.
 {\small
 \begin{verbatim}
 i5 : sosPoly solveSOS (f, 2, TraceObj=>true)
@@ -145,11 +150,12 @@ o5 = coeffs: {9, 35/36}
 % that work.
 
 \subsection*{A word on SDP Solvers}
-The \SOS package relies on numerical SDP solvers for SOS
-decompositions.  While it does have a built in solver in the \Mac
-language, reasonable examples require an external solver.  We
-recommend the open source solver CSDP \cite{borchers1999csdp} and
-refer to the package documentation on how to use it from \SOS.
+The \SOS package relies on numerical SDP solvers for SOS decompositions.  
+While it does have a built in solver in the \Mac language, 
+reasonable examples require an external solver.
+At the moment the package has interfaces to the open source solvers CSDP~\cite{borchers1999csdp} and SDPA~\cite{yamashita2003implementation}.
+In our experience CSDP gives the best results.
+We refer to the package documentation on how to select the solver.
 
 \subsection*{A small library of nonnegative forms}
 The package implements a small library of interesting nonnegative forms that have appeared in the literature in the function  \verb|nonnegativeForm|.
@@ -170,7 +176,7 @@ o4 = x  + x*y  + y  - 3x y*z - 4x*y z + 2x z  + x*z  + y*z  + z
 
 \section{Sums of squares in ideals}
 Let $I \subset k[x_{1},\dots,x_{n}]$ be an ideal.  The \SOS package can be used to find a sum of squares in~$I$.
-Of course every ideal contains the squares of generators.
+Of course every ideal contains the squares of its generators.
 The aim is to find low degree sums of squares.
 An alternative formulation of the same problem is to consider the quotient $S = k[x_{1},\dots,x_{n}]/I$ and write $0\in S$ as a sum of squares.
 Both formulations of the problem are available in the \SOS package.
@@ -200,19 +206,18 @@ o8 = 0
 
 \section{SOS decomposition of ternary forms}
 
-According to a result of Hilbert, any form $f\in k[x,y,z]$ can be decomposed as a quotient of sums of squares using a simple iterative algorithm.
-Specifically, one can aims to find a nonnegative multiplier $p_{1}$ of bounded degree such that $p_{1}f = \sum_{1}^{N}h_{i}^{2}$ is a sum of squares.
-Then the same technique is applied to $p_{1}$, i.e.~one searches for a multiplier $q_{1}$ such that $q_{1}p_{1}$ is SOS.
-The main observation is that the necessary degree of $q_{1}$ is lower than that of $p_{1}$.
-Therefore one eventually arrives at writing a form of degree at most 4 as a sum of squares.
-This can be solved with the so called Gram-Matrix-Method.
-See \cite{de2004products} for the details.
-This method is implemented in the \SOS package as \verb|sosdecTernary|.  Given a ternary form $f$ it decomposes $f$ as
+Hilbert showed that any nonnegative form $f\in k[x,y,z]$ can be decomposed as a quotient of sums of squares.
+We can obtain this decomposition by iteratively calling \verb|sosInIdeal|.
+Specifically, one can find a multiplier $q_{1}$ such that $q_{1}f$ is SOS.
+Since $q_1$ is also nonnegative, we can then search for a multiplier $p_{1}$ such that $p_{1}q_{1}$ is SOS, and so on.
+The main observation is that the necessary degree of $p_{1}$ is lower than that of $q_{1}$.
+Therefore, this procedure terminates, and we can write $f$ as
 \[
   f = \frac{p_{1}\cdots p_{s}}{q_{1}\cdots q_{t}} \qquad \text {
     $p_{i},q_{i}$ SOS}.
 \]
-Here we apply it to the homogeneous Motzkin polynomial.
+This method is implemented in the \SOS package as \verb|sosdecTernary|.  
+Here we apply it to the Motzkin polynomial.
 {\small
 \begin{verbatim}
 i2 : R = QQ[x,y,z]
@@ -226,12 +231,12 @@ o5 = coeffs: {2059/64, 28, 3851/256, 3851/256, 2059/256}
      gens: {x^2*y^2-z^4, -(1/2)*x^3*y-(1/2)*x*y^3+x*y*z^2, ... }
 i6 : first dens
      coeffs: {2059/64, 3851/256, 3851/256}
-     gens: {z, y, x}
+     gens: {x, y, z}
 \end{verbatim}
 }
-The result consist of two sums of squares only, the second being the denomenator.
+The result consist of two sums of squares only, the second being the denominator.
 Seeing this, one might get the idea that the product of $(x^{2}+y^{2}+z^{2})$ and the Motzkin polynomial is a sum of squares.
-That this is the case can easily be checked with \verb|solveSOS (x^2+y^2+z^2)f|
+That this is the case can easily be checked with \verb|solveSOS (x^2+y^2+z^2)*f|.
 
 % The \emph{Harris polynomial} is a ternary form with a record number zeros. 
 % {\small
@@ -258,7 +263,8 @@ That this is the case can easily be checked with \verb|solveSOS (x^2+y^2+z^2)f|
 
 \subsection*{SOS problems with parameters}
 Assume now that $f(x;p)$ is a polynomial function, that depends affinely on some parameters $p$.
-The command \verb|solveSOS| allows to search for values of the parameters which render a polynomial to be a SOS.
+The command \verb|solveSOS| allows to search for values of the parameters such that the polynomial is a SOS.
+In the following example, the variable $t$ will be treated as a free parameter.
 {\small
 \begin{verbatim}
 i7 : R = QQ[x][t];
