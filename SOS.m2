@@ -384,8 +384,6 @@ rawSolveSOS(Matrix,Matrix) := o -> (F,objP) -> (
 rawSolveSOS(Matrix) := o -> (F) -> 
     rawSolveSOS(F,zeros(QQ,numRows F-1,1),o)
 
--- This is the main method to decompose a polynomial as a 
--- sum of squares using an SDP solver.
 solveSOS = method(
      Options => {RoundTol => 3, Solver=>null, Verbose => false, TraceObj => false} )
 
@@ -441,7 +439,7 @@ toRing (Ring, RingElement) := (S,f) -> (
     )
 
 toRing (Ring, SOSPoly) := (S, s) -> (
-    -- maps s to Ring S
+    -- maps s to ring S
     R := ring s;
     kk := coefficientRing R;
     -- QQ => RR
@@ -451,10 +449,10 @@ toRing (Ring, SOSPoly) := (S, s) -> (
     -- RR => QQ
     if not (instance (kk, RealField) and coefficientRing S===QQ) then 
         error "Error: only conversion between real and rational coefficient fields is implemented.";
-	g' := toRing_S \ gens s;
-	K := 2^(precision kk);
-	c' := for c in coefficients s list round(K*sub(c,RR))/K;
-	return sosPoly (S, g', c')
+    g' := toRing_S \ gens s;
+    K := 2^(precision kk);
+    c' := for c in coefficients s list round(K*sub(c,RR))/K;
+    return sosPoly (S, g', c')
     )
 
 liftMonomial = (S,f) -> (
@@ -675,7 +673,7 @@ pointsInBox = (mindeg,maxdeg,mindegs,maxdegs) -> (
 project2linspace = (A,b,x0) -> (
      -- cast into QQ (necessary class to compute inverse)
      A2 := promote (A,QQ);
-     -- ugly hack to convert b into a matrix if it is a scalar in QQ/ZZ:
+     -- convert b into a matrix if it is a scalar in QQ/ZZ:
      b2 := promote (matrix{{b}},QQ);
      x02 := promote (x0,QQ);
 
@@ -802,8 +800,9 @@ sosInIdeal (Matrix,ZZ) := o -> (h,D) -> (
     -- D is a degree bound
     -- returns sos polynomial in <h>
 
-    -- The output is an SDPResult with the multipliers that
+    -- The output is an SDPResult and the multipliers that
     -- express the SOS in terms of the generators.
+    -- We have them independent of Gröbner bases.
     
     if numRows h > 1 then error "h must be a row vector";
     if odd D then error "D must be even";
@@ -891,8 +890,6 @@ lowerBound(RingElement,ZZ) := o -> (f,D) -> drop(lowerBound(f,zeros(ring f,1,0),
 
 -- Minimize a polynomial on an algebraic set
 lowerBound(RingElement,Matrix,ZZ) := o -> (f,h,D) -> (
-    -- Lasserre hierarchy for the problem
-    -- min f(x) s.t. h(x)=0
     numdens := (f) -> (
         R := ring f;
         (num,den) := (f, 1_R);

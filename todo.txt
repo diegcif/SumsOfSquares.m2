@@ -9,6 +9,10 @@ a) SOS.m2
 b) SOS/SOSdoc.m2
 c) SOS/examples/*.out for all files with CSDP output
 
+2) Make sure DebuggingMode is not enabled.
+
+3) Is the version number and date OK?
+
 TODO:
 
 2) Create bigger and more complicated tests for solveSOS 
