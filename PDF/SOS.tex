@@ -235,8 +235,113 @@ That this is the case can easily be checked with \verb|solveSOS (x^2+y^2+z^2)f|
 % real radical of an ideal.
 % Namely,
 
-\section{Optimization}
+\section{SOS optimization}
 
+\subsection*{SOS problems with parameters}
+Assume now that $f(x;p)$ is a polynomial function, that depends affinely on some parameters $p$.
+The command \verb|solveSOS| allows to search for values of the parameters which render a polynomial to be a SOS.
+{\small
+\begin{verbatim}
+i7 : R = QQ[x][t];
+i8 : f = (t-1)*x^4+1/2*t*x+1;
+i9 : sol = solveSOS (f);
+Running M2 Solver
+Status: SDP solved, dual feasible
+i10 : sosPoly(sol)
+o10 = coeffs:
+      {5/2, 7/4, 41/160}
+      gens:
+      {x^2  - 7/20, x - 1/2, 1}
+i11 : sol#Parameters
+o11 = {7/2}
+\end{verbatim}
+}
+
+\subsection*{Parameter optimization}
+It is also possible find the values of the parameters that optimize a given linear function.
+This allows, in particular, to find lower bounds for a polynomial functions.
+The following example finds a lower bound for the dehomogenized Motzkin polynomial $f(x)=x^4{+}x^2{+}z^6{-}3 x^2 z^2$, by finding the largest value of $t$ such that $f(x)-t$ is SOS.
+{\small
+\begin{verbatim}
+i12 : R = QQ[x][t];
+i13 : f = x^4+x^2+z^6-3*x^2*z^2;
+i14 : sol = solveSOS (f-t, -t, RoundTol=>12);
+Running M2 Solver
+Status: SDP solved, dual feasible
+i15 : sol#Parameters
+o15 = {- 729/4096}
+\end{verbatim}
+}
+The function \verb|lowerBound| does this construction automatically.
+{\small
+\begin{verbatim}
+i1 : R = QQ[x];
+i2 : f = x^4+x^2+z^6-3*x^2*z^2;
+i3 : (t,sol) = lowerBound (f, RoundTol=>12);
+Running M2 Solver
+Status: SDP solved, dual feasible
+i16 : t
+o16 = - 729/4096
+\end{verbatim}
+}
+
+\subsection*{Rounding tolerance}
+The methods \verb|solveSOS| and \verb|lowerBound| have an optional argument \verb|RoundTol|, which specifies the precision of the rational rounding.
+Lower values of \verb|RoundTol| lead to simpler bounds (smaller denominators), at the expense of a loss in optimality.
+We may also skip the rounding by setting it to infinity.
+{\small
+\begin{verbatim}
+i14 : (t,sol) = lowerBound (f, RoundTol=>infinity);
+Running M2 Solver
+Status: SDP solved, dual feasible
+i15 : t
+o15 = - .177978892003352
+\end{verbatim}
+}
+
+\subsection*{Polynomial optimization}
+
+Consider the problem
+\begin{align*}
+  \min_{x\in X} \quad f(x),
+  \quad \text{ where }\quad
+  X := \{x \in \RR^n : h_1(x)=\dots=h_m(x)=0\},
+\end{align*}
+where $f, h_1,\dots,h_m$ are polynomials.
+We can find lower SOS bounds for the optimal value.
+The \SOS package gives two possible ways to do this.
+The first method is to construct the associated quotient ring, and then call the method \verb|lowerBound|.
+{\small
+\begin{verbatim}
+i6 : R = QQ[x,y]/ideal(x^2 - x, y^2 - y);
+i7 : f = x - y;
+i8 : (t,sol) = lowerBound(f,2);
+Executing CSDP
+Status: SDP solved, primal-dual feasible
+i9 : t
+o9 = -1
+i10 : f - t == sosPoly sol
+o10 = true
+\end{verbatim}
+}
+The above method is appealing for relatively simple varieties, for which Gr\"obner bases computation is tractable.
+For general varieties the quotient ring construction might be too expensive.
+An alternative, is to call \verb|lowerBound| with the list of equations $h_1,\dots,h_m$.
+The method will then look for polynomial multipliers $l_i(x)$ such that $f(x) - t + \sum_i l_i(x)h_i(x)$ is SOS.
+{\small
+\begin{verbatim}
+i11 : R = QQ[x,y];
+i12 : f = x - y;
+i13 : h = matrix{{x^2 - x, y^2 - y}};
+i14 : (t,sol,mult) = lowerBound (f, h, 2);
+Executing CSDP
+Status: SDP solved, primal-dual feasible
+i15 : t
+o15 = -1
+i16 : f - t + h*mult == sumSOS sosPoly sol
+o16 = true
+\end{verbatim}
+}
 
 
 
