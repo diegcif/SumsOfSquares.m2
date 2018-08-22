@@ -368,9 +368,16 @@ doc /// --solveSOS
       Example
         R = QQ[x][t];
         f = (t-1)*x^4+1/2*t*x+1;
-        sol = solveSOS (f);
-        sosPoly(sol)
+        sol = solveSOS f;
+        sosPoly sol
         sol#Parameters
+      Text
+        It is possible to solve SOS problems with several parameters.  
+	In the following example we increase two of the coefficients of the Robinson polynomial until it becomes SOS
+      Example
+        R = QQ[x,y,z][s,t]
+	g = library("Robinson", {x,y,z}) + s*x^6 + t*y^6
+	solveSOS g
       Text
         {\bf SOS with parameter optimization:}
         The method also allows to optimize a linear function of the parameters.

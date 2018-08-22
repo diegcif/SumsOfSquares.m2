@@ -236,19 +236,14 @@ That this is the case can easily be checked with \verb|solveSOS (x^2+y^2+z^2)*f|
 SOS problems can also be solved parametrically.
 For this, assume now that $f(x;t)$ is a polynomial function, that depends affinely on some parameters~$t$.
 The command \verb|solveSOS| allows to search for values of the parameters such that the polynomial is a SOS.
-In the following example, there is a single free parameter~$t$.
+In the following example, we increase two terms of the Robinson polynomial so that it becomes SOS
+
 {\small
 \begin{verbatim}
-i7 : R = QQ[x][t];
-i8 : f = (t-1)*x^4+1/2*t*x+1;
-i9 : sol = solveSOS (f);
-Running M2 Solver
-Status: SDP solved, dual feasible
-i10 : sosPoly(sol)
-o10 = coeffs: {5/2, 7/4, 41/160}
-      gens: {x^2  - 7/20, x - 1/2, 1}
-i11 : sol#Parameters
-o11 = {7/2}
+i1 : R = QQ[x,y,z][s,t]
+i2 : g = library("Robinson", {x,y,z}) + s*x^6 + t*y^6
+i3 : (solveSOS g)#Parameters
+o3 = {34, 34}
 \end{verbatim}
 }
 
