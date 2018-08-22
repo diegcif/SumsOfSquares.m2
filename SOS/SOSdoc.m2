@@ -847,17 +847,20 @@ doc /// --checkSolver
     Headline
         tests an SDP solver
     Usage
-        checkSolver(solver) 
-        checkSolver(solver,fun) 
+        checkSolver(solver)
+        checkSolver(solver,fun)
     Inputs
         solver:String
           either "M2" or "CSDP" or "SDPA"
         fun:Function
-          (optional)
+          optional, one of "solveSDP", "solveSOS", "sosdecTernary", "sosInIdeal", or "lowerBound"
     Consequences
     Description
       Text
-        This method tests that a function works properly using a specified solver.
+        This method tests if various functions work properly using a specified solver.
+	The most basic invocation is using only the name of the solver.
+	This runs all tests with that solver and prints a summary.
+	At least for the solver CSDP all tests should pass.
       Code
       Pre
     SeeAlso
@@ -872,8 +875,8 @@ doc /// --nonnegativeForm
     Headline
         dictionary of interesting nonnegative forms
     Usage
-        nonnegativeForm(name,R) 
-        nonnegativeForm(name,var) 
+        nonnegativeForm(name,R)
+        nonnegativeForm(name,var)
     Inputs
         name:String
           either "Motzkin", "Robinson", "Schmuedgen", "Lax-Lax", "Choi-Lam", "Scheiderer", "Harris"
@@ -933,7 +936,7 @@ doc /// --createSOSModel
     Headline
         space of Gram matrices of a polynomial (for developers)
     Usage
-        (C,Ai,Bi,A,B,b) = createSOSModel(f,mon) 
+        (C,Ai,Bi,A,B,b) = createSOSModel(f,mon)
     Inputs
         f:RingElement
           a polynomial

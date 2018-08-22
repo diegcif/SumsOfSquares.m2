@@ -15,10 +15,6 @@ c) SOS/examples/*.out for all files with CSDP output
 
 TODO:
 
-2) Create bigger and more complicated tests for solveSOS 
-
-4) Doc of checkSolver
-
 7) solveSOS has no test in quotient rings and only one which is
 parametric
 
