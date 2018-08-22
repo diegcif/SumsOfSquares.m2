@@ -192,7 +192,9 @@ Therefore, this procedure terminates, and we can write $f$ as
     $p_{i},q_{i}$ SOS}.
 \]
 This method is implemented in the \SOS package as \verb|sosdecTernary|.  
-Here we apply it to the Motzkin polynomial.
+For instance, consider the Motzkin polynomial.
+The package contains a small library of interesting nonnegative forms available under \verb|nonnegativeForm|.
+We use it here.
 {\small
 \begin{verbatim}
 i2 : R = QQ[x,y,z]
@@ -237,9 +239,9 @@ That this is the case can easily be checked with \verb|solveSOS (x^2+y^2+z^2)*f|
 \section{SOS optimization}
 
 SOS problems can also be solved parametrically.
-For this, assume now that $f(x;p)$ is a polynomial function, that depends affinely on some parameters $p$.
+For this, assume now that $f(x;t)$ is a polynomial function, that depends affinely on some parameters~$t$.
 The command \verb|solveSOS| allows to search for values of the parameters such that the polynomial is a SOS.
-In the following example, the variable $t$ will be treated as a free parameter.
+In the following example, there is a single free parameter~$t$.
 {\small
 \begin{verbatim}
 i7 : R = QQ[x][t];
@@ -256,8 +258,9 @@ o11 = {7/2}
 }
 
 It is also possible find the values of the parameters that optimize a given linear function.
-This allows, in particular, to find lower bounds for a polynomial functions.
-The following example finds a lower bound for the dehomogenized Motzkin polynomial $f(x)=x^4{+}x^2{+}z^6{-}3 x^2 z^2$, by finding the largest value of $t$ such that $f(x)-t$ is SOS.
+This allows, in particular, to find lower bounds for a polynomial function $f(x)$,
+by finding the largest $t$ such that $f(x)-t$ is SOS.
+Here we apply this method to the dehomogenized Motzkin polynomial $f(x)=x^4{+}x^2{+}z^6{-}3 x^2 z^2$.
 {\small
 \begin{verbatim}
 i12 : R = QQ[x,z][t];
@@ -273,7 +276,7 @@ The function \verb|lowerBound| does this construction automatically.
 {\small
 \begin{verbatim}
 i1 : R = QQ[x,z];
-i2 : f = x^4+x^2+z^6-3*x^2*z^2;
+i2 : f = nonnegativeForm ("Motzkin", {x,1,z});
 i3 : (t,sol) = lowerBound (f, RoundTol=>12);
 Running M2 Solver
 Status: SDP solved, dual feasible
@@ -282,7 +285,7 @@ o16 = - 729/4096
 \end{verbatim}
 }
 
-Consider the problem
+For this ... consider the problem
 \begin{align*}
   \min_{x\in X} \quad f(x),
   \quad \text{ where }\quad
@@ -323,6 +326,8 @@ i16 : f - t + h*mult == sumSOS sosPoly sol
 o16 = true
 \end{verbatim}
 }
+\textbf{Mention recoverSolution here}.
+
 
 \section{Final remarks}
 
