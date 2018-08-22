@@ -61,6 +61,8 @@ export {
 --##########################################################################--
 
 makeGlobalPath = (fname) -> (
+    -- Turns a file name into a global path of the file
+    -- Used to find global file names of external solvers
     tmp := temporaryFileName();
     r := run( "which '" | fname | "' > " | tmp);
     if r>0 then(
@@ -89,7 +91,6 @@ StatusFailed = "Status: SDP failed"
 
 SOSPoly = new Type of HashTable
 
--- constructor for sos decomposition
 sosPoly = method()
 sosPoly (Ring, List, List) := SOS => (R, polys, coeffs) -> (
     new SOSPoly from {
@@ -208,7 +209,9 @@ net SDPResult := sol -> (
     return netList(str,HorizontalSpace=>1,Alignment=>Center)
     )
 
+-- Shortcut to extract keys from SDPResult:
 readSdpResult = sol -> (sol#Monomials, sol#GramMatrix, sol#MomentMatrix, sol#Parameters)
+
 
 --##########################################################################--
 -- METHODS
@@ -258,6 +261,8 @@ isExactField = kk -> (
     )
 
 linsolve = (A,b) -> (
+    -- This function becomes obsolete when solve
+    -- has a threshold for infeasibility.
     if isExactField A then return try solve(A,b);
     tol := 1e-12;
     x := solve(A,b,ClosestFit=>true);
@@ -281,6 +286,8 @@ truncatedSVD = (A,tol) -> (
     )
 
 kernelGens = A -> (
+    -- Kernel up to a precision.  Becomes obselete when M2 gives the
+    -- kernel of a numerical matrix.
     if isExactField A then return gens kernel A;
     tol := 1e-12;
     (S,U,Vt) := truncatedSVD(A,-tol);
@@ -289,6 +296,7 @@ kernelGens = A -> (
 
 zeros = (kk,m,n) -> map(kk^m,kk^n,{})
 
+-- Store a symmetric matrix in a vector, avoiding duplication
 smat2vec = method( Options => {Scaling => 1} )
 smat2vec(List) := o -> A -> (
     n := #A;
@@ -299,6 +307,7 @@ smat2vec(List) := o -> A -> (
     )
 smat2vec(Matrix) := o -> A -> matrix(ring A, apply(smat2vec(entries A,o), a->{a}))
 
+-- Reverse of the above
 vec2smat = method( Options => {Scaling => 1} )
 vec2smat(List) := o -> v -> (
     N := #v;
@@ -340,9 +349,12 @@ rawSolveSOS = method(
      Options => {RoundTol => 3, Solver=>null, Verbose => false, TraceObj => false} )
  
 rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
-    -- f is a polynomial to decompose
+    -- Consider a parametric problem f = f_0 + f_1 p_1 + ... + f_s p_s
+    -- This minimizes a function over the p_i
+    -- F is a column vector with the f_i
+    -- objP is a column vector specifying the objective function
     -- mon is a vector of monomials
-    -- objFcn is a linear objective function for the SDP solver
+    -- (see parameterVector)
 
     checkInputs := (mon) -> (
         if numColumns mon > 1 then error("Monomial vector should be a column.");
@@ -353,7 +365,7 @@ rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
     checkInputs(mon);
     kk := coefficientRing ring F;
          
-    -- build SOS model --     
+    -- build SOS model --
     (C,Ai,p0,V,A,B,b) := createSOSModel(F,mon,Verbose=>o.Verbose);
     if C===null then return sdpResult(mon,,,);
 
@@ -384,6 +396,7 @@ rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
     return sdpResult(changeMatrixField(RR,mon),Q,X,pvec0);
     )
 
+-- Choose monomials internally:
 rawSolveSOS(Matrix,Matrix) := o -> (F,objP) -> (
     mon := chooseMons (F,Verbose=>o.Verbose);
     if mon===null then return (,,,);
@@ -419,6 +432,7 @@ solveSOS(RingElement,RingElement,ZZ) := o -> (f,objFcn,D) -> (
 solveSOS(RingElement,ZZ) := o -> (f,D) -> 
     solveSOS(f,0_(ring f),D,o)
 
+-- The following methods are used to implement the transition from QQ to RR and vice versa.
 changeRingField = (kk,R) -> kk(monoid[gens R])
 
 changeMatrixField = (kk, M) -> (
@@ -494,6 +508,8 @@ roundSolution = {Verbose=>false} >> o -> (pvec0,Q,A,B,b,RoundTol) -> (
     return (ok,Qp,pVec);
     )
 
+-- Main method to setup an SOS problem as an SDP problem
+-- It is not exported, but there is (hidden) documentation for it.
 createSOSModel = method(
     Options => {Verbose => false} )
 createSOSModel(RingElement,Matrix) := o -> (f,v) -> (
@@ -582,6 +598,7 @@ parameterVector(RingElement,RingElement) := (f,objFcn) -> (
     )
 parameterVector(RingElement) := (f) -> first parameterVector(f,0_(ring f))
 
+-- Choose monomial basis based on Newton polytope
 chooseMons = method(
     Options => {Verbose => false} )
 chooseMons(RingElement) := o -> (f) -> (
@@ -702,7 +719,9 @@ roundPSDmatrix = {Verbose=>false} >> o -> (Q,A,b,d) -> (
      if Qpsd == 0 then (true, Q) else (false,Q)
      )
 
-PSDdecomposition = (A) -> (
+PSDdecomposition = A -> (
+    -- Factors a PSD matrix A = L D L^T
+    -- with D diagonal
     kk := ring A;
     if isExactField kk then
         return LDLdecomposition(A);
@@ -769,7 +788,7 @@ LDLdecomposition = (A) -> (
 )
 
 --###################################
--- SOS IDEAL
+-- SOS in IDEAL
 --###################################
 
 makeMultiples = (h, D, homog) -> (
@@ -975,6 +994,8 @@ solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
     )
 
 findNonZeroSolution = (C,A,b,o,y,Z,ntries) -> (
+    -- Heuristic to trick the solver into returning a nonzero solution of an SDP
+    -- by changing the objective.
     if y===null then return (y,Z);
     if not(C==0 and b==0 and y==0) then return (y,Z);
     print "Zero solution obtained. Trying again.";
@@ -1021,6 +1042,7 @@ toReal = (C,A,b) -> (
     return (C,A,b);
     )
 
+-- Solve very simple SDP with no constraints
 sdpNoConstraints = (C,A) -> (
     tol := 1e-10;
     if #A==0 then(
@@ -1037,7 +1059,7 @@ sdpNoConstraints = (C,A) -> (
     return (false,,,);
     )
 
--- check trivial cases
+-- check trivial cases and solve them directly
 trivialSDP = (C,A,b) -> (
     if #A==0 or b==0 then(
         lambda := min eigenvalues(C, Hermitian=>true);
@@ -1053,8 +1075,10 @@ trivialSDP = (C,A,b) -> (
     return (false,,,);
     )
 
---simpleSDP
 
+-- Implementation of SDP in Macaulay2
+-- Algorithm: Dual interior point method
+-- see Boyd, Vandenberghe "Convex Optimization" pp. 618-619, pp. 463-466
 simpleSDP = {Verbose => false} >> o -> (C,A,b) -> (
     print "Running M2 Solver";
     R := RR;
@@ -1081,6 +1105,8 @@ simpleSDP = {Verbose => false} >> o -> (C,A,b) -> (
     return (y,Z);
     )
 
+
+-- This second part solves given an interior starting point.
 simpleSDP2 = {Verbose => false} >> o -> (C,A,mb,y,UntilObjNegative) -> (
     R := RR;
     n := numgens target C;
@@ -1153,7 +1179,7 @@ backtrack = args -> (
      )
 
 
---solveCSDP
+-- The interface to CSDP:
 
 solveCSDP = method( Options => {Verbose => false} )
 solveCSDP(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
@@ -1203,6 +1229,7 @@ splitFileName = (fname) -> (
     return (dir,file);
     )
 
+-- SDPA file format is a shared input format of SDPA and CSDP
 writeSDPA = (fin,C,A,b) -> (
     digits := 16;
     m := length A;
@@ -1228,6 +1255,8 @@ writeSDPA = (fin,C,A,b) -> (
     f << close;
     )
 
+-- Writes parameter file for CSDP.
+-- All but one are also defaults
 writeCSDPparam = (fparam) -> (
     f := openOut fparam;
     f << "axtol=1.0e-8" << endl;
@@ -1244,11 +1273,12 @@ writeCSDPparam = (fparam) -> (
     f << "tweakgap=0" << endl;
     f << "affine=0" << endl;
     f << "printlevel=1" << endl;
-    f << "perturbobj=0" << endl;
+    f << "perturbobj=0" << endl; -- This one is changed from the default
     f << "fastmode=0" << endl;
     f << close;
     )
 
+-- read CSDP output
 readCSDP = (fout,fout2,n,Verbose) -> (
     sdpa2matrix := s -> (
         e := for i in s list (i_2-1,i_3-1) => i_4;
@@ -1286,6 +1316,7 @@ readCSDP = (fout,fout2,n,Verbose) -> (
     return (X,y,Z);
 )
 
+-- A heuristic to postprocess output of CSDP
 checkDualSol = (C,A,y,Z,Verbose) -> (
     if y===null then return;
     yA := sum for i to #A-1 list y_(i,0)*A_i;
@@ -1297,7 +1328,7 @@ checkDualSol = (C,A,y,Z,Verbose) -> (
     return y;
     )
 
---solveSDPA
+-- Interface to SDPA
 
 solveSDPA = method( Options => {Verbose => false} )
 solveSDPA(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
