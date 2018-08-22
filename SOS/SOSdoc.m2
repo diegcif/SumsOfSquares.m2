@@ -1,20 +1,20 @@
 
-document { 
+document {
     Key => SOS,
     Headline => "A package for sums-of-squares problems",
     TT "SOS", " is a package to solve sum-of-squares (SOS) problems. ",
     "The main tool behind this package is semidefinite programming (SDP). ",
     "See ", TO "Solver", " for a discussion of the required SDP solvers. ",
-    
+
     HEADER4 "Introduction",
     "Writing a polynomial as a sum-of-squares proves its nonnegativity for all arguments,
-    but not all nonnegative polynomials are sum-of-squares.  
+    but not all nonnegative polynomials are sum-of-squares.
     While nonnegativity of a polynomial is hard to check, there are efficient methods to find
     sums-of-squares decompositions and this package makes some of them available in Macaulay2.  
-    These methods rely on semi-definite-programming solvers from 
+    These methods rely on semi-definite-programming solvers from
     mathematical optimization.  While there is a built in solver in the package, 
     it is highly recommended to configure an external ", TO Solver, ".",
-    
+
     HEADER4 "Usage examples",
     "The most basic application is to (try to) decompose a polynomial as a sum-of-squares using the function ", TO "solveSOS",
     EXAMPLE lines ///
@@ -32,9 +32,9 @@ document {
     EXAMPLE lines ///
       sumSOS(s)
     ///,
-    
+
     HEADER4 "Sums of squares modulo equality constraints",
-    "The package supports ",  
+    "The package supports ",
     TO2 {"solveSOS(RingElement,Matrix)","SOS decompositions in quotient rings"},
     ". This can be useful to prove nonnegativity of a polynomial on a variety.  The following example is 
     taken from [P05].  Consider the problem
@@ -49,16 +49,16 @@ document {
         sosPoly sol
     ///,
     "See ", TO "TraceObj", " for how to reduce the number of summands to 2.",
-    
+
     HEADER4 "Other cool stuff",
     UL {
 	LI {"The package implements Hilbert's algorithm to decompose a nonnegative ternary form into a sum-of-squares of rational functions: ", TO "sosdecTernary"},
 	LI {"Sums of squares problems can be solved parametrically: ", TO "solveSOS"},
 	LI {"Optimization over varieties can run using ", TO "lowerBound"},
 	},
-    
-    HEADER4 "On the role of coefficients field",  
-    "The ", TT "SOS", " package interfaces tries to hide 
+
+    HEADER4 "On the role of coefficients field",
+    "The ", TT "SOS", " package interfaces tries to hide
     some of the difficulties that arise from using these numerical procedures. ", 
     "See ", TO "coefficients field", " for more information.",
 
@@ -81,7 +81,7 @@ doc /// --coefficients field
         Almost all operations in this package rely on a numerical SDP @TO Solver@.  
         When calling such a solver, even if the input was a polynomial with rational coefficients, the result is numerical.  
         The package makes some effort to round and return a rational result, but this can fail, independent of whether a rational SOS decomposition exists or not.
-        In this case of failure, a real result is returned. 
+        In this case of failure, a real result is returned.
         The following example of Scheiderer is SOS, but does not admit any rational SOS decomposition.  Consequently the package must return a real solution:,
       Example
         f = nonnegativeForm("Scheiderer", QQ[x,y,z])
@@ -124,8 +124,8 @@ doc /// --SOSPoly
         A polynomial $f\in K[x]$ is a sum-of-squares (SOS) if it can be written as
         $$f = \sum_i d_i g_i^2,$$
         where the $g_i$ are polynomials in $K[x]$ and the $d_i$ are weights in $K$.
-        This data type stores SOS polynomials in terms of the summands.  
-        The type is a hash table consisting of the polynomials to be 
+        This data type stores SOS polynomials in terms of the summands.
+        The type is a hash table consisting of the polynomials to be
         squared and summed (the 'generators'), corresponding coefficients,
         and the base ring.  The most common way an SOSPoly comes to life is
 	as the result of an SOS decomposition.  See @TO SDPResult@ for more on this.
@@ -221,10 +221,10 @@ doc /// --cleanSOS
     Consequences
     Description
       Text
-        Given an @TO SOSPoly@ with coefficients in the reals, 
-	this method removes terms with 
-	coefficients smaller than the given tolerance.  It does nothing 
-	on inputs with rational coefficients.
+        Given an @TO SOSPoly@ with coefficients in the reals,
+        this method removes terms with
+        coefficients smaller than the given tolerance.  It does nothing
+        on inputs with rational coefficients.
       Example
         R = RR[x,y];
         s = sosPoly(R, {x^2+.0001*x+1, y}, {2, .0001})
@@ -243,8 +243,8 @@ doc /// --sumSOS
     Headline
         expansion of a weighted SOS decomposition
     Usage
-        sumSOS(s) 
-        sumSOS(g,d) 
+        sumSOS(s)
+        sumSOS(g,d)
     Inputs
         s:SOSPoly
         g:List
@@ -266,7 +266,7 @@ doc /// --sumSOS
 	sumSOS( {x+1,y}, {2,3}  )
         s = sosPoly(R, {x+1,y}, {2,3} )
         sumSOS( s )
-      Code    
+      Code
       Pre
     SeeAlso
         (sosPoly,Matrix,Matrix)
@@ -282,9 +282,9 @@ doc /// --sosPoly
     Headline
         make an SOS polynomial
     Usage
-        s = sosPoly (SDPR) 
-        s = sosPoly (mon,Q) 
-        s = sosPoly (R,polys,coeffs) 
+        s = sosPoly (SDPR)
+        s = sosPoly (mon,Q)
+        s = sosPoly (R,polys,coeffs)
     Inputs
         SDPR:SDPResult
           the result of an SDP computation
@@ -333,8 +333,8 @@ doc /// --solveSOS
     Headline
         solve a sum-of-squares problem
     Usage
-        solveSOS(f) 
-        solveSOS(f,objFun) 
+        solveSOS(f)
+        solveSOS(f,objFun)
     Inputs
         f:RingElement
           a polynomial
@@ -348,7 +348,7 @@ doc /// --solveSOS
         This method solves SOS problems.
         Given a rational (or real) polynomial $f(x)$, it attempts to find a rational (or real) 
 	positive semidefinite matrix $Q$ and a vector of monomials $mon$ such that
-        $$f(x) = mon' Q mon.$$ 
+        $$f(x) = mon' Q mon.$$
         The algorithm first computes a floating point solution,
         and then tries to obtain an exact solution by rounding the numerical result. 
         If the rounding fails, the numerical solution is returned.
@@ -369,7 +369,7 @@ doc /// --solveSOS
         sol = solveSOS (f);
         sosPoly(sol)
         sol#Parameters
-      Text 
+      Text
         {\bf SOS with parameter optimization:}
         The method also allows to optimize a linear function of the parameters.
         More precisely, given a polynomial $f(x;p)$ that depends affinely on some parameters $p$, we can solve the problem
@@ -403,10 +403,10 @@ doc /// --solveSOS (quotient ring)
     Headline
         sum-of-squares problem in a quotient ring
     Usage
-        solveSOS(f,mon) 
-        solveSOS(f,objFun,mon) 
-        solveSOS(f,D) 
-        solveSOS(f,objFun,D) 
+        solveSOS(f,mon)
+        solveSOS(f,objFun,mon)
+        solveSOS(f,D)
+        solveSOS(f,objFun,D)
     Inputs
         f:RingElement
           a polynomial
@@ -435,12 +435,12 @@ doc /// --solveSOS (quotient ring)
       Example
         S = R[t];
         solveSOS(f-t,-t,mon,RoundTol=>12)
-      Text 
+      Text
         {\bf Caveat}
       Text
         If an SOS decomposition is undertaken in the quotient ring with rational coefficients
-	it can happen that rounding fails.  In this case, an @TO SOSPoly@ constructed from the 
-	@TO SDPResult@ can live in a newly created ring, instead of the quotient that one started with.
+        it can happen that rounding fails.  In this case, an @TO SOSPoly@ constructed from the 
+        @TO SDPResult@ can live in a newly created ring, instead of the quotient that one started with.
       Example
         R = QQ[x,y]/ideal(x^2 + y^2 - 1);
         f = 10-x^2-y;
@@ -449,9 +449,9 @@ doc /// --solveSOS (quotient ring)
         ring sosPoly s
       Text
         In this case, one option is to construct a new quotient ring and work there.
-	However, this will only work somewhat reliably in the case of a quotient
-	modulo a principal ideal, as otherwise the Gröbner basis engine might
-	fail on inexact computations.
+        However, this will only work somewhat reliably in the case of a quotient
+        modulo a principal ideal, as otherwise the Gröbner basis engine might
+        fail on inexact computations.
       Example
         R' = ring sosPoly s;
         S = R'/(sub (ideal (x^2 + y^2 - 1), R'))
@@ -468,7 +468,7 @@ doc /// --roundPSDmatrix
     Headline
         rational rounding of a PSD matrix
     Usage
-        (Qp,ispsd) = roundPSDmatrix(Q,A,b,d) 
+        (Qp,ispsd) = roundPSDmatrix(Q,A,b,d)
     Inputs
         Q:Matrix
           a symmetric matrix (real)
@@ -510,8 +510,8 @@ doc /// --smat2vec
     Headline
         vectorization of a symmetric matrix
     Usage
-        v = smat2vec A 
-        A = vec2smat v 
+        v = smat2vec A
+        A = vec2smat v
     Inputs
         A:Matrix
           symmetric
@@ -544,7 +544,7 @@ doc /// --LDLdecomposition
     Headline
         LDL factorization of a positive semidefinite matrix
     Usage
-        (L,D,P,err) = LDLdecomposition A 
+        (L,D,P,err) = LDLdecomposition A
     Inputs
         A:Matrix
     Outputs
@@ -583,8 +583,8 @@ doc /// --solveSDP
     Headline
         solve a semidefinite program
     Usage
-        (X,y,Q) = solveSDP(C,A,b) 
-        (X,y,Q) = solveSDP(C,A,b,y0) 
+        (X,y,Q) = solveSDP(C,A,b)
+        (X,y,Q) = solveSDP(C,A,b,y0)
     Inputs
         C:Matrix
           a symmetric $n\times n$ matrix
@@ -612,7 +612,7 @@ doc /// --solveSDP
         $$max_{y,Q} \, \sum_i b_i y_i \,\,\, s.t. \,\,\, Q = C - \sum_i y_i A_i \, and \, Q \geq 0$$
 
         The default algorithm is a dual interior point method implemented in M2. 
-        A strictly feasible initial point $y_0$ may be provided by the user. 
+        A strictly feasible initial point $y_0$ may be provided by the user.
         Alternatively, there is an interface to the @TO2 {[solveSDP,Solver],"solvers"}@ CSDP and SDPA.
       Example
         C = matrix {{1,0},{0,2}};
@@ -683,8 +683,8 @@ doc /// --sosInIdeal
     Headline
         Sum of squares polynomial in ideal
     Usage
-        (sol,mult) = sosInIdeal(h,D,Solver=>"CSDP") 
-        sol = sosInIdeal(R,D,Solver=>"CSDP") 
+        (sol,mult) = sosInIdeal(h,D,Solver=>"CSDP")
+        sol = sosInIdeal(R,D,Solver=>"CSDP")
     Inputs
         h:Matrix
           row vector with polynomial entries
@@ -699,7 +699,7 @@ doc /// --sosInIdeal
     Consequences
     Description
       Text
-    	This methods finds sum-of-squares in ideals.
+        This methods finds sum-of-squares in ideals.
         It accepts two types of inputs that are useful for different purposes.
         The first invocation is to give a one row matrix with polynomial entries and a degree bound.
         The method then tries to find an SOS polynomial in the generated ideal.
@@ -731,9 +731,9 @@ doc /// --lowerBound
     Headline
         finds a lower bound for a polynomial
     Usage
-        (bound,sol) = lowerBound(f) 
-        (bound,sol) = lowerBound(f,D) 
-        (bound,sol,mult) = lowerBound(f,h,D) 
+        (bound,sol) = lowerBound(f)
+        (bound,sol) = lowerBound(f,D)
+        (bound,sol,mult) = lowerBound(f,h,D)
     Inputs
         f:RingElement
           a polynomial or a rational function
@@ -980,7 +980,7 @@ doc /// --chooseMons
     Headline
         create list of monomials based on the Newton polytope
     Usage
-        lmsos = chooseMons(f) 
+        lmsos = chooseMons(f)
     Inputs
         f:RingElement
           a polynomial
@@ -1003,7 +1003,7 @@ doc /// --project2linspace
     Headline
         project a rational point onto affine subspace
     Usage
-        xp = project2linspace(A,b,x0) 
+        xp = project2linspace(A,b,x0)
     Inputs
         A:Matrix
         b:Matrix
@@ -1039,7 +1039,7 @@ doc /// -- RoundTol
     Description
       Text
         The optional argument {\tt RoundTol} specifies the minimal rounding precision in $d$ binary digits.
-        
+
         SOS problems are solved numerically using an SDP solver, and afterwards the package attempts to round the floating point solution to rational numbers.
         The rounding strategy is guaranteed to work whenever the space of Gram matrices is full dimensional.
         For SOS optimization problems the rounding may cause a loss in optimality.
@@ -1068,13 +1068,13 @@ doc /// -- RoundTol
 
 doc /// -- Verbose
      Key
-     	[solveSDP,Verbose]
+        [solveSDP,Verbose]
         [sosdecTernary,Verbose]
         [roundPSDmatrix,Verbose]
         [solveSOS,Verbose]
         [sosInIdeal,Verbose]
         [lowerBound,Verbose]
-     Headline 
+     Headline
         non-essential but informative output
      Description
         Text
@@ -1147,4 +1147,3 @@ doc /// --TraceObj
       Pre
     SeeAlso
 ///
-
