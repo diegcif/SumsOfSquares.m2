@@ -1409,7 +1409,8 @@ checkSolver(String,String) := (solver,fun) -> (
         print "################################";
         print("checking method "|f);
         print "################################";
-        t := checkMethod#f(solver);
+        t := checkMethod#f(solver,i->true);
+        informAboutTests t;
         {f, testsString t}
         );
     print "################################";
@@ -1425,78 +1426,82 @@ informAboutTests = t -> (
     print("Test Results: " | testsString t);
     )
 
+-- In the following methods the argument applyTest 
+-- allows to specify which tests should be performed
+
 --checkSolveSDP
-checkSolveSDP = solver -> (
+checkSolveSDP = (solver,applyTest) -> (
     tol := .001;
     equal := (y0,y) -> y=!=null and norm(y0-y)<tol*(1+norm(y0));
     checkZ := (C,A,y,Z) -> if y===null then false
         else ( yA := sum for i to #A-1 list y_(i,0)*A_i; norm(Z-C+yA)<1e-5 );
     local C; local b; local A; local A1; local A2; local A3; 
     local y0; local y; local X; local Z; local yopt;
-    ---------------TEST0---------------
-    C = matrix{{0,2,0,0,0,0},{2,0,0,0,0,0},
-     {0,0,10,0,0,0},{0,0,0,10,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0}};
-    A1 = matrix{{-1,0,0,0,0,0},{0,0,0,0,0,0},
-     {0,0,1,0,0,0},{0,0,0,0,0,0},{0,0,0,0,-1,0},{0,0,0,0,0,0}};
-    A2 = matrix{{0,0,0,0,0,0},{0,-1,0,0,0,0},
-     {0,0,0,0,0,0},{0,0,0,1,0,0},{0,0,0,0,0,0},{0,0,0,0,0,-1}};
-    A = (A1,A2);
-    y0 = matrix{{7},{9}};
-    b = matrix{{-1},{-1}};
-    (X,y,Z) = solveSDP(C,A,b,y0,Solver=>solver);
-    yopt = matrix{{2.},{2.}};
-    t0 := equal(yopt,y);
-    ---------------TEST1---------------
-    C = matrix {{2,1,-1},{1,0,0},{-1,0,5}};
-    A1 = matrix {{0,0,1/2},{0,-1,0},{1/2,0,0}};
-    A2 = matrix {{1,0,0},{0,1,0},{0,0,1}};
-    A = (A1,A2);
-    b = matrix {{0},{1}};
-    y0 = matrix {{0},{-.486952}};
-    (X,y,Z) = solveSDP(C,A,b,y0,Solver=>solver);
-    yopt = matrix{{1.97619},{.466049}};
-    t1 := equal(yopt,y);
-    ---------------TEST2---------------
-    C = matrix{{2,2,-1,3},{2,0,0,2},{-1,0,1,0},{3,2,0,1}};
-    A1 = matrix{{-1,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}};
-    A2 = matrix{{0,0,0,1/2},{0,-1,0,0},{0,0,0,0},{1/2,0,0,0}};
-    A = (A1,A2);
-    b = matrix{{-1},{0}};
-    (X,y,Z) = solveSDP(C,A,b,Solver=>solver);
-    yopt = matrix{{0.},{4.}};
-    t2 := equal(yopt,y); 
-    ---------------TEST3---------------
-    -- solution not strictly feasible
-    C = matrix {{2,2,-1,3},{2,0,0,2},{-1,0,1,0},{3,2,0,1}};
-    A1 = matrix {{0,0,0,1/2},{0,-1,0,0},{0,0,0,0},{1/2,0,0,0}};
-    A = sequence A1;
-    b = matrix {{-1}};
-    (X,y,Z) = solveSDP(C,A,b,Solver=>solver);
-    yopt = 4.;
-    t3 := equal(yopt,y);
-    ---------------TEST4---------------
-    -- zero objective function
-    C = matrix(RR, {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
-    A1 = matrix(RR, {{1, 3/2, 3/2}, {3/2, 0, 1/2}, {3/2, 1/2, 0}});
-    A2 = matrix(RR, {{0, 1/2, 3/2}, {1/2, 0, 3/2}, {3/2, 3/2, 1}});
-    A3 = matrix(RR, {{0, 0, 1/2}, {0, -1, 0}, {1/2, 0, 0}});
-    A = (A1,A2,A3);
-    b = matrix(RR, {{0}, {0}, {0}});
-    (X,y,Z) = solveSDP(C, A, b, Solver=>solver);
-    t4 := checkZ(C,A,y,Z);
-    -----------------------------------
-    test := {t0,t1,t2,t3,t4};
-    informAboutTests test;
-    -- trivial cases
-    (X,y,Z) = solveSDP (matrix{{1,0},{0,-1}},(),zeros(QQ,0,1),Solver=>solver);
-    assert(y===null and X===null);
-    (X,y,Z) = solveSDP (matrix{{1,0},{0,1}},(),zeros(QQ,0,1),Solver=>solver);
-    assert(y==0);
-    return test;
+
+    t0:= if applyTest(0) then(
+        C = matrix{{0,2,0,0,0,0},{2,0,0,0,0,0},
+         {0,0,10,0,0,0},{0,0,0,10,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0}};
+        A1 = matrix{{-1,0,0,0,0,0},{0,0,0,0,0,0},
+         {0,0,1,0,0,0},{0,0,0,0,0,0},{0,0,0,0,-1,0},{0,0,0,0,0,0}};
+        A2 = matrix{{0,0,0,0,0,0},{0,-1,0,0,0,0},
+         {0,0,0,0,0,0},{0,0,0,1,0,0},{0,0,0,0,0,0},{0,0,0,0,0,-1}};
+        A = (A1,A2);
+        y0 = matrix{{7},{9}};
+        b = matrix{{-1},{-1}};
+        (X,y,Z) = solveSDP(C,A,b,y0,Solver=>solver);
+        yopt = matrix{{2.},{2.}};
+        equal(yopt,y)
+        );
+
+    t1:= if applyTest(1) then(
+        C = matrix {{2,1,-1},{1,0,0},{-1,0,5}};
+        A1 = matrix {{0,0,1/2},{0,-1,0},{1/2,0,0}};
+        A2 = matrix {{1,0,0},{0,1,0},{0,0,1}};
+        A = (A1,A2);
+        b = matrix {{0},{1}};
+        y0 = matrix {{0},{-.486952}};
+        (X,y,Z) = solveSDP(C,A,b,y0,Solver=>solver);
+        yopt = matrix{{1.97619},{.466049}};
+        equal(yopt,y)
+        );
+
+    t2:= if applyTest(2) then(
+        C = matrix{{2,2,-1,3},{2,0,0,2},{-1,0,1,0},{3,2,0,1}};
+        A1 = matrix{{-1,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}};
+        A2 = matrix{{0,0,0,1/2},{0,-1,0,0},{0,0,0,0},{1/2,0,0,0}};
+        A = (A1,A2);
+        b = matrix{{-1},{0}};
+        (X,y,Z) = solveSDP(C,A,b,Solver=>solver);
+        yopt = matrix{{0.},{4.}};
+        equal(yopt,y)
+        );
+
+    t3:= if applyTest(3) then( -- not strictly feasible
+        C = matrix {{2,2,-1,3},{2,0,0,2},{-1,0,1,0},{3,2,0,1}};
+        A1 = matrix {{0,0,0,1/2},{0,-1,0,0},{0,0,0,0},{1/2,0,0,0}};
+        A = sequence A1;
+        b = matrix {{-1}};
+        (X,y,Z) = solveSDP(C,A,b,Solver=>solver);
+        yopt = 4.;
+        equal(yopt,y)
+        );
+
+    t4:= if applyTest(4) then( -- zero objective
+        C = matrix(RR, {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
+        A1 = matrix(RR, {{1, 3/2, 3/2}, {3/2, 0, 1/2}, {3/2, 1/2, 0}});
+        A2 = matrix(RR, {{0, 1/2, 3/2}, {1/2, 0, 3/2}, {3/2, 3/2, 1}});
+        A3 = matrix(RR, {{0, 0, 1/2}, {0, -1, 0}, {1/2, 0, 0}});
+        A = (A1,A2,A3);
+        b = matrix(RR, {{0}, {0}, {0}});
+        (X,y,Z) = solveSDP(C, A, b, Solver=>solver);
+        checkZ(C,A,y,Z)
+        );
+
+    return {t0,t1,t2,t3,t4};
     )
 
 --checkSolveSOS
-checkSolveSOS = solver -> (
+checkSolveSOS = (solver,applyTest) -> (
     local x; x= symbol x;
     local y; y= symbol y;
     local z; z= symbol z;
@@ -1514,63 +1519,71 @@ checkSolveSOS = solver -> (
         );
     isGramParam := (f,mon,Q,tval) ->
         if tval===null then false else isGram(sub(f,t=>tval#0),mon,Q);
+
     ---------------GOOD CASES1---------------
-    -- Test 0
-    R := QQ[x,y];
-    f := 4*x^4+y^4;
-    (mon,Q,X,tval) := readSdpResult solveSOS(f,Solver=>solver);
-    t0 := isGram(f,mon,Q);
+    t0:= if applyTest(0) then(
+        R := QQ[x,y];
+        f := 4*x^4+y^4;
+        (mon,Q,X,tval) := readSdpResult solveSOS(f,Solver=>solver);
+        isGram(f,mon,Q)
+        );
 
-    -- Test 1
-    f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
-    (mon,Q,X,tval) = readSdpResult solveSOS(f,Solver=>solver);
-    t1 := isGram(f,mon,Q);
+    t1:= if applyTest(1) then(
+        f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
+        (mon,Q,X,tval) = readSdpResult solveSOS(f,Solver=>solver);
+        isGram(f,mon,Q)
+        );
 
-    -- Test 2
-    R = QQ[x,y,z];
-    f = x^4+y^4+z^4-4*x*y*z+x+y+z+3;
-    (mon,Q,X,tval) = readSdpResult solveSOS(f,Solver=>solver);
-    t2 := isGram(f,mon,Q);
+    t2:= if applyTest(2) then(
+        R = QQ[x,y,z];
+        f = x^4+y^4+z^4-4*x*y*z+x+y+z+3;
+        (mon,Q,X,tval) = readSdpResult solveSOS(f,Solver=>solver);
+        isGram(f,mon,Q)
+        );
     
-    -- Test 3
-    R = QQ[x,y,z,w];
-    f = 2*x^4 + x^2*y^2 + y^4 - 4*x^2*z - 4*x*y*z - 2*y^2*w + y^2 - 2*y*z + 8*z^2 - 2*z*w + 2*w^2;
-    (mon,Q,X,tval) = readSdpResult solveSOS(f,Solver=>solver);
-    t3 := isGram(f,mon,Q);
+    t3:= if applyTest(3) then(
+        R = QQ[x,y,z,w];
+        f = 2*x^4 + x^2*y^2 + y^4 - 4*x^2*z - 4*x*y*z - 2*y^2*w + y^2 - 2*y*z + 8*z^2 - 2*z*w + 2*w^2;
+        (mon,Q,X,tval) = readSdpResult solveSOS(f,Solver=>solver);
+        isGram(f,mon,Q)
+        );
 
     ---------------PARAMETRIC1---------------
-    -- Test 4 (parametric)
-    R = QQ[x][t];
-    f = (t-1)*x^4+1/2*t*x+1;
-    (mon,Q,X,tval) = readSdpResult solveSOS (f,Solver=>solver);
-    t4 := isGramParam(f,mon,Q,tval);
+    t4:= if applyTest(4) then(
+        R = QQ[x][t];
+        f = (t-1)*x^4+1/2*t*x+1;
+        (mon,Q,X,tval) = readSdpResult solveSOS (f,Solver=>solver);
+        isGramParam(f,mon,Q,tval)
+        );
 
     ---------------QUOTIENT1---------------
-    -- Test 5
-    R = QQ[x,y];
-    S := R/ideal(x^2 + y^2 - 1);
-    f = sub(10-x^2-y,S);
-    (mon,Q,X,tval) = readSdpResult solveSOS (f, 2, TraceObj=>true);
-    t5 := isGram(f,mon,Q) and rank Q == 2;
+    t5:= if applyTest(5) then(
+        R = QQ[x,y];
+        S := R/ideal(x^2 + y^2 - 1);
+        f = sub(10-x^2-y,S);
+        (mon,Q,X,tval) = readSdpResult solveSOS (f, 2, TraceObj=>true);
+        isGram(f,mon,Q) and rank Q == 2
+        );
 
     ---------------BAD CASES1---------------
-    -- Test 6
-    R = QQ[x,y][t];
-    f = x^4*y^2 + x^2*y^4 - 3*x^2*y^2 + 1; --Motzkin
-    (mon,Q,X,tval) = readSdpResult solveSOS(f,Solver=>solver); 
-    t6 := ( Q === null );
+    t6:= if applyTest(6) then(
+        R = QQ[x,y][t];
+        f = x^4*y^2 + x^2*y^4 - 3*x^2*y^2 + 1; --Motzkin
+        (mon,Q,X,tval) = readSdpResult solveSOS(f,Solver=>solver); 
+        ( Q === null )
+        );
 
-    -- Test 7
-    (mon,Q,X,tval) = readSdpResult solveSOS(f-t,-t, Solver=>solver); 
-    t7 := ( Q === null );
+    t7:= if applyTest(7) then(
+        (mon,Q,X,tval) = readSdpResult solveSOS(f-t,-t, Solver=>solver); 
+        ( Q === null )
+        );
 
     results := {t0,t1,t2,t3,t4,t5,t6,t7};
-    informAboutTests (results);
-    return results
+    return results;
     )
 
 -- check sosdecTernary
-checkSosdecTernary = solver -> (
+checkSosdecTernary = (solver,applyTest) -> (
     local x; x= symbol x;
     local y; y= symbol y;
     local z; z= symbol z;
@@ -1582,32 +1595,33 @@ checkSosdecTernary = solver -> (
         return norm(d) < 1e-4;
         );
 
-    -- Test 0
-    R:= QQ[x,y,z];
-    f := x^2 + y^2 +z^2;
-    (p,q) := sosdecTernary (f, Solver=>solver);
-    t0 := cmp(f,p,q);
+    t0:= if applyTest(0) then(
+        R:= QQ[x,y,z];
+        f := x^6 + y^6 +z^6;
+        (p,q) := sosdecTernary (f, Solver=>solver);
+        cmp(f,p,q)
+        );
 
-    -- Test 1
-    R = QQ[x,y,z];
-    f = x^4*y^2 + x^2*y^4 + z^6 - 4*x^2 *y^2 * z^2;
-    (p,q) = sosdecTernary (f, Solver=>solver);
-    t1 := (p===null);
+    t1:= if applyTest(1) then(
+        R = QQ[x,y,z];
+        f = x^4*y^2 + x^2*y^4 + z^6 - 4*x^2 *y^2 * z^2;
+        (p,q) = sosdecTernary (f, Solver=>solver);
+        (p===null)
+        );
 
-    -- Test 2
-    R = RR[x,y,z];
-    f = x^4*y^2 + x^2*y^4 + z^6 - 3*x^2 *y^2 * z^2; --Motzkin
-    (p,q) = sosdecTernary (f, Solver=>solver);
-    t2 := cmp(f,p,q);
+    t2:= if applyTest(2) then(
+        R = RR[x,y,z];
+        f = x^4*y^2 + x^2*y^4 + z^6 - 3*x^2 *y^2 * z^2; --Motzkin
+        (p,q) = sosdecTernary (f, Solver=>solver);
+        cmp(f,p,q)
+        );
 
-    results := {t0,t1,t2};
-    informAboutTests (results);
-    return results
+    return {t0,t1,t2};
     )
 
 
 -- check sosInIdeal
-checkSosInIdeal = solver -> (
+checkSosInIdeal = (solver,applyTest) -> (
     local x; x= symbol x;
     local y; y= symbol y;
     local z; z= symbol z;
@@ -1620,48 +1634,51 @@ checkSosInIdeal = solver -> (
         return norm(d)<1e-4;
         );
 
-    -- Test 0
-    R:= QQ[x];
-    h:= matrix {{x+1}};
-    (sol,mult) = sosInIdeal (h,2, Solver=>solver);
-    s = sosPoly sol;
-    t0 := cmp(h,s,mult);
+    t0:= if applyTest(0) then(
+        R:= QQ[x];
+        h:= matrix {{x+1}};
+        (sol,mult) = sosInIdeal (h,2, Solver=>solver);
+        s = sosPoly sol;
+        cmp(h,s,mult)
+        );
     
-    -- Test 1 (similar to test 0)
-    R= RR[x];
-    h= matrix {{x+1}};
-    (sol,mult) = sosInIdeal (h,4, Solver=>solver);
-    s = sosPoly sol;
-    t1 := cmp(h,s,mult);
+    t1:= if applyTest(1) then( --similar to test0
+        R= RR[x];
+        h= matrix {{x+1}};
+        (sol,mult) = sosInIdeal (h,4, Solver=>solver);
+        s = sosPoly sol;
+        cmp(h,s,mult)
+        );
 
-    -- Test 2:
-    R = RR[x,y,z];
-    h = matrix {{x-y, x+z}};
-    (sol,mult) = sosInIdeal (h,2, Solver=>solver);
-    s = sosPoly sol;
-    t2 := cmp(h,s,mult);
+    t2:= if applyTest(2) then(
+        R = RR[x,y,z];
+        h = matrix {{x-y, x+z}};
+        (sol,mult) = sosInIdeal (h,2, Solver=>solver);
+        s = sosPoly sol;
+        cmp(h,s,mult)
+        );
 
-    -- Test 3: (similar to test 2)
-    R = RR[x,y,z];
-    h = matrix {{x-y, x+z}};
-    (sol,mult) = sosInIdeal (h,6, Solver=>solver);
-    s = sosPoly sol;
-    t3 := cmp(h,s,mult);
+    t3:= if applyTest(3) then( --similar to test 2
+        R = RR[x,y,z];
+        h = matrix {{x-y, x+z}};
+        (sol,mult) = sosInIdeal (h,6, Solver=>solver);
+        s = sosPoly sol;
+        cmp(h,s,mult)
+        );
 
     -----------------QUOTIENT1-----------------
-    -- Test 4:
-    R = QQ[x,y,z]/ideal {x^2+y^2+y, y-z^2};
-    s = sosPoly sosInIdeal (R,2,Solver=>solver);
-    t4 := s=!=null and sumSOS s==0;
+    t4:= if applyTest(4) then(
+        R = QQ[x,y,z]/ideal {x^2+y^2+y, y-z^2};
+        s = sosPoly sosInIdeal (R,2,Solver=>solver);
+        s=!=null and sumSOS s==0
+        );
     
-    results := {t0,t1,t2,t3,t4};
-    informAboutTests (results);
-    return results
+    return {t0,t1,t2,t3,t4};
     )
 
 
 -- check lowerBound
-checkLowerBound = solver -> (
+checkLowerBound = (solver,applyTest) -> (
     tol := 0.001;
     local x; x= symbol x;
     local y; y= symbol y;
@@ -1680,61 +1697,66 @@ checkLowerBound = solver -> (
         );
 
     --------------UNCONSTRAINED1--------------
-    --- Test 0
-    R := QQ[x];
-    f := (x-1)^2 + (x+3)^2;
-    (bound,sol) := lowerBound(f, Solver=>solver);
-    t0 := equal(bound,8);
+    t0:= if applyTest(0) then(
+        R := QQ[x];
+        f := (x-1)^2 + (x+3)^2;
+        (bound,sol) := lowerBound(f, Solver=>solver);
+        equal(bound,8)
+        );
 
-    -- Test 1
-    R = RR[x,y];
-    f = (x-pi*y)^2 + x^2 + (y-4)^2;
-    (bound,sol) = lowerBound(f, Solver=>solver);
-    t1 := equal(bound,16*pi^2/(2+pi^2));
+    t1:= if applyTest(1) then(
+        R = RR[x,y];
+        f = (x-pi*y)^2 + x^2 + (y-4)^2;
+        (bound,sol) = lowerBound(f, Solver=>solver);
+        equal(bound,16*pi^2/(2+pi^2))
+        );
 
-    -- Test 2
-    R = QQ[x,z];
-    f = x^4+x^2+z^6-3*x^2*z^2;
-    (bound,sol) = lowerBound (f,Solver=>solver,RoundTol=>infinity);
-    t2 := equal(bound,-.17798);
+    t2:= if applyTest(2) then(
+        R = QQ[x,z];
+        f = x^4+x^2+z^6-3*x^2*z^2;
+        (bound,sol) = lowerBound (f,Solver=>solver,RoundTol=>infinity);
+        equal(bound,-.17798)
+        );
 
-    -- Test 3 (rational function)
-    R = QQ[x];
-    f = (x^2-x)/(x^2+1);
-    (bound,sol) = lowerBound(f, Solver=>solver, RoundTol=>infinity);
-    t3 := equal(bound,1/2-1/sqrt(2));
+    t3:= if applyTest(3) then( --rational function
+        R = QQ[x];
+        f = (x^2-x)/(x^2+1);
+        (bound,sol) = lowerBound(f, Solver=>solver, RoundTol=>infinity);
+        equal(bound,1/2-1/sqrt(2))
+        );
 
     ---------------CONSTRAINED1---------------
-    --- Test 4
-    R = RR[x,y];
-    f = y;
-    h := matrix {{y-pi*x^2}};
-    (bound,sol,mult) = lowerBound (f, h, 4, Solver=>solver);
-    (mon,Q,X,tval) := readSdpResult sol;
-    t4 := equal(bound,0) and cmp(f,h,bound,mon,Q,mult);
+    t4:= if applyTest(4) then(
+        R = RR[x,y];
+        f = y;
+        h := matrix {{y-pi*x^2}};
+        (bound,sol,mult) = lowerBound (f, h, 4, Solver=>solver);
+        (mon,Q,X,tval) := readSdpResult sol;
+        equal(bound,0) and cmp(f,h,bound,mon,Q,mult)
+        );
 
-    -- Test 5
-    R = QQ[x,y,z];
-    f = z;
-    h = matrix {{x^2 + y^2 + z^2 - 1}};
-    (bound,sol,mult) = lowerBound (f, h, 4, Solver=>solver);
-    (mon,Q,X,tval) = readSdpResult sol;
-    t5 := equal(bound,-1) and cmp(f,h,bound,mon,Q,mult);
+    t5:= if applyTest(5) then(
+        R = QQ[x,y,z];
+        f = z;
+        h = matrix {{x^2 + y^2 + z^2 - 1}};
+        (bound,sol,mult) = lowerBound (f, h, 4, Solver=>solver);
+        (mon,Q,X,tval) = readSdpResult sol;
+        equal(bound,-1) and cmp(f,h,bound,mon,Q,mult)
+        );
 
     -----------------QUOTIENT1-----------------
-    -- Test 6
-    R = QQ[x,y];
-    I := ideal (x^2 - x);
-    S := R/I;
-    f = sub(x-y,S);
-    h = matrix {{sub(y^2 - y,S)}};
-    (bound,sol,mult) = lowerBound(f, h, 2, Solver=>solver);
-    (mon,Q,X,tval) = readSdpResult sol;
-    t6 := equal(bound,-1) and cmp(f,h,bound,mon,Q,mult);
+    t6:= if applyTest(6) then(
+        R = QQ[x,y];
+        I := ideal (x^2 - x);
+        S := R/I;
+        f = sub(x-y,S);
+        h = matrix {{sub(y^2 - y,S)}};
+        (bound,sol,mult) = lowerBound(f, h, 2, Solver=>solver);
+        (mon,Q,X,tval) = readSdpResult sol;
+        equal(bound,-1) and cmp(f,h,bound,mon,Q,mult)
+        );
     
-    results := {t0,t1,t2,t3,t4,t5,t6};
-    informAboutTests (results);
-    return results
+    return {t0,t1,t2,t3,t4,t5,t6};
     )
 
 --##########################################################################--
@@ -1745,6 +1767,7 @@ beginDocumentation()
 
 load "./SOS/SOSdoc.m2"
 
+--0
 TEST /// --sosPoly and sumSOS
     R = QQ[x,y,z]
     coeff1={3,1,1,1/4,1}
@@ -1756,6 +1779,7 @@ TEST /// --sosPoly and sumSOS
     assert(sumSOS(p1)===p2)
 ///
 
+--1
 TEST /// --SOSmult
     R = QQ[x,y,z,w]
     p1=sosPoly(R,{x^2-x*y,y^2+1,x},{1,2,3})
@@ -1771,6 +1795,7 @@ TEST /// --SOSmult
     assert( equal(sumSOS(p1^4),sumSOS(p1)^4) )
 ///
 
+--2
 TEST /// --cleanSOS
     R = RR[x,y];
     s = sosPoly(R, {x^2+.0001*x+1,y}, {2,.0001})
@@ -1784,6 +1809,7 @@ TEST /// --cleanSOS
     assert (t == s)
 ///
 
+--3
 TEST ///--substitute SOSPoly
     R = QQ[x,y];
     s = sosPoly(R, {x+1,y}, {2,3})
@@ -1793,6 +1819,7 @@ TEST ///--substitute SOSPoly
     assert (t1 == t2)
 ///
 
+--4
 TEST ///--toRing
     debug needsPackage "SOS"
     R = QQ[x,y];
@@ -1813,6 +1840,7 @@ TEST ///--toRing
     assert (norm (toRing_S g - f) < tol)
 ///
 
+--5
 TEST /// --sosdec
     R=QQ[x,y,z]
     Q=matrix{{1,-1/2,1},{-1/2,1,-1/2},{1,-1/2,1}}
@@ -1822,6 +1850,7 @@ TEST /// --sosdec
     assert(f=!=null and sumSOS f==transpose mon * Q *mon)
 ///
 
+--6
 TEST /// --chooseMons
     debug needsPackage "SOS"
     R = QQ[x,y];
@@ -1845,6 +1874,7 @@ TEST /// --chooseMons
     assert( lmsos=!=null and ring lmsos===R and numRows lmsos == 6 )
 ///
 
+--7
 TEST /// --createSOSModel
     debug needsPackage "SOS"
     eval = (Q,v) -> (transpose v * Q * v)_(0,0)
@@ -1871,6 +1901,7 @@ TEST /// --createSOSModel
     assert(entries C=={{0,1},{1,1}} and #Ai==0 and p0==0)
 ///
 
+--8
 TEST /// --LDLdecomposition
     A = matrix(QQ, {{5,3,5},{3,2,4},{5,4,10}})
     (L,D,P,err) = LDLdecomposition A
@@ -1895,6 +1926,7 @@ TEST /// --LDLdecomposition
     assert(err>0)
 ///
 
+--9
 TEST /// --roundPSDmatrix
     Q=matrix{{2.01,0,0},{0,1.1,0},{0,0,2}}
     A=matrix{{1,0,0,0,0,0},{0,0,0,1,0,0},{0,0,0,0,0,1}}
@@ -1919,6 +1951,7 @@ TEST /// --roundPSDmatrix
     assert(Qpsd==Qtrue and not boolv)
 ///
 
+--10
 TEST ///--makeMultiples
     debug needsPackage "SOS"
     R = QQ[x,y,z]
@@ -1934,6 +1967,7 @@ TEST ///--makeMultiples
     assert( unique(first\degree\H) == {3} )
 ///
 
+--11
 TEST ///--recoverSolution
     R = RR[x,y];
     mon = matrix {{1},{x},{y}};
@@ -1942,12 +1976,32 @@ TEST ///--recoverSolution
     assert(sol#0#1==0 and sol#1#1==1)
 ///
 
+--12
 TEST /// --solveSDP
-    test := checkSolver("M2","solveSDP")
-    assert(test#0 and test#1 and test#2) --(test3 fails)
+    debug needsPackage "SOS"
+
+    -- trivial cases (solved in preprocessing)
+    (X,y,Z) = solveSDP (matrix{{1,0},{0,-1}},(),zeros(QQ,0,1),Solver=>"M2");
+    assert(y===null and X===null);
+    (X,y,Z) = solveSDP (matrix{{1,0},{0,1}},(),zeros(QQ,0,1),Solver=>"M2");
+    assert(y==0);
+
+    tests := {0,1,2,4};
+    results := checkSolveSDP("M2",i->member(i,tests));
+    assert all(results,t->t=!=false);
 ///
 
+--13
 TEST /// --solveSOS
-    test := checkSolver("M2","solveSOS")
-    assert(all(test,identity))
+    debug needsPackage "SOS"
+    results := checkSolveSOS("M2",i->true)
+    assert all(results,t->t=!=false);
+///
+
+--14
+TEST /// --lowerBound
+    debug needsPackage "SOS"
+    tests := set{0,1,2,5,6};
+    results := checkLowerBound("M2",i->member(i,tests))
+    assert all(results,t->t=!=false);
 ///

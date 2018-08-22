@@ -869,9 +869,9 @@ doc /// --checkSolver
     Description
       Text
         This method tests if various functions work properly using a specified solver.
-	The most basic invocation is using only the name of the solver.
-	This runs all tests with that solver and prints a summary.
-	At least for the solver CSDP all tests should pass.
+        The most basic invocation is using only the name of the solver.
+        This runs all tests with that solver and prints a summary.
+        At least for the solver CSDP all tests should pass.
       Code
       Pre
     SeeAlso
