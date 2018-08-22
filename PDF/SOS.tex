@@ -70,6 +70,7 @@
 % 4) SOS optimization (lowerBound, lasserreHierarchy)
 
 \section{Introduction}
+\label{s:intro}
 
 Let $k = \QQ$ or $k = \RR$ denote the rational or real numbers and let $R = k[x_{1},\dots,x_{n}]$ be the polynomial ring.  
 An element $f\in R$ is \emph{nonnegative} if $f(x) \ge 0$ for all $x \in \RR^{n}$.  
@@ -101,7 +102,7 @@ The type \verb|SOSPoly| stores a sum of squares $f$ as coefficients $\lambda_{1}
 Storing the coefficients separately avoids the necessity to adjoin square roots to~$\QQ$.
 
 In the above example the package is configured to use the SDP solver CSDP which is called by \verb|solveSOS|.
-The SOS decomposition of the input polynomial solves an SDP numerically and then rounds the result to obtain a rational SOS decomposition.
+The SOS decomposition of the input polynomial solves an SDP numerically and then rounds the result to obtain a rational SOS decomposition~\cite{peyrl2008computing}.
 The return value of \verb|solveSOS| is an object \verb|SDPresult| which contains details about the numerical computation.
 Then \verb|sosPoly| extracts the SOS.
 In this case there are three squares:
@@ -119,29 +120,20 @@ Consider the problem of proving that the polynomial $f = 10-x^2-y$ is nonnegativ
 To do this we check if the image of $f$ in $\QQ[x,y]/g$ is a sum-of-squares.
 For such a computation, a degree bound must be given by the user as it is not a priori obvious how to choose a monomial basis.
 This is the second argument to \verb|solveSOS| in the following example.
+
 {\small
 \begin{verbatim}
 i2 : R = QQ[x,y]/ideal(x^2 + y^2 - 1);
 i3 : f = 10-x^2-y;
-i4 : sosPoly solveSOS (f, 2)
+i4 : sosPoly solveSOS (f, 2, TraceObj=>true)
 Executing CSDP
 Status: SDP solved, primal-dual feasible
-o4 = coeffs: {7, 6, 83/28}      
-     gens: {y - 1/14, x, 1}
-\end{verbatim}
-}
-The above decomposition involves three squares.
-It is possible to obtain a decomposition with only two squares by setting the option \verb|TraceObj=>true|.
-This option tells \Mac to use the matrix trace as an objective function for the SDP.
-{\small
-\begin{verbatim}
-i5 : sosPoly solveSOS (f, 2, TraceObj=>true)
-Executing CSDP
-Status: SDP solved, primal-dual feasible
-o5 = coeffs: {9, 35/36}      
+o4 = coeffs: {9, 35/36}      
      gens: {- 1/18 y + 1, y} 
 \end{verbatim}
 }
+
+Setting the option \verb|TraceObj=>true| is a heuristic to minimize the number of summands in a sum of squares (see Section~\ref{s:arguments}).
 
 % \subsection{History of the package}
 % The new version of \SOS was developed starting with version 1.5 of the
@@ -188,7 +180,7 @@ Hilbert showed that any nonnegative form $f\in k[x,y,z]$ can be decomposed as a 
 We can obtain this decomposition by iteratively calling \verb|sosInIdeal|.
 Specifically, one can find a multiplier $q_{1}$ such that $q_{1}f$ is SOS.
 Since $q_1$ is also nonnegative, we can then search for a multiplier $p_{1}$ such that $p_{1}q_{1}$ is SOS, and so on.
-The main observation is that the necessary degree of $p_{1}$ is lower than that of $q_{1}$.
+The main observation is that the necessary degree of $p_{1}$ is lower than that of $q_{1}$~\cite{de2004products}.
 Hence this procedure terminates, and we can write 
 \[
   f = \frac{p_{1}\cdots p_{s}}{q_{1}\cdots q_{t}} \qquad \text {
@@ -302,6 +294,7 @@ The \SOS package provides two ways to compute lower bound for such a problem.
 The most elegant approach is to construct the associated quotient ring, and then call \verb|lowerBound|.
 This will look for the largest $t$ such that $f(x)-t$ is SOS (in the quotient ring).
 A degree bound must be given by the user.
+
 {\small
 \begin{verbatim}
 i6 : R = QQ[x,y]/ideal(x^2 - x, y^2 - y);
@@ -315,10 +308,12 @@ i10 : f - t == sosPoly sol
 o10 = true
 \end{verbatim}
 }
-Though the above method is very appealing from a mathematical perspective, 
-constructing the quotient ring is sometimes very computationally expensive (it requires Gr\"obner bases).
-An alternative is to call \verb|lowerBound| with the equations $h_1,\dots,h_m$ as the input.
+
+Calling \verb|lowerBound| as above is the most practical approach, but it requires knowledge of a Gröbner basis, which is computed when constructing the quotient ring.
+If no Gröbner basis is available there is an alternative way to call \verb|lowerBound| with just the equations $h_1,\dots,h_m$ as the input.
 The method will then look for polynomial multipliers $l_i(x)$ such that $f(x) - t + \sum_i l_i(x)h_i(x)$ is SOS.
+This results in larger SDP problems and possibly weaker bounds.
+
 {\small
 \begin{verbatim}
 i11 : R = QQ[x,y];
@@ -337,7 +332,8 @@ o16 = true
 Lower bounds for polynomial optimization problems critically depend on the degree bound chosen.
 While higher degree bounds lead to better bounds, the computational complexity escalates quite rapidly.
 Nonetheless, low degree SOS lower bounds perform very well in several applications.
-In some cases, the minimizer might also be recovered from SDP solution with the method \verb|recoverSolution|.
+In some cases, the minimizer might also be recovered from the \verb|SDPResult| with the method \verb|recoverSolution|.
+
 {\small
 \begin{verbatim}
 i17 : recoverSolution sol
@@ -346,11 +342,11 @@ o17 = {x => 1.77345e-9, y => 1}
 }
 
 \section{Optional arguments}
+\label{s:arguments}
 
 \subsection*{SDP Solver}
 The \SOS package relies on numerical SDP solvers for SOS decompositions.  
-While it does have a built in solver in the \Mac language, 
-reasonable examples require an external solver.
+While it does have a built in solver in the \Mac language, larger examples require an external solver.
 At the moment the package has interfaces to the open source solvers CSDP~\cite{borchers1999csdp} and SDPA~\cite{yamashita2003implementation}.
 In our experience CSDP gives the best results.
 The solver can be specified with the optional argument \verb|Solver|.
@@ -361,11 +357,16 @@ The method \verb|lowerBound| has the optional argument \verb|RoundTol|, which sp
 Lower values of \verb|RoundTol| lead to simpler bounds (smaller denominators), at the expense of a loss in optimality.
 We may also skip the rounding by setting it to infinity.
 
+\subsection*{Trace objective}
+This option tells the SDP solver to use the matrix trace as an objective function for the SDP.
+This is a known heuristic to minimize the number of summands in a sum of squares by minimizing the rank of the Gram matrix.
+
+
 \section*{Acknowledgment}
 \label{sec:acknowledgement}
-The authors would like to thank the organizers and participants of the
-\Mac\ workshop in May 2018 in Leipzig during which the renewal of the
-SOS package started.
+The authors would like to thank the Max-Planck-Institute MiS in Leipzig for hosting the \Mac workshop in May 2018 during which the renewal of the SOS package started.
+Nidhi Kainsa and Anton Leykin contributed parts of the code.
+Thomas Kahle is supported by German Research Foundation under grant 314838170, GRK 2297 MathCoRe.
 
 \bibliographystyle{amsplain}
 \bibliography{sos}
