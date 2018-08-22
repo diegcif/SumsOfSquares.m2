@@ -149,31 +149,6 @@ o5 = coeffs: {9, 35/36}
 % The idea of rational reconstruction of SOS decompositions goes back to
 % that work.
 
-\subsection*{A word on SDP Solvers}
-The \SOS package relies on numerical SDP solvers for SOS decompositions.  
-While it does have a built in solver in the \Mac language, 
-reasonable examples require an external solver.
-At the moment the package has interfaces to the open source solvers CSDP~\cite{borchers1999csdp} and SDPA~\cite{yamashita2003implementation}.
-In our experience CSDP gives the best results.
-We refer to the package documentation on how to select the solver.
-
-\subsection*{A small library of nonnegative forms}
-The package implements a small library of interesting nonnegative forms that have appeared in the literature in the function  \verb|nonnegativeForm|.
-It takes the name of a polynomial and a suitable target ring.
-The following arguments are possible: \verb|Motzkin|, \verb|Robinson|, \verb|Schmuedgen|, \verb|Lax-Lax|, \verb|Choi-Lam|, \verb|Scheiderer|, and \verb|Harris|.
-The package documentation contains more information about these polynomials.
-For a concrete example, the Scheiderer polynomial admits an SOS decomposition over the reals, but not over the rationals.
-{\small
-\begin{verbatim}
-i3 : R = QQ[x,y,z]
-i4 : nonnegativeForm ("Scheiderer", R)
-
-      4      3    4     2          2      2 2      3      3    4
-o4 = x  + x*y  + y  - 3x y*z - 4x*y z + 2x z  + x*z  + y*z  + z
-
-\end{verbatim}
-}
-
 \section{Sums of squares in ideals}
 Let $I \subset k[x_{1},\dots,x_{n}]$ be an ideal.  The \SOS package can be used to find a sum of squares in~$I$.
 Of course every ideal contains the squares of its generators.
@@ -261,8 +236,8 @@ That this is the case can easily be checked with \verb|solveSOS (x^2+y^2+z^2)*f|
 
 \section{SOS optimization}
 
-\subsection*{SOS problems with parameters}
-Assume now that $f(x;p)$ is a polynomial function, that depends affinely on some parameters $p$.
+SOS problems can also be solved parametrically.
+For this, assume now that $f(x;p)$ is a polynomial function, that depends affinely on some parameters $p$.
 The command \verb|solveSOS| allows to search for values of the parameters such that the polynomial is a SOS.
 In the following example, the variable $t$ will be treated as a free parameter.
 {\small
@@ -280,7 +255,6 @@ o11 = {7/2}
 \end{verbatim}
 }
 
-\subsection*{Parameter optimization}
 It is also possible find the values of the parameters that optimize a given linear function.
 This allows, in particular, to find lower bounds for a polynomial functions.
 The following example finds a lower bound for the dehomogenized Motzkin polynomial $f(x)=x^4{+}x^2{+}z^6{-}3 x^2 z^2$, by finding the largest value of $t$ such that $f(x)-t$ is SOS.
@@ -307,22 +281,6 @@ i16 : t
 o16 = - 729/4096
 \end{verbatim}
 }
-
-\subsection*{Rounding tolerance}
-The methods \verb|solveSOS| and \verb|lowerBound| have an optional argument \verb|RoundTol|, which specifies the precision of the rational rounding.
-Lower values of \verb|RoundTol| lead to simpler bounds (smaller denominators), at the expense of a loss in optimality.
-We may also skip the rounding by setting it to infinity.
-{\small
-\begin{verbatim}
-i14 : (t,sol) = lowerBound (f, RoundTol=>infinity);
-Running M2 Solver
-Status: SDP solved, dual feasible
-i15 : t
-o15 = - .177978892003352
-\end{verbatim}
-}
-
-\subsection*{Polynomial optimization}
 
 Consider the problem
 \begin{align*}
@@ -366,6 +324,47 @@ o16 = true
 \end{verbatim}
 }
 
+\section{Final remarks}
+
+\subsection*{A word on SDP Solvers}
+The \SOS package relies on numerical SDP solvers for SOS decompositions.  
+While it does have a built in solver in the \Mac language, 
+reasonable examples require an external solver.
+At the moment the package has interfaces to the open source solvers CSDP~\cite{borchers1999csdp} and SDPA~\cite{yamashita2003implementation}.
+In our experience CSDP gives the best results.
+We refer to the package documentation on how to select the solver.
+
+
+\subsection*{Rounding tolerance}
+The methods \verb|solveSOS| and \verb|lowerBound| have an optional argument \verb|RoundTol|, which specifies the precision of the rational rounding.
+Lower values of \verb|RoundTol| lead to simpler bounds (smaller denominators), at the expense of a loss in optimality.
+We may also skip the rounding by setting it to infinity.
+{\small
+\begin{verbatim}
+i14 : (t,sol) = lowerBound (f, RoundTol=>infinity);
+Running M2 Solver
+Status: SDP solved, dual feasible
+i15 : t
+o15 = - .177978892003352
+\end{verbatim}
+}
+
+\subsection*{A small library of nonnegative forms}
+The package implements a small library of interesting nonnegative forms that have appeared in the literature in the function  \verb|nonnegativeForm|.
+It takes the name of a polynomial and a suitable target ring.
+The following arguments are possible: \verb|Motzkin|, \verb|Robinson|, \verb|Schmuedgen|, \verb|Lax-Lax|, \verb|Choi-Lam|, \verb|Scheiderer|, and \verb|Harris|.
+The package documentation contains more information about these polynomials.
+For a concrete example, the Scheiderer polynomial admits an SOS decomposition over the reals, but not over the rationals.
+{\small
+\begin{verbatim}
+i3 : R = QQ[x,y,z]
+i4 : nonnegativeForm ("Scheiderer", R)
+
+      4      3    4     2          2      2 2      3      3    4
+o4 = x  + x*y  + y  - 3x y*z - 4x*y z + 2x z  + x*z  + y*z  + z
+
+\end{verbatim}
+}
 
 
 \section*{Acknowledgment}
