@@ -1,7 +1,7 @@
 newPackage(
     "SOS",
-    Version => "1.5", 
-    Date => "November 17, 2017",
+    Version => "2.0",
+    Date => "August 22, 2018",
     Authors => {
      {Name => "Diego Cifuentes",
       Email => "diegcif@mit.edu",
@@ -18,16 +18,11 @@ newPackage(
      {Name => "Special thanks: Nidhi Kaihnsa, Anton Leykin"}
     },
     Headline => "Sum-of-Squares Package",
-    DebuggingMode => true,
     Configuration => {"CSDPexec"=>"csdp","SDPAexec"=>"sdpa","DefaultSolver"=>null},
     AuxiliaryFiles => true,
-    -*
-    The following two settings make use of a cached version of example output.
-    When the documentation changes, the developer has to exchange true and
-    false below, create the new example files, commit them, and change it back.
-    *-
     UseCachedExampleOutput => false,
     CacheExampleOutput => true,
+--  DebuggingMode => true,
     PackageImports => {"SimpleDoc","FourierMotzkin"},
     PackageExports => {}
 )
@@ -51,7 +46,6 @@ export {
     "vec2smat",
     "recoverSolution",
     "nonnegativeForm",
---only for debugging
 --Method options
     "GramMatrix",
     "MomentMatrix",
