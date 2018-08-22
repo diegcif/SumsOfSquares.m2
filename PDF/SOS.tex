@@ -54,27 +54,19 @@
 
 \begin{abstract}
   The package \SOS implements sums of squares (SOS) decompositions in
-  Macaulay2.  It is based on methods to rationalize SOS decompositions
-  due to Parrilo and Peyrl and features a data type for SOS
-  decompositions, support for external SDP solvers, and optimization
-  over varieties.
+  Macaulay2.  
+  It is based on methods to rationalize SOS decompositions due to Parrilo and Peyrl.
+  The package features a data type for SOS decompositions, support for external SDP solvers, and optimization over varieties.
 \end{abstract}
 
 \maketitle
-
-% Some topics
-% 1) brief introduction to SOS, nonnegativity, polynomial optimization
-% 2) computing SOS decompositions (Motzkin, Robinson, Lax-Lax)
-% 2) computing SOS decompositions of ternary forms (Harris)
-% 3) parametrized SOS problems
-% 4) SOS optimization (lowerBound, lasserreHierarchy)
 
 \section{Introduction}
 \label{s:intro}
 
 Let $k = \QQ$ or $k = \RR$ denote the rational or real numbers and let $R = k[x_{1},\dots,x_{n}]$ be the polynomial ring.  
 An element $f\in R$ is \emph{nonnegative} if $f(x) \ge 0$ for all $x \in \RR^{n}$.  
-The element $f$ is a \emph{sum of squares} or \emph{SOS} if there exist $h_{1},\dots,h_{m} \in R$ such that $f=\sum_{i=1}^{m}h_{i}^{2}$.
+The element $f$ is a \emph{sum of squares} or \emph{SOS} if there exist $f_{1},\dots,f_{m} \in R$ such that $f=\sum_{i}f_{i}^{2}$.
 Clearly, an SOS polynomial is nonnegative, but not every nonnegative polynomial is SOS.
 Classically, Hilbert characterized in which cases sums of squares coincide with nonnegative polynomials as univariate polynomials, quadratic polynomials and bivariate quartics.  
 For an introduction to the area we recommend~\cite{scheiderer2009positivity,blekherman2012semidefinite}.
@@ -98,7 +90,7 @@ o8 = coeffs: {5, 43/20, 231773/344000}
 \end{verbatim}
 }
 This output has been reformatted for the paper, but contains the same information as the actual output.
-The type \verb|SOSPoly| stores a sum of squares $f$ as coefficients $\lambda_{1},\dots,\lambda_{k}$ (under \verb|coeffs|) and polynomials $h_{1},\dots,h_{k}$ (under \verb|gens|) such that $f = \sum_{i=1}^{k}\lambda_{i}h_{i}^{2}$.
+The type \verb|SOSPoly| stores a sum of squares $f$ as coefficients $\lambda_{1},\dots,\lambda_{m}$ (under \verb|coeffs|) and polynomials $f_{1},\dots,f_{m}$ (under \verb|gens|) such that $f = \sum_{i}\lambda_{i}f_{i}^{2}$.
 Storing the coefficients separately avoids the necessity to adjoin square roots to~$\QQ$.
 
 In the above example the package is configured to use the SDP solver CSDP which is called by \verb|solveSOS|.
@@ -186,16 +178,21 @@ Hence this procedure terminates, and we can write
   f = \frac{p_{1}\cdots p_{s}}{q_{1}\cdots q_{t}} \qquad \text {
     $p_{i},q_{i}$ SOS}.
 \]
-This method is implemented in the \SOS package as \verb|sosdecTernary|.  
-For instance, consider the Motzkin polynomial.
-The package contains a small library of interesting nonnegative forms available under \verb|library|.
-We use it here.
+
+As an illustration, we will write the Motzkin polynomial as a quotient of SOS polynomials.
+We first use the function \verb|library|, which contains a small library of interesting nonnegative forms.
 {\small
 \begin{verbatim}
 i2 : R = QQ[x,y,z]
 i3 : f = library ("Motzkin", {x,y,z})
       4 2    2 4     2 2 2    6
 o3 = x y  + x y  - 3x y z  + z
+\end{verbatim}
+}
+\noindent 
+We now apply the function \verb|sosdecTernary|, which implements the iterative algorithm from above.
+{\small
+\begin{verbatim}
 i4 : (nums,dens) = sosdecTernary f;
 Executing CSDP
 i5 : first nums
@@ -236,14 +233,17 @@ That this is the case can easily be checked with \verb|solveSOS (x^2+y^2+z^2)*f|
 SOS problems can also be solved parametrically.
 For this, assume now that $f(x;t)$ is a polynomial function, that depends affinely on some parameters~$t$.
 The command \verb|solveSOS| allows to search for values of the parameters such that the polynomial is a SOS.
-In the following example, we increase two terms of the Robinson polynomial so that it becomes SOS
+In the following example, we increase two terms of the Robinson polynomial so that it becomes SOS.
 
 {\small
 \begin{verbatim}
 i1 : R = QQ[x,y,z][s,t]
 i2 : g = library("Robinson", {x,y,z}) + s*x^6 + t*y^6
-i3 : (solveSOS g)#Parameters
-o3 = {34, 34}
+i3 : sol = solveSOS g;
+Executing CSDP
+Status: SDP solved, primal-dual feasible
+i4 : sol#Parameters
+o4 = {34, 34}
 \end{verbatim}
 }
 
@@ -256,8 +256,8 @@ Here we apply this method to the dehomogenized Motzkin polynomial.
 i12 : R = QQ[x,z][t];
 i13 : f = library ("Motzkin", {x,1,z});
 i14 : sol = solveSOS (f-t, -t, RoundTol=>12);
-Running M2 Solver
-Status: SDP solved, dual feasible
+Executing CSDP
+Status: SDP solved, primal-dual feasible
 i15 : sol#Parameters
 o15 = {- 729/4096}
 \end{verbatim}

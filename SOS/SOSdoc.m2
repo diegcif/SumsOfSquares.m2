@@ -349,7 +349,7 @@ doc /// --solveSOS
       Text
         This method solves SOS problems.
         Given a rational (or real) polynomial $f(x)$, it attempts to find a rational (or real) 
-	positive semidefinite matrix $Q$ and a vector of monomials $mon$ such that
+        positive semidefinite matrix $Q$ and a vector of monomials $mon$ such that
         $$f(x) = mon' Q mon.$$
         The algorithm first computes a floating point solution,
         and then tries to obtain an exact solution by rounding the numerical result. 
@@ -373,11 +373,11 @@ doc /// --solveSOS
         sol#Parameters
       Text
         It is possible to solve SOS problems with several parameters.  
-	In the following example we increase two of the coefficients of the Robinson polynomial until it becomes SOS
+        In the following example we increase two of the coefficients of the Robinson polynomial until it becomes SOS
       Example
         R = QQ[x,y,z][s,t]
-	g = library("Robinson", {x,y,z}) + s*x^6 + t*y^6
-	solveSOS g
+        g = library("Robinson", {x,y,z}) + s*x^6 + t*y^6
+        solveSOS g
       Text
         {\bf SOS with parameter optimization:}
         The method also allows to optimize a linear function of the parameters.
