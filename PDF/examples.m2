@@ -7,7 +7,7 @@ sosPoly solveSOS f
 
 R = QQ[x,y,z]
 f = nonnegativeForm ("Motzkin", {x,y,z})
-r = sosdecTernary
+r = sosdecTernary f
 
 R = QQ[x,y]/ideal(x^2 + y^2 - 1);
 f = 10-x^2-y;

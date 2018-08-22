@@ -50,7 +50,9 @@
 \begin{abstract}
   The package \SOS implements sums of squares (SOS) decompositions in
   Macaulay2.  It is based on methods to rationalize SOS decompositions
-  due to Parrilo and Peyrl.
+  due to Parrilo and Peyrl and features a data type for SOS
+  decompositions, support for external SDP solvers, and optimization
+  over varieties.
 \end{abstract}
 
 \maketitle
@@ -62,28 +64,21 @@
 % 3) parametrized SOS problems
 % 4) SOS optimization (lowerBound, lasserreHierarchy)
 
-\section{Getting started}
+\section{Introduction}
 
-Let $k = \QQ$ or $k = \RR$ denote the rational or real numbers and let
-$R = k[x_{1},\dots,x_{n}]$ be the polynomial ring.  
-An element $f\in R$ is \emph{nonnegative} if $f(x) \ge 0$ for all
-$x \in \RR^{n}$.  
-The element $f$ is a \emph{sum of squares} or
-\emph{SOS} if there exist $h_{1},\dots,h_{m} \in R$ such that
-$f=\sum_{i=1}^{m}h_{i}^{2}$.  
+Let $k = \QQ$ or $k = \RR$ denote the rational or real numbers and let $R = k[x_{1},\dots,x_{n}]$ be the polynomial ring.  
+An element $f\in R$ is \emph{nonnegative} if $f(x) \ge 0$ for all $x \in \RR^{n}$.  
+The element $f$ is a \emph{sum of squares} or \emph{SOS} if there exist $h_{1},\dots,h_{m} \in R$ such that $f=\sum_{i=1}^{m}h_{i}^{2}$.
 Clearly, an SOS polynomial is nonnegative, but not every nonnegative polynomial is SOS.
-Classically, Hilbert characterized in which cases sums of squares
-coincide with nonnegative polynomials: univariate polynomials,
-quadratic polynomials and bivariate quartics.  
+Classically, Hilbert characterized in which cases sums of squares coincide with nonnegative polynomials as univariate polynomials, quadratic polynomials and bivariate quartics.  
 For an introduction to the area we recommend~\cite{scheiderer2009positivity,blekherman2012semidefinite}.
 
-The purpose of the \SOS package is to deal with sums of squares in
-Macaulay2.
-The package contains the data type \verb|SOSPoly| to store
-an SOS decomposition and perform basic operations on them.
-The most basic methods take a polynomial and try to write it as a sum
-of squares.
-Here is an example of how to use the function
+The purpose of the \SOS package is to deal with sums of squares in Macaulay2.
+A particular focus is on trying to find rational SOS decompositions of polynomials with rational coefficients (whenever they exist).
+
+The package contains the data type \verb|SOSPoly| to store SOS decompositions and perform basic operations on them.
+The most basic method is \verb|solveSOS|.
+It takes a polynomial and tries to write it as a sum of squares:
 {\small
 \verb|solveSOS|:
 \begin{verbatim}
@@ -91,29 +86,25 @@ i6 : R = QQ[x,y];
 i7 : f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
 i8 : sosPoly solveSOS f
 Executing CSDP
-Input file: /var/folders/73/jfd7r2r15zs03ks2lnx6zfpm0000gn/T/M2-92720-0/12.dat-s
-Output file: /var/folders/73/jfd7r2r15zs03ks2lnx6zfpm0000gn/T/M2-92720-0/13
+[...]
 Status: SDP solved, primal-dual feasible
 
-o8 = coeffs:
-         43  231773
-     {5, --, ------}
-         20  344000
-     gens:
-         83 2    2  20 2         2
-     {- ---x  + y , --x  + x*y, x }
-        200         43
+o8 = coeffs:  {5, 43/20, 231773/344000}              
 
+     gens:            2    2         2         2    
+           {- 83/200 x  + y , 20/43 x  + x*y, x }
 o8 : SOSPoly
 \end{verbatim}
 }
-In this case the package is configured to use the SDP solver CSDP
-which is called by \verb|solveSOS|.
-The result is numerical, but the package manages to round it to a rational solution.
-The return value of \verb|solveSOS| is an object \verb|SDPresult| which contains more information.
+This output has been reformatted for the paper, but contains the same information as the actual output.
+The type \verb|SOSPoly| stores a sum of squares $f$ as coefficients $\lambda_{1},\dots,\lambda_{k}$ (under \verb|coeffs|) and polynomials $h_{1},\dots,h_{k}$ (under \verb|gens|) such that $f = \sum_{i=1}^{k}\lambda_{i}h_{i}^{2}$.
+Storing the coefficients separately avoids the necessity to adjoin square roots to~$\QQ$.
+
+In the above example the package is configured to use the SDP solver CSDP which is called by \verb|solveSOS|.
+The SOS decomposition of the input polynomial solves an SDP numerically and then rounts the result to obtain a rational SOS decomposition.
+The return value of \verb|solveSOS| is an object \verb|SDPresult| which contains details about the numerical computation.
 Then \verb|sosPoly| extracts the SOS.
-In this case there are three two squares.
-The package computed:
+In this case there are three squares:
 \[
   f = 5(-\frac{83}{200} x^{2}+y^{2})^{2} + \frac{43}{20}
   (\frac{20}{43}x^{2} + xy)^{2} + \frac{231773}{344000} (x^{2})^{2}
@@ -121,77 +112,57 @@ The package computed:
 This decomposition is not the simplest one, but it is fully rational. 
 Simplifications can be done in post-processing.
 
-The package also allows to compute SOS decompositions in \emph{quotient rings}.
+The package also allows to compute SOS decompositions in quotient rings.
 This can be useful to prove nonnegativity of a polynomial on a variety.  
 The following example is taken from~\cite{parrilo2005exploiting}.  
-Consider the problem of proving that the polynomial $f = 10-x^2-y$ is nonnegative on the circle defined by $g = x^2 + y^2 - 1$,
-To do this we check if $f$, is a sum-of-squares in the quotient ring modulo $g$.
-For such a computation, a degree bound must be given by the user.
+Consider the problem of proving that the polynomial $f = 10-x^2-y$ is nonnegative on the circle defined by $g = x^2 + y^2 - 1$.
+To do this we check if the image of $f$ in $\QQ[x,y]/g$ is a sum-of-squares.
+For such a computation, a degree bound must be given by the user as it is not a priori obvious how to choose a monomial basis.
+This is the second argument to \verb|solveSOS| in the following example.
 {\small
 \begin{verbatim}
 i2 : R = QQ[x,y]/ideal(x^2 + y^2 - 1);
-
 i3 : f = 10-x^2-y;
-
 i4 : sosPoly solveSOS (f, 2)
-Executing CSDP
-Input file: /var/folders/40/b_11ylfj201cd721gqcmgy_80000gn/T/M2-54149-0/2.dat-s
-Output file: /var/folders/40/b_11ylfj201cd721gqcmgy_80000gn/T/M2-54149-0/3
+[...]
 Status: SDP solved, primal-dual feasible
 
-o4 = coeffs:
-            83
-     {7, 6, --}
-            28
-     gens:
-           1
-     {y - --, x, 1}
-          14
+o4 = coeffs:            gens:         
+     {7, 6, 83/28}      {y - 1/14, x, 1}
 \end{verbatim}
 }
-
 The above decomposition involves three squares.
 It is possible to obtain a decomposition with only two squares by setting the option \verb|TraceObj=>true|.
+This option tells the SDP solver to use the matrix trace as an objective function for the SDP.
 {\small
 \begin{verbatim}
 sosPoly solveSOS (f, 2, TraceObj=>true)
-Executing CSDP
-Input file: /var/folders/40/b_11ylfj201cd721gqcmgy_80000gn/T/M2-54149-0/7.dat-s
-Output file: /var/folders/40/b_11ylfj201cd721gqcmgy_80000gn/T/M2-54149-0/8
+[...]
 Status: SDP solved, primal-dual feasible
 
-o5 = coeffs:
-         35
-     {9, --}
-         36
-     gens:
-         1
-     {- --y + 1, y}
-        18
+o5 = coeffs:      gens:          
+     {9, 35/36}      {- 1/18 y + 1, y} 
 \end{verbatim}
 }
 
-... rounding tolerance ...
+% \subsection{History of the package}
+% The new version of \SOS was developed starting with version 1.5 of the
+% \SOS package due to Parrilo and Peyrl~\cite{peyrl2008computing}.
+% The idea of rational reconstruction of SOS decompositions goes back to
+% that work.
 
-\subsection{History of the package}
-The new version of \SOS was developed starting with version 1.5 of the
-\SOS package due to Parrilo and Peyrl~\cite{peyrl2008computing}.
-The idea of rational reconstruction of SOS decompositions goes back to
-that work.
+\subsection*{A word on SDP Solvers}
+The \SOS package relies on numerical SDP solvers for SOS
+decompositions.  While it does have a built in solver in the \Mac
+language, reasonable examples require an external solver.  We
+recommend the open source solver CSDP \cite{borchers1999csdp} and
+refer to the package documentation on how to use it from \SOS.
 
-\subsection{A word on SDP Solvers}
-The \SOS package relies on numerical SDP solvers for many of its
-operations.
-
-\subsection{A small library of nonnegative forms}
-The package implements a small library of nonnegative forms that have
-names.
-It is accessed with the function \verb|nonnegativeForm| which
-takes the name of the polynomial and a suitable target ring.
-The following arguments are possible: \verb|Motzkin|, \verb|Robinson|,
-\verb|Schmuedgen|, \verb|Lax-Lax|, \verb|Choi-Lam|, \verb|Scheiderer|,
-and \verb|Harris|.
-The package documentation contains more information about these polynomials.  
+\subsection*{A small library of nonnegative forms}
+The package implements a small library of interesting nonnegative forms that have appeared in the literature in the function  \verb|nonnegativeForm|.
+It takes the name of a polynomial and a suitable target ring.
+The following arguments are possible: \verb|Motzkin|, \verb|Robinson|, \verb|Schmuedgen|, \verb|Lax-Lax|, \verb|Choi-Lam|, \verb|Scheiderer|, and \verb|Harris|.
+The package documentation contains more information about these polynomials.
 For a concrete example, the Scheiderer polynomial admits an SOS decomposition over the reals, but not over the rationals.
 {\small
 \begin{verbatim}
@@ -207,42 +178,62 @@ o4 = x  + x*y  + y  - 3x y*z - 4x*y z + 2x z  + x*z  + y*z  + z
 
 \section{SOS decomposition of ternary forms}
 
-According to a result of Hilbert, a ternary form $f\in k[x,y,z]$ can
-be decomposed as a quotient of sums of squares using a simple
-iterative algorithm \textbf{Will we have space to describe the
-  algorithm?}:
+According to a result of Hilbert, any form $f\in k[x,y,z]$ can be decomposed as a quotient of sums of squares using a simple iterative algorithm.
+Specifically, one can aims to find a nonnegative multiplier $p_{1}$ of bounded degree such that $p_{1}f = \sum_{1}^{N}h_{i}^{2}$ is a sum of squares.
+Then the same technique is applied to $p_{1}$, i.e.~one searches for a multiplier $q_{1}$ such that $q_{1}p_{1}$ is SOS.
+The main observation is that the necessary degree of $q_{1}$ is lower than that of $p_{1}$.
+Therefore one eventually arrives at writing a form of degree at most 4 as a sum of squares.
+This can be solved with the so called Gram-Matrix-Method.
+See \cite{de2004products} for the details.
+This method is implemented in the \SOS package as \verb|sosdecTernary|.  Given a ternary form $f$ it decomposes $f$ as
 \[
   f = \frac{p_{1}\cdots p_{s}}{q_{1}\cdots q_{t}} \qquad \text {
     $p_{i},q_{i}$ SOS}.
 \]
-This algorithm is implemented in in the function \verb|sosdecTernary|.
-Here we apply it to the Motzkin polynomial.
+Here we apply it to the homogeneous Motzkin polynomial.
 {\small
 \begin{verbatim}
+i2 : R = QQ[x,y,z]
+i3 : f = nonnegativeForm ("Motzkin", {x,y,z})
 
+      4 2    2 4     2 2 2    6
+o3 = x y  + x y  - 3x y z  + z
+
+sosdecTernary f
+Executing CSDP
+[...]
+
+o4 = ({coeffs:        },     {coeffs:                     })
+       {2059/64 , ...        {2059/64, 3851/256, 3851/256 }
+       gens:                 gens:
+         2 2    4              
+       {x y  - z , ...}        {z, y, x}
 \end{verbatim}
 }
+The result consist of two sums of squares only, the second being the denomenator.
+Seeing this, one might get the idea that the product of $(x^{2}+y^{2}+z^{2})$ and the Motzkin polynomial is a sum of squares.
+That this is the case can easily be checked with \verb|solveSOS (x^2+y^2+z^2)f|
 
-The \emph{Harris polynomial} is a ternary form with a record number zeros. 
-{\small
-\begin{verbatim}
-i3 : R = QQ[x,y,z]
-i4 : nonnegativeForm ("Harris", {x,y,z})
+% The \emph{Harris polynomial} is a ternary form with a record number zeros. 
+% {\small
+% \begin{verbatim}
+% i3 : R = QQ[x,y,z]
+% i4 : nonnegativeForm ("Harris", {x,y,z})
 
-        10      8 2      6 4      4 6      2 8      10      8 2      6 2 2      4 4 2
-o4 = 16x   - 36x y  + 20x y  + 20x y  - 36x y  + 16y   - 36x z  + 57x y z  - 38x y z  +
-     ----------------------------------------------------------------------------------
-        2 6 2      8 2      6 4      4 2 4      2 4 4      6 4      4 6      2 2 6
-     57x y z  - 36y z  + 20x z  - 38x y z  - 38x y z  + 20y z  + 20x z  + 57x y z  +
-     ----------------------------------------------------------------------------------
-        4 6      2 8      2 8      10
-     20y z  - 36x z  - 36y z  + 16z
-\end{verbatim}
-}
+%         10      8 2      6 4      4 6      2 8      10      8 2      6 2 2      4 4 2
+% o4 = 16x   - 36x y  + 20x y  + 20x y  - 36x y  + 16y   - 36x z  + 57x y z  - 38x y z  +
+%      ----------------------------------------------------------------------------------
+%         2 6 2      8 2      6 4      4 2 4      2 4 4      6 4      4 6      2 2 6
+%      57x y z  - 36y z  + 20x z  - 38x y z  - 38x y z  + 20y z  + 20x z  + 57x y z  +
+%      ----------------------------------------------------------------------------------
+%         4 6      2 8      2 8      10
+%      20y z  - 36x z  - 36y z  + 16z
+% \end{verbatim}
+% }
 
-At some point, SOS decompositions might be helpful in computing the
-real radical of an ideal.
-Namely,
+% At some point, SOS decompositions might be helpful in computing the
+% real radical of an ideal.
+% Namely,
 
 \section{Optimization}
 
