@@ -60,6 +60,7 @@ export {
 -- GLOBAL VARIABLES 
 --##########################################################################--
 
+-- Solver executables
 makeGlobalPath = (fname) -> (
     -- Turns a file name into a global path of the file
     -- Used to find global file names of external solvers
@@ -79,12 +80,16 @@ sdpaexec = makeGlobalPath ((options SOS).Configuration)#"SDPAexec"
 mosekexec = makeGlobalPath ((options SOS).Configuration)#"MOSEKexec"
 defaultSolver = ((options SOS).Configuration)#"DefaultSolver"
 
+-- SDP status
 StatusFeas = "Status: SDP solved, primal-dual feasible"
 StatusPFeas = "Status: SDP solved, primal feasible"
 StatusDFeas = "Status: SDP solved, dual feasible"
 StatusPInfeas = "Status: SDP solved, primal infeasible"
 StatusDInfeas = "Status: SDP solved, dual infeasible"
 StatusFailed = "Status: SDP failed"
+
+-- Constants
+MaxRoundTol = 32
 
 --##########################################################################--
 -- TYPES
@@ -220,6 +225,7 @@ readSdpResult = sol -> (sol#Monomials, sol#GramMatrix, sol#MomentMatrix, sol#Par
 
 verbose = (s,o) -> if o.Verbose then print s
 
+-- library of nonnegative polynomials
 library = method()
 library(String,List) := (name,X) -> (
     if #X<3 then error "Insufficient variables";
@@ -250,6 +256,12 @@ library(String,List) := (name,X) -> (
     error "Name was not recognized.";
     )
 library(String,Ring) := (name,R) -> library(name,gens R)
+
+-- rounds real number to rational
+roundQQ = method()
+roundQQ(ZZ,RR) := (d,x) -> round(x*2^d)/2^d
+roundQQ(ZZ,Matrix) := (d,X) -> 
+     matrix(QQ, applyTable (entries X, roundQQ_d ));
 
 --###################################
 -- basicLinearAlgebra
@@ -357,14 +369,12 @@ rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
     -- mon is a vector of monomials
     -- (see parameterVector)
 
-    checkInputs := (mon) -> (
-        if numColumns mon > 1 then error("Monomial vector should be a column.");
-        isMonomial := max(length \ terms \ flatten entries mon)==1;
-        if not isMonomial then error("Vector must consist of monomials.");
-        );
-
-    checkInputs(mon);
     kk := coefficientRing ring F;
+
+    -- checkInputs --
+    if numColumns mon > 1 then error("Monomial vector should be a column.");
+    isMonomial := max(length \ terms \ flatten entries mon)==1;
+    if not isMonomial then error("Vector must consist of monomials.");
          
     -- build SOS model --
     (C,Ai,p0,V,A,B,b) := createSOSModel(F,mon,Verbose=>o.Verbose);
@@ -387,11 +397,14 @@ rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
     pvec0 := flatten entries(p0 + V*y);
 
     if not isExactField kk then return sdpResult(mon,Q,X,pvec0);
-    if o.RoundTol==infinity then
+    if o.RoundTol > MaxRoundTol then(
+        if o.RoundTol < infinity then
+            print "Warning: RoundTol is too high. Rounding will be skipped.";
         return sdpResult(changeMatrixField(RR,mon),Q,X,pvec0);
+        );
 
     -- rational rounding --
-    (ok,Qp,pVec) := roundSolution(pvec0,Q,A,B,b,o.RoundTol);
+    (ok,Qp,pVec) := roundSolution(pvec0,Q,A,B,b,RoundTol=>o.RoundTol,Verbose=>o.Verbose);
     if ok then return sdpResult(mon,Qp,X,pVec);
     print "rounding failed, returning real solution";
     return sdpResult(changeMatrixField(RR,mon),Q,X,pvec0);
@@ -455,8 +468,8 @@ toRing (Ring, RingElement) := (S,f) -> (
     if not instance(kk, RealField) then error "Expecting conversion from real here";
     (mon,coef) := coefficients f;
     mon = matrix {liftMonomial_S \ flatten entries mon};
-    K := 2^(precision kk);
-    coef = matrix(QQ, {for c in flatten entries coef list round(K*sub(c,RR))/K});
+    prec := precision kk;
+    coef = matrix(QQ, {for c in flatten entries coef list roundQQ(prec,sub(c,RR))});
     f' := (mon*transpose coef)_(0,0);
     return f';
     )
@@ -473,8 +486,8 @@ toRing (Ring, SOSPoly) := (S, s) -> (
     if not (instance (kk, RealField) and coefficientRing S===QQ) then 
         error "Error: only conversion between real and rational coefficient fields is implemented.";
     g' := toRing_S \ gens s;
-    K := 2^(precision kk);
-    c' := for c in coefficients s list round(K*sub(c,RR))/K;
+    prec := precision kk;
+    c' := for c in coefficients s list roundQQ(prec,sub(c,RR));
     return sosPoly (S, g', c')
     )
 
@@ -486,23 +499,21 @@ liftMonomial = (S,f) -> (
     return S_e;
     )
 
-roundSolution = {Verbose=>false} >> o -> (pvec0,Q,A,B,b,RoundTol) -> (
+roundSolution = {RoundTol=>3,Verbose=>false} >> o -> (pvec0,Q,A,B,b) -> (
     -- round and project --
-    Qnum := matrix applyTable(entries Q, a -> round(a*2^52)/2^52);
-
-    dhi := 52;
-    d := RoundTol;
+    d := o.RoundTol;
     np := numColumns B;
     
-    while (d < dhi) do (
+    print "Start rational rounding";
+    while (d < MaxRoundTol) do (
         verbose("rounding step #" | d, o);
         if np!=0 then (
-           pVec := map(QQ^np,QQ^1,(i,j) -> round(pvec0_i*2^d)/2^d);
+           pVec := map(QQ^np,QQ^1,(i,j) -> roundQQ(d,pvec0_i));
            bPar := b - B*pVec;
            ) 
         else bPar= b;
 
-        (ok,Qp) := roundPSDmatrix(Qnum,A,bPar,d,Verbose=>o.Verbose);
+        (ok,Qp) := roundPSDmatrix(Q,A,bPar,d);
         if ok then break else d = d + 1;
         );
     pVec = if np!=0 then flatten entries pVec else null;
@@ -707,16 +718,13 @@ project2linspace = (A,b,x0) -> (
      xp := x02 - transpose(A2)*((A2*x02-b2)//(A2*transpose(A2)))
      )
 
-roundPSDmatrix = {Verbose=>false} >> o -> (Q,A,b,d) -> (
-     verbose("Rounding precision: " | d, o);
-     Q0 := matrix (applyTable (entries Q, i -> round(i*2^d)/2^d) );
+roundPSDmatrix = (Q,A,b,d) -> (
+     Q0 := roundQQ(d,Q);
      x0 := smat2vec(Q0);
-     t := timing (xp := project2linspace(A,b,x0););
-     verbose("Time needed for projection: " | net t#0, o);
+     xp := project2linspace(A,b,x0);
      Q = vec2smat(xp);
 
-     t = timing((L,D,P,Qpsd) := PSDdecomposition(Q););
-     verbose("Time needed for LDL decomposition: " | net t#0, o);
+     (L,D,P,Qpsd) := LDLdecomposition(Q);
      if Qpsd == 0 then (true, Q) else (false,Q)
      )
 

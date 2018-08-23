@@ -1083,7 +1083,6 @@ doc /// -- Verbose
      Key
         [solveSDP,Verbose]
         [sosdecTernary,Verbose]
-        [roundPSDmatrix,Verbose]
         [solveSOS,Verbose]
         [sosInIdeal,Verbose]
         [lowerBound,Verbose]
