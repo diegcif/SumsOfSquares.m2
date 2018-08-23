@@ -89,7 +89,10 @@ StatusDInfeas = "Status: SDP solved, dual infeasible"
 StatusFailed = "Status: SDP failed"
 
 -- Constants
-MaxRoundTol = 32
+MaxRoundTol = 32 --maximum rounding tolerance
+HighPrecision = 1e-10 --e.g. for numerical linear algebra
+MedPrecision = 1e-6 --e.g. for SDP solutions
+LowPrecision = 1e-4
 
 --##########################################################################--
 -- TYPES
@@ -334,7 +337,7 @@ linsolve = (A,b) -> (
     -- This function becomes obsolete when solve
     -- has a threshold for infeasibility.
     if isExactField A then return try solve(A,b);
-    tol := 1e-12;
+    tol := HighPrecision;
     x := solve(A,b,ClosestFit=>true);
     if norm(A*x-b) > tol then return;
     return x;
@@ -359,7 +362,7 @@ kernelGens = A -> (
     -- Kernel up to a precision.  Becomes obselete when M2 gives the
     -- kernel of a numerical matrix.
     if isExactField A then return gens kernel A;
-    tol := 1e-12;
+    tol := HighPrecision;
     (S,U,Vt) := truncatedSVD(A,-tol);
     return transpose Vt;
     )
@@ -401,7 +404,7 @@ PSDdecomposition = A -> (
         return LDLdecomposition(A);
     if kk=!=RR and not instance(kk,RealField) then
         error "field must be QQ or RR";
-    tol := 1e-9;
+    tol := HighPrecision;
     (e,V) := eigenvectors(A,Hermitian=>true);
     err := if all(e, i -> i > -tol) then 0 else 1;
     e = max_0 \ e;
@@ -415,7 +418,7 @@ LDLdecomposition = (A) -> (
     kk := ring A;
     if kk=!=QQ and kk=!=RR and not instance(kk,RealField) then
        error "field must be QQ or RR";
-    tol := if isExactField kk then 0 else 1e-9;
+    tol := if isExactField kk then 0 else HighPrecision;
 
     n := numRows A;
     Ah := new MutableHashTable;
@@ -833,7 +836,7 @@ sosInIdeal (Ring, ZZ) := o -> (R,D) -> (
     mon := chooseMons(matrix{{0_R}}, D);
     sol := solveSOS (0_R, mon, o);
     (mon',Q,X,tval) := readSdpResult sol;
-    if Q===null or Q==0 or (not isExactField Q and norm Q<1e-6) then (
+    if Q===null or Q==0 or (not isExactField Q and norm Q<MedPrecision) then (
         print("no sos polynomial in degree "|D);
         return sdpResult(mon,,X,);
         );
@@ -855,7 +858,7 @@ sosInIdeal (Matrix,ZZ) := o -> (h,D) -> (
     F := matrix transpose {{0}|H};
     sol := rawSolveSOS (F, o);
     (mon,Q,X,tval) := readSdpResult sol;
-    if Q===null or Q==0 or (not isExactField Q and norm Q<1e-6) then (
+    if Q===null or Q==0 or (not isExactField Q and norm Q<MedPrecision) then (
         print("no sos polynomial in degree "|D);
         return (sdpResult(mon,,X,),null);
         );
@@ -893,7 +896,7 @@ sosdecTernary(RingElement) := o -> (f) -> (
         S = append(S,Si);
         );
     (mon,Q,X,tval) := readSdpResult rawSolveSOS matrix{{fi}};
-    if Q===null or Q==0 or (not isExactField Q and norm Q<1e-6) then return (,);
+    if Q===null or Q==0 or (not isExactField Q and norm Q<MedPrecision) then return (,);
     Si = sosPoly(mon,Q);
     if Si===null then return (,);
     S = append(S,Si);
@@ -910,12 +913,12 @@ recoverSolution = method()
 recoverSolution(Matrix,Matrix) := (mon,X) -> (
     if X===null then return {};
     e := eigenvalues(X,Hermitian=>true);
-    if e#(-1)<=0 or e#0/e#(-1) < -1e-9 then 
+    if e#(-1)<=0 or e#0/e#(-1) < -HighPrecision then 
         error "Moment matrix is not positive semidefinite";
     i0 := position(flatten entries mon, i -> i==1);
     if i0===null then
         error "The monomial vector must contain 1";
-    if e#(-2) > 1e-4 then 
+    if e#(-2) > LowPrecision then 
         print "Moment matrix is not rank one, solution might not be correct.";
     sol := for i to numRows mon-1 list (
         y := mon_(i,i0);
@@ -1020,7 +1023,7 @@ findNonZeroSolution = (C,A,b,o,y,Z,ntries) -> (
     print "Zero solution obtained. Trying again.";
     m := numRows b;
     badCoords := set();
-    iszero := a -> norm a < 1e-8;
+    iszero := a -> norm a < MedPrecision;
     for i to ntries-1 do(
         if #badCoords==m then break;
         b' := map(RR^m,RR^1, (j,l) -> 
@@ -1064,7 +1067,7 @@ toReal = (C,A,b) -> (
 
 -- Solve very simple SDP with no constraints
 sdpNoConstraints = (C,A) -> (
-    tol := 1e-10;
+    tol := HighPrecision;
     if #A==0 then(
         lambda := min eigenvalues(C, Hermitian=>true);
         if lambda>=-tol then(
@@ -1340,7 +1343,7 @@ readCSDP = (fout,fout2,n,Verbose) -> (
 checkDualSol = (C,A,y,Z,Verbose) -> (
     if y===null then return;
     yA := sum for i to #A-1 list y_(i,0)*A_i;
-    if norm(Z-C+yA)<1e-5 then return y;
+    if norm(Z-C+yA)<MedPrecision then return y;
     if Verbose then print "updating dual solution";
     AA := transpose matrix(RR, smat2vec \ entries \ toList A);
     bb := transpose matrix(RR, {smat2vec entries(C-Z)});
@@ -1570,7 +1573,7 @@ checkSolveSDP = (solver,applyTest) -> (
     tol := .001;
     equal := (y0,y) -> y=!=null and norm(y0-y)<tol*(1+norm(y0));
     checkZ := (C,A,y,Z) -> if y===null then false
-        else ( yA := sum for i to #A-1 list y_(i,0)*A_i; norm(Z-C+yA)<1e-5 );
+        else ( yA := sum for i to #A-1 list y_(i,0)*A_i; norm(Z-C+yA)<MedPrecision );
     local C; local b; local A; local A1; local A2; local A3; 
     local y0; local y; local X; local Z; local yopt;
 
@@ -1646,7 +1649,7 @@ checkSolveSOS = (solver,applyTest) -> (
     isGram := (f,mon,Q) -> (
         if Q===null then return false;
         e := eigenvalues(Q,Hermitian=>true);
-        tol := 1e-8;
+        tol := MedPrecision;
         if min e < -tol then return false;
         S := ring mon;
         if isExactField S then
@@ -1728,7 +1731,7 @@ checkSosdecTernary = (solver,applyTest) -> (
         if p===null then return false;
         d := product(sumSOS\p) - f*product(sumSOS\q);
         if isExactField f then return d==0;
-        return norm(d) < 1e-4;
+        return norm(d) < LowPrecision;
         );
 
     t0:= if applyTest(0) then(
@@ -1767,7 +1770,7 @@ checkSosInIdeal = (solver,applyTest) -> (
         h = sub(h,ring s);
         d := (h*mult)_(0,0) - sumSOS s;
         if isExactField h then return d==0;
-        return norm(d)<1e-4;
+        return norm(d)<MedPrecision;
         );
 
     t0:= if applyTest(0) then(
@@ -1829,7 +1832,7 @@ checkLowerBound = (solver,applyTest) -> (
         if Q===null then return false;
         d := f - bound + (h*mult - transpose mon * Q * mon)_(0,0);
         if isExactField h then return d==0;
-        return norm(d)<1e-4;
+        return norm(d)<MedPrecision;
         );
 
     --------------UNCONSTRAINED1--------------
@@ -1917,13 +1920,14 @@ TEST /// --sosPoly and sumSOS
 
 --1
 TEST /// --SOSmult
+    debug needsPackage "SOS"
     R = QQ[x,y,z,w]
     p1=sosPoly(R,{x^2-x*y,y^2+1,x},{1,2,3})
     p2=sosPoly(R,{y^3,x*w*z,y*z^2},{3,1/2,1/4})
     assert(sumSOS(p1*p2)==sumSOS(p1)*sumSOS(p2))
     assert(sumSOS(p1^4)==sumSOS(p1)^4)
 
-    equal = (f1,f2) -> norm(f1-f2) < 1e-8;
+    equal = (f1,f2) -> norm(f1-f2) < HighPrecision;
     R = RR[x,y,z,w]
     p1=sosPoly(R,{x^2-x*y,y^2+1,x},{1.32,1.47,12./7})
     p2=sosPoly(R,{y^3,x*w*z,y*z^2},{3.1,1.31,2.0})
@@ -1966,7 +1970,7 @@ TEST ///--toRing
     s3 = toRing_R s2;
     assert (s==s3)
     
-    tol := 1e-10;
+    tol := HighPrecision;
     f = 0.1*x_S^2 + y^2
     g = 1/10*(symbol x)_R^2 + (symbol y)_R^2
     -- comparison in rationals is complicated:
@@ -2022,7 +2026,7 @@ TEST /// --createSOSModel
     assert( eval(C,mon) == x^4 - 2*x )
     assert( #Ai==2 and all({0,1}, j -> eval(Ai#j,mon) == V_(0,j)) )
     
-    equal = (f1,f2) -> norm(f1-f2) < 1e-8;
+    equal = (f1,f2) -> norm(f1-f2) < HighPrecision;
     R = RR[x][t];
     f = x^4 - 2*x + t;
     mon = matrix{{1},{x},{x^2}}
@@ -2039,6 +2043,7 @@ TEST /// --createSOSModel
 
 --8
 TEST /// --LDLdecomposition
+    debug needsPackage "SOS"
     A = matrix(QQ, {{5,3,5},{3,2,4},{5,4,10}})
     (L,D,P,err) = LDLdecomposition A
     assert(err==0 and L*D*transpose L == transpose P * A * P)
@@ -2050,7 +2055,7 @@ TEST /// --LDLdecomposition
     (L,D,P,err) = LDLdecomposition(A)
     assert(err==0 and L*D*transpose L == transpose P * A * P)
 
-    equal = (f1,f2) -> norm(f1-f2) < 1e-6;
+    equal = (f1,f2) -> norm(f1-f2) < MedPrecision;
     V = random(RR^12,RR^8)
     A = V * transpose V 
     (L,D,P,err) = LDLdecomposition(A)
