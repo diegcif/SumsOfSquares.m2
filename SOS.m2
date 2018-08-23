@@ -257,14 +257,8 @@ library(String,List) := (name,X) -> (
     )
 library(String,Ring) := (name,R) -> library(name,gens R)
 
--- rounds real number to rational
-roundQQ = method()
-roundQQ(ZZ,RR) := (d,x) -> round(x*2^d)/2^d
-roundQQ(ZZ,Matrix) := (d,X) -> 
-     matrix(QQ, applyTable (entries X, roundQQ_d ));
-
 --###################################
--- basicLinearAlgebra
+-- Transition QQ <=> RR
 --###################################
 
 isExactField = kk -> (
@@ -272,6 +266,69 @@ isExactField = kk -> (
     kk = ultimate(coefficientRing,kk);
     return precision 1_kk == infinity;
     )
+
+-- rounds real number to rational
+roundQQ = method()
+roundQQ(ZZ,RR) := (d,x) -> round(x*2^d)/2^d
+roundQQ(ZZ,Matrix) := (d,X) -> 
+     matrix(QQ, applyTable (entries X, roundQQ_d ));
+
+changeRingField = (kk,R) -> kk(monoid[gens R])
+
+changeMatrixField = (kk, M) -> (
+    -- M is a matrix whose entries are polynomials whose coefficient
+    -- ring should be changed.
+    R := changeRingField(kk, ring M);
+    return matrix applyTable(entries M, m -> toRing(R,m));
+    )
+
+toRing = method ()
+toRing (Ring, RingElement) := (S,f) -> (
+    -- maps f to ring S
+    R := ring f;
+    kk := coefficientRing R;
+    phi := map(S,R);
+    -- QQ => RR
+    if kk===QQ then return phi(f);
+    -- RR => QQ
+    if not instance(kk, RealField) then error "Expecting conversion from real here";
+    (mon,coef) := coefficients f;
+    mon = matrix {liftMonomial_S \ flatten entries mon};
+    prec := precision kk;
+    coef = matrix(QQ, {for c in flatten entries coef list roundQQ(prec,sub(c,RR))});
+    f' := (mon*transpose coef)_(0,0);
+    return f';
+    )
+
+toRing (Ring, SOSPoly) := (S, s) -> (
+    -- maps s to ring S
+    R := ring s;
+    kk := coefficientRing R;
+    -- QQ => RR
+    if kk===QQ then 
+        return sosPoly (S, (x -> sub (x, S)) \ gens s,
+            (q -> sub (q, kk)) \ coefficients s);
+    -- RR => QQ
+    if not (instance (kk, RealField) and coefficientRing S===QQ) then 
+        error "Error: only conversion between real and rational coefficient fields is implemented.";
+    g' := toRing_S \ gens s;
+    prec := precision kk;
+    c' := for c in coefficients s list roundQQ(prec,sub(c,RR));
+    return sosPoly (S, g', c')
+    )
+
+liftMonomial = (S,f) -> (
+    -- maps monomial f to ring S
+    n := numgens S;
+    e := first exponents f;
+    e = e_(toList(0..n-1)); -- ignore some variables
+    return S_e;
+    )
+
+
+--###################################
+-- basicLinearAlgebra
+--###################################
 
 linsolve = (A,b) -> (
     -- This function becomes obsolete when solve
@@ -335,6 +392,74 @@ vec2smat(List) := o -> v -> (
     return A;
     )
 vec2smat(Matrix) := o -> v -> matrix(ring v, vec2smat(flatten entries v,o))
+
+PSDdecomposition = A -> (
+    -- Factors a PSD matrix A = L D L^T
+    -- with D diagonal
+    kk := ring A;
+    if isExactField kk then
+        return LDLdecomposition(A);
+    if kk=!=RR and not instance(kk,RealField) then
+        error "field must be QQ or RR";
+    tol := 1e-9;
+    (e,V) := eigenvectors(A,Hermitian=>true);
+    err := if all(e, i -> i > -tol) then 0 else 1;
+    e = max_0 \ e;
+    D := diagonalMatrix e;
+    P := id_(kk^(numRows A));
+    return (V,D,P,err);
+    )
+    
+LDLdecomposition = (A) -> (
+    -- This implements Algorithm 4.2.2 from [Golub-VanLoan-2012]
+    kk := ring A;
+    if kk=!=QQ and kk=!=RR and not instance(kk,RealField) then
+       error "field must be QQ or RR";
+    tol := if isExactField kk then 0 else 1e-9;
+
+    n := numRows A;
+    Ah := new MutableHashTable;
+    for i to n-1 do for j to n-1 do Ah#(i,j) = A_(i,j);
+    v := new MutableList from for i to n-1 list 0_kk;
+    piv := new MutableList from toList(0..n-1);
+    err := 0;
+
+    permuteMat := (k,q) -> (  -- k<=q
+        if k==q then return;
+        tmp := piv#q; piv#q = piv#k; piv#k = tmp;
+        for i to n-1 do (tmp := Ah#(i,q); Ah#(i,q) = Ah#(i,k); Ah#(i,k) = tmp;);
+        for i to n-1 do (tmp := Ah#(q,i); Ah#(q,i) = Ah#(k,i); Ah#(k,i) = tmp;);
+        );
+
+    for k from 0 to n-1 do (
+        q := k + maxPosition apply(k..n-1, i->Ah#(i,i));
+        permuteMat(k,q);
+
+        --  positive semidefinite?
+        a := Ah#(k,k);
+        if a < -tol then (err = k+1; break;);
+        if a <= tol then(
+            if any(k+1..n-1, i->abs(Ah#(i,k))>tol) then (
+                err = k+1; break;);
+            continue;
+            );
+
+        -- Schur complement
+        for i from k+1 to n-1 do 
+            v#i = Ah#(i,k);
+        for i from k+1 to n-1 do(
+            Ah#(i,k) = v#i/a;
+            for j from k+1 to n-1 do
+                Ah#(i,j) = Ah#(i,j) - (v#i*v#j)/a;
+            );
+    );
+
+    L := map(kk^n,kk^n,(i,j)-> if i>j then Ah#(i,j) else if i==j then 1_kk else 0_kk);
+    D := map(kk^n,kk^n,(i,j)->if i==j then Ah#(i,j) else 0_kk);
+    P := submatrix(id_(kk^n),toList piv);
+
+    return (L,D,P,err);
+)
 
 --###################################
 -- solveSOS
@@ -445,80 +570,6 @@ solveSOS(RingElement,RingElement,ZZ) := o -> (f,objFcn,D) -> (
     )
 solveSOS(RingElement,ZZ) := o -> (f,D) -> 
     solveSOS(f,0_(ring f),D,o)
-
--- The following methods are used to implement the transition from QQ to RR and vice versa.
-changeRingField = (kk,R) -> kk(monoid[gens R])
-
-changeMatrixField = (kk, M) -> (
-    -- M is a matrix whose entries are polynomials whose coefficient
-    -- ring should be changed.
-    R := changeRingField(kk, ring M);
-    return matrix applyTable(entries M, m -> toRing(R,m));
-    )
-
-toRing = method ()
-toRing (Ring, RingElement) := (S,f) -> (
-    -- maps f to ring S
-    R := ring f;
-    kk := coefficientRing R;
-    phi := map(S,R);
-    -- QQ => RR
-    if kk===QQ then return phi(f);
-    -- RR => QQ
-    if not instance(kk, RealField) then error "Expecting conversion from real here";
-    (mon,coef) := coefficients f;
-    mon = matrix {liftMonomial_S \ flatten entries mon};
-    prec := precision kk;
-    coef = matrix(QQ, {for c in flatten entries coef list roundQQ(prec,sub(c,RR))});
-    f' := (mon*transpose coef)_(0,0);
-    return f';
-    )
-
-toRing (Ring, SOSPoly) := (S, s) -> (
-    -- maps s to ring S
-    R := ring s;
-    kk := coefficientRing R;
-    -- QQ => RR
-    if kk===QQ then 
-        return sosPoly (S, (x -> sub (x, S)) \ gens s,
-            (q -> sub (q, kk)) \ coefficients s);
-    -- RR => QQ
-    if not (instance (kk, RealField) and coefficientRing S===QQ) then 
-        error "Error: only conversion between real and rational coefficient fields is implemented.";
-    g' := toRing_S \ gens s;
-    prec := precision kk;
-    c' := for c in coefficients s list roundQQ(prec,sub(c,RR));
-    return sosPoly (S, g', c')
-    )
-
-liftMonomial = (S,f) -> (
-    -- maps monomial f to ring S
-    n := numgens S;
-    e := first exponents f;
-    e = e_(toList(0..n-1)); -- ignore some variables
-    return S_e;
-    )
-
-roundSolution = {RoundTol=>3,Verbose=>false} >> o -> (pvec0,Q,A,B,b) -> (
-    -- round and project --
-    d := o.RoundTol;
-    np := numColumns B;
-    
-    print "Start rational rounding";
-    while (d < MaxRoundTol) do (
-        verbose("rounding step #" | d, o);
-        if np!=0 then (
-           pVec := map(QQ^np,QQ^1,(i,j) -> roundQQ(d,pvec0_i));
-           bPar := b - B*pVec;
-           ) 
-        else bPar= b;
-
-        (ok,Qp) := roundPSDmatrix(Q,A,bPar,d);
-        if ok then break else d = d + 1;
-        );
-    pVec = if np!=0 then flatten entries pVec else null;
-    return (ok,Qp,pVec);
-    )
 
 -- Main method to setup an SOS problem as an SDP problem
 -- It is not exported, but there is (hidden) documentation for it.
@@ -707,6 +758,31 @@ pointsInBox = (mindeg,maxdeg,mindegs,maxdegs) -> (
     return e;
     )
 
+--###################################
+-- Rational Rounding
+--###################################
+
+roundSolution = {RoundTol=>3,Verbose=>false} >> o -> (pvec0,Q,A,B,b) -> (
+    -- round and project --
+    d := o.RoundTol;
+    np := numColumns B;
+    
+    print "Start rational rounding";
+    while (d < MaxRoundTol) do (
+        verbose("rounding step #" | d, o);
+        if np!=0 then (
+           pVec := map(QQ^np,QQ^1,(i,j) -> roundQQ(d,pvec0_i));
+           bPar := b - B*pVec;
+           ) 
+        else bPar= b;
+
+        (ok,Qp) := roundPSDmatrix(Q,A,bPar,d);
+        if ok then break else d = d + 1;
+        );
+    pVec = if np!=0 then flatten entries pVec else null;
+    return (ok,Qp,pVec);
+    )
+
 project2linspace = (A,b,x0) -> (
      -- cast into QQ (necessary class to compute inverse)
      A2 := promote (A,QQ);
@@ -727,74 +803,6 @@ roundPSDmatrix = (Q,A,b,d) -> (
      (L,D,P,Qpsd) := LDLdecomposition(Q);
      if Qpsd == 0 then (true, Q) else (false,Q)
      )
-
-PSDdecomposition = A -> (
-    -- Factors a PSD matrix A = L D L^T
-    -- with D diagonal
-    kk := ring A;
-    if isExactField kk then
-        return LDLdecomposition(A);
-    if kk=!=RR and not instance(kk,RealField) then
-        error "field must be QQ or RR";
-    tol := 1e-9;
-    (e,V) := eigenvectors(A,Hermitian=>true);
-    err := if all(e, i -> i > -tol) then 0 else 1;
-    e = max_0 \ e;
-    D := diagonalMatrix e;
-    P := id_(kk^(numRows A));
-    return (V,D,P,err);
-    )
-    
-LDLdecomposition = (A) -> (
-    -- This implements Algorithm 4.2.2 from [Golub-VanLoan-2012]
-    kk := ring A;
-    if kk=!=QQ and kk=!=RR and not instance(kk,RealField) then
-       error "field must be QQ or RR";
-    tol := if isExactField kk then 0 else 1e-9;
-
-    n := numRows A;
-    Ah := new MutableHashTable;
-    for i to n-1 do for j to n-1 do Ah#(i,j) = A_(i,j);
-    v := new MutableList from for i to n-1 list 0_kk;
-    piv := new MutableList from toList(0..n-1);
-    err := 0;
-
-    permuteMat := (k,q) -> (  -- k<=q
-        if k==q then return;
-        tmp := piv#q; piv#q = piv#k; piv#k = tmp;
-        for i to n-1 do (tmp := Ah#(i,q); Ah#(i,q) = Ah#(i,k); Ah#(i,k) = tmp;);
-        for i to n-1 do (tmp := Ah#(q,i); Ah#(q,i) = Ah#(k,i); Ah#(k,i) = tmp;);
-        );
-
-    for k from 0 to n-1 do (
-        q := k + maxPosition apply(k..n-1, i->Ah#(i,i));
-        permuteMat(k,q);
-
-        --  positive semidefinite?
-        a := Ah#(k,k);
-        if a < -tol then (err = k+1; break;);
-        if a <= tol then(
-            if any(k+1..n-1, i->abs(Ah#(i,k))>tol) then (
-                err = k+1; break;);
-            continue;
-            );
-
-        -- Schur complement
-        for i from k+1 to n-1 do 
-            v#i = Ah#(i,k);
-        for i from k+1 to n-1 do(
-            Ah#(i,k) = v#i/a;
-            for j from k+1 to n-1 do
-                Ah#(i,j) = Ah#(i,j) - (v#i*v#j)/a;
-            );
-    );
-
-    L := map(kk^n,kk^n,(i,j)-> if i>j then Ah#(i,j) else if i==j then 1_kk else 0_kk);
-    D := map(kk^n,kk^n,(i,j)->if i==j then Ah#(i,j) else 0_kk);
-    P := submatrix(id_(kk^n),toList piv);
-
-    return (L,D,P,err);
-)
 
 --###################################
 -- SOS in IDEAL
@@ -969,7 +977,7 @@ lowerBound(RingElement,Matrix,ZZ) := o -> (f,h,D) -> (
     )
 
 --###################################
--- M2 SOLVER
+-- SOLVE SDP
 --###################################
 
 solveSDP = method(
