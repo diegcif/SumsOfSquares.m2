@@ -268,8 +268,8 @@ The function \verb|lowerBound| does this construction automatically.
 i1 : R = QQ[x,z];
 i2 : f = library ("Motzkin", {x,1,z});
 i3 : (t,sol) = lowerBound (f, RoundTol=>12);
-Running M2 Solver
-Status: SDP solved, dual feasible
+Executing CSDP
+Status: SDP solved, primal-dual feasible
 i16 : t
 o16 = - 729/4096
 \end{verbatim}
@@ -342,8 +342,8 @@ o17 = {x => 1.77345e-9, y => 1}
 \subsection*{SDP Solver}
 The \SOS package relies on numerical SDP solvers for SOS decompositions.  
 While it does have a built in solver in the \Mac language, larger examples require an external solver.
-At the moment the package has interfaces to the open source solvers CSDP~\cite{borchers1999csdp} and SDPA~\cite{yamashita2003implementation}.
-In our experience CSDP gives the best results.
+At the moment the package has interfaces to the open source solvers CSDP~\cite{borchers1999csdp} and SDPA~\cite{yamashita2003implementation}, and the commercial solver MOSEK.
+In our experience CSDP and MOSEK give the best results.
 The solver can be specified with the optional argument \verb|Solver|.
 We refer to the package documentation for further information.
 

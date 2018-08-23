@@ -622,7 +622,7 @@ doc /// --solveSDP
 
         The default algorithm is a dual interior point method implemented in M2. 
         A strictly feasible initial point $y_0$ may be provided by the user.
-        Alternatively, there is an interface to the @TO2 {[solveSDP,Solver],"solvers"}@ CSDP and SDPA.
+        Alternatively, there is an interface to the @TO2 {[solveSDP,Solver],"solvers"}@ CSDP, SDPA and MOSEK.
       Example
         C = matrix {{1,0},{0,2}};
         A = matrix {{0,1},{1,0}};
@@ -648,7 +648,7 @@ doc /// --sosdecTernary
     Headline
        Sum of squares decomposition for ternary forms.
     Usage
-        (p,q) = sosdecTernary(f, Solver=>"CSDP")
+        (p,q) = sosdecTernary(f)
     Inputs
         f:RingElement
           a homogeneous polynomial in 3 variables
@@ -679,9 +679,11 @@ doc /// --sosdecTernary
         {\bf References:}
         {\it Products of positive forms, linear matrix inequalities, and Hilbert 17th problem for ternary forms}, E. de Klerk, and D.V. Pasechnik, European J. Oper. Res. (2004), pp. 39-45.
     Caveat
-        $\bullet$ This implementation only works with the @TO Solver@ CSDP.
+        $\bullet$ 
+        This implementation only works with the @TO2 {Solver,"solvers"}@ "CSDP" and "MOSEK".
 
-        $\bullet$ Due to the iterative nature of the algorithm, it could happen that some of the the output SOS polynomials are rational while some are real.
+        $\bullet$ 
+        Due to the iterative nature of the algorithm, it could happen that some of the the output SOS polynomials are rational while some are real.
 ///
 
 doc /// --sosInIdeal
@@ -692,8 +694,8 @@ doc /// --sosInIdeal
     Headline
         Sum of squares polynomial in ideal
     Usage
-        (sol,mult) = sosInIdeal(h,D,Solver=>"CSDP")
-        sol = sosInIdeal(R,D,Solver=>"CSDP")
+        (sol,mult) = sosInIdeal(h,D)
+        sol = sosInIdeal(R,D)
     Inputs
         h:Matrix
           row vector with polynomial entries
@@ -728,7 +730,7 @@ doc /// --sosInIdeal
         sosPoly sol
         sosPoly sol
     Caveat
-        This implementation only works with the solver CSDP.
+        This implementation only works with the @TO2 {Solver,"solvers"}@ "CSDP" and "MOSEK".
 ///
 
 doc /// --lowerBound
@@ -862,7 +864,7 @@ doc /// --checkSolver
         checkSolver(solver,fun)
     Inputs
         solver:String
-          either "M2" or "CSDP" or "SDPA"
+          either "M2" or "CSDP" or "SDPA" or "MOSEK"
         fun:Function
           optional, one of "solveSDP", "solveSOS", "sosdecTernary", "sosInIdeal", or "lowerBound"
     Consequences
@@ -871,7 +873,7 @@ doc /// --checkSolver
         This method tests if various functions work properly using a specified solver.
         The most basic invocation is using only the name of the solver.
         This runs all tests with that solver and prints a summary.
-        At least for the solver CSDP all tests should pass.
+        All tests should pass for CSDP and MOSEK.
       Code
       Pre
     SeeAlso
@@ -1106,19 +1108,21 @@ document { --Solver
     "There is a very rudimentary implementation of such a solver in the Macaulay2 language. ",
     "It is called the M2 solver but for most applications it will be insufficient. ",
     "For this reason it is almost mandatory to install another solver. ",
-    "The package supports ", TT "csdp", " and ", TT "sdpa", " which are open source. ",
-    "This option can take the following values:" ,
+    "The package supports the following solvers: ",
     UL{
-      {"\"M2\"", " -- use a simple dual interior point method implemented in Macaulay2"},
-       {"\"CSDP\"", " -- use the CSDP solver, available at ", TT "https://projects.coin-or.org/Csdp/" },
-       {"\"SDPA\"", " -- use the SDPA solver, available at ", TT "http://sdpa.sourceforge.net/" },
+      {"\"M2\"", " -- a simple dual interior point method implemented in Macaulay2"},
+       {"\"CSDP\"", " -- this is an open source solver, available at ", TT "https://projects.coin-or.org/Csdp/" },
+       {"\"SDPA\"", " -- this is an open source solver, available at ", TT "http://sdpa.sourceforge.net/" },
+       {"\"MOSEK\"", " -- this is a commercial solver, free for academic use, available at ", TT "https://www.mosek.com/" },
       },
-    "Before any serious computation the user should install CSDP or SDPA. ",
-    "In our experience CSDP gives the best results. ",
+    "Before any serious computation the user should install CSDP, SDPA or MOSEK. ",
+    "In our experience CSDP and MOSEK give the best results. ",
     "An easy way to make a solver available to Macaulay2  is to add the executable to the PATH environment variable. ",
     "Another way is to explicitly specify the location of the executable when loading the package:",
     EXAMPLE lines ///
-       needsPackage ("SOS", Configuration=>{"CSDPexec"=>"/some/path/csdp", "SDPAexec"=>"/some/path/sdpa"});
+       needsPackage ("SOS", Configuration=>{"CSDPexec"=>"/some/path/csdp"});
+       needsPackage ("SOS", Configuration=>{"SDPAexec"=>"/some/path/sdpa"});
+       needsPackage ("SOS", Configuration=>{"MOSEKexec"=>"/some/path/mosek"});
     ///,
     "The method ", TO "checkSolver", " can be used to check if a solver works.",
     BR{},
@@ -1129,10 +1133,10 @@ document { --Solver
        needsPackage ("SOS", Configuration=>{"DefaultSolver"=>"CSDP"});
     ///,
     "If no default solver is specified, the package tries to use, in this order,
-    CSDP, SDPA, M2.",
+    CSDP, MOSEK, SDPA, M2.",
 
     HEADER2 "Saving the configuration",
-    "The configuration options \"CSDPexec\", \"SDPAexec\", \"DefaultSolver\" can be saved by editing the file \"init-SOS.m2\", which is located in the application directory:",
+    "The configuration options \"CSDPexec\", \"SDPAexec\", \"MOSEKexec\", \"DefaultSolver\" can be saved by editing the file \"init-SOS.m2\", which is located in the application directory:",
     EXAMPLE lines ///
         applicationDirectory()
     ///,
