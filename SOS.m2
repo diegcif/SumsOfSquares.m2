@@ -213,7 +213,7 @@ net SDPResult := sol -> (
         {"Monomials", mat2str sol#Monomials}
         };
     tval := sol#Parameters;
-    if tval=!=null and numRows tval then
+    if tval=!=null and numRows tval>0 then
         str = append(str,{"Parameters",mat2str tval});
     return netList(str,HorizontalSpace=>1,Alignment=>Center)
     )
@@ -680,13 +680,14 @@ chooseMons(Matrix) := o -> (F) -> (
     if F==0 then error "Expected nonzero inputs.";
     if isQuotientRing R then error("A monomial vector or degree bound must be provided in quotient rings.");
     n:= numgens R;
-    mons := g -> set first entries monomials g;
-    lm0 := mons F_(0,0);
+    monsPoly := g -> set first entries monomials g;
+    monsList := G -> if #G>0 then sum(monsPoly\G) else {};
     filterVerts := (verts) -> (
         -- only consider those without parameters (this is a hack!)
-        return select(verts, v -> member(R_v,lm0));
+        lmpars := monsList drop(flatten entries F,1);
+        return select(verts, v -> not member(R_v,lmpars));
         );
-    lmf := sum \\ mons \ flatten entries F;
+    lmf := monsList flatten entries F;
     falt := sum lmf;
     
     -- Get exponent-points for Newton polytope:
@@ -741,6 +742,7 @@ chooseMons(Matrix) := o -> (F) -> (
     return matrix transpose {lmSOS};
     )
 
+-- Choose monomials, given a degree bound
 chooseMons(Matrix,ZZ) := o -> (F,D) -> (
     if D<=0 or odd D then error "Expected even positive integer";
     R := ring F;
@@ -1868,7 +1870,7 @@ checkLowerBound = (solver,applyTest) -> (
         R = RR[x,y];
         f = y;
         h := matrix {{y-pi*x^2}};
-        (bound,sol,mult) = lowerBound (f, h, 4, Solver=>solver);
+        (bound,sol,mult) = lowerBound (f, h, 2, Solver=>solver);
         (mon,Q,X,tval) := readSdpResult sol;
         equal(bound,0) and cmp(f,h,bound,mon,Q,mult)
         );
@@ -2011,6 +2013,11 @@ TEST /// --chooseMons
     f = x^4+2*x*y-x+y^4
     lmsos = chooseMons(f-t)
     assert( lmsos=!=null and ring lmsos===R and numRows lmsos == 6 )
+
+    R = QQ[x,y][l,t];
+    f = y + l *(y-x^2) - t
+    mon = chooseMons f
+    assert(mon == matrix{{1_R},{x_R}})
 ///
 
 --7
@@ -2141,7 +2148,7 @@ TEST /// --solveSOS
 --14
 TEST /// --lowerBound
     debug needsPackage "SOS"
-    tests := set{0,1,2,5,6};
+    tests := set{0,1,2,4,5,6};
     results := checkLowerBound("M2",i->member(i,tests))
     assert all(results,t->t=!=false);
 ///
