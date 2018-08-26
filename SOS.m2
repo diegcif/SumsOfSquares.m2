@@ -213,8 +213,8 @@ net SDPResult := sol -> (
         {"Monomials", mat2str sol#Monomials}
         };
     tval := sol#Parameters;
-    if tval=!=null and #tval>0 then
-        str = append(str,{"Parameters",toString tval});
+    if tval=!=null and numRows tval then
+        str = append(str,{"Parameters",mat2str tval});
     return netList(str,HorizontalSpace=>1,Alignment=>Center)
     )
 
@@ -269,6 +269,8 @@ isExactField = kk -> (
     kk = ultimate(coefficientRing,kk);
     return precision 1_kk == infinity;
     )
+
+isZero = (tol,x) -> if isExactField x then x==0 else norm x<tol
 
 -- rounds real number to rational
 roundQQ = method()
@@ -522,20 +524,20 @@ rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
     (X,my,Q) := solveSDP(C, Ai, obj, Solver=>o.Solver, Verbose=>o.Verbose);
     if Q===null then return sdpResult(mon,Q,X,);
     y := -my;
-    pvec0 := flatten entries(p0 + V*y);
+    pVec0 := (p0 + V*y);
 
-    if not isExactField kk then return sdpResult(mon,Q,X,pvec0);
+    if not isExactField kk then return sdpResult(mon,Q,X,pVec0);
     if o.RoundTol > MaxRoundTol then(
         if o.RoundTol < infinity then
             print "Warning: RoundTol is too high. Rounding will be skipped.";
-        return sdpResult(changeMatrixField(RR,mon),Q,X,pvec0);
+        return sdpResult(changeMatrixField(RR,mon),Q,X,pVec0);
         );
 
     -- rational rounding --
-    (ok,Qp,pVec) := roundSolution(pvec0,Q,A,B,b,RoundTol=>o.RoundTol,Verbose=>o.Verbose);
+    (ok,Qp,pVec) := roundSolution(pVec0,Q,A,B,b,RoundTol=>o.RoundTol,Verbose=>o.Verbose);
     if ok then return sdpResult(mon,Qp,X,pVec);
     print "rounding failed, returning real solution";
-    return sdpResult(changeMatrixField(RR,mon),Q,X,pvec0);
+    return sdpResult(changeMatrixField(RR,mon),Q,X,pVec0);
     )
 
 -- Choose monomials internally:
@@ -765,24 +767,24 @@ pointsInBox = (mindeg,maxdeg,mindegs,maxdegs) -> (
 -- Rational Rounding
 --###################################
 
-roundSolution = {RoundTol=>3,Verbose=>false} >> o -> (pvec0,Q,A,B,b) -> (
+roundSolution = {RoundTol=>3,Verbose=>false} >> o -> (pVec0,Q,A,B,b) -> (
     -- round and project --
     d := o.RoundTol;
     np := numColumns B;
+    pVec := null;
     
     print "Start rational rounding";
     while (d < MaxRoundTol) do (
         verbose("rounding step #" | d, o);
         if np!=0 then (
-           pVec := map(QQ^np,QQ^1,(i,j) -> roundQQ(d,pvec0_i));
-           bPar := b - B*pVec;
-           ) 
+            pVec = roundQQ(d,pVec0);
+            bPar := b - B*pVec;
+            ) 
         else bPar= b;
 
         (ok,Qp) := roundPSDmatrix(Q,A,bPar,d);
         if ok then break else d = d + 1;
         );
-    pVec = if np!=0 then flatten entries pVec else null;
     return (ok,Qp,pVec);
     )
 
@@ -836,7 +838,7 @@ sosInIdeal (Ring, ZZ) := o -> (R,D) -> (
     mon := chooseMons(matrix{{0_R}}, D);
     sol := solveSOS (0_R, mon, o);
     (mon',Q,X,tval) := readSdpResult sol;
-    if Q===null or Q==0 or (not isExactField Q and norm Q<MedPrecision) then (
+    if Q===null or isZero(MedPrecision,Q) then (
         print("no sos polynomial in degree "|D);
         return sdpResult(mon,,X,);
         );
@@ -858,10 +860,11 @@ sosInIdeal (Matrix,ZZ) := o -> (h,D) -> (
     F := matrix transpose {{0}|H};
     sol := rawSolveSOS (F, o);
     (mon,Q,X,tval) := readSdpResult sol;
-    if Q===null or Q==0 or (not isExactField Q and norm Q<MedPrecision) then (
+    if Q===null or isZero(MedPrecision,Q) then (
         print("no sos polynomial in degree "|D);
         return (sdpResult(mon,,X,),null);
         );
+    tval = flatten entries tval;
     mult := getMultipliers(m,tval,ring mon);
     return (sol,mult);
     )
@@ -896,7 +899,7 @@ sosdecTernary(RingElement) := o -> (f) -> (
         S = append(S,Si);
         );
     (mon,Q,X,tval) := readSdpResult rawSolveSOS matrix{{fi}};
-    if Q===null or Q==0 or (not isExactField Q and norm Q<MedPrecision) then return (,);
+    if Q===null or isZero(MedPrecision,Q) then return (,);
     Si = sosPoly(mon,Q);
     if Si===null then return (,);
     S = append(S,Si);
@@ -973,6 +976,7 @@ lowerBound(RingElement,Matrix,ZZ) := o -> (f,h,D) -> (
     (mon',Q,X,tval) := readSdpResult sol;
     (bound,mult) := (,);
     if tval=!=null then(
+        tval = flatten entries tval;
         bound = tval#0;
         mult = getMultipliers(m,drop(tval,1),ring mon');
         );
@@ -1010,7 +1014,7 @@ solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
         (X,y,Z) = solveMOSEK(C,A,b,Verbose=>o.Verbose)
     else
         error "unknown SDP solver";
-    ntries := 10;
+    ntries := 6;
     (y,Z) = findNonZeroSolution(C,A,b,o,y,Z,ntries);
     return (X,y,Z);
     )
@@ -1652,12 +1656,10 @@ checkSolveSOS = (solver,applyTest) -> (
         tol := MedPrecision;
         if min e < -tol then return false;
         S := ring mon;
-        if isExactField S then
-            return f == transpose(mon)*Q*mon;
-        return norm(sub(f,S) - transpose(mon)*Q*mon) < tol;
+        return isZero(tol, sub(f,S) - transpose(mon)*Q*mon);
         );
     isGramParam := (f,mon,Q,tval) ->
-        if tval===null then false else isGram(sub(f,t=>tval#0),mon,Q);
+        if tval===null then false else isGram(sub(f,t=>tval_(0,0)),mon,Q);
 
     ---------------GOOD CASES1---------------
     t0:= if applyTest(0) then(
@@ -1730,8 +1732,7 @@ checkSosdecTernary = (solver,applyTest) -> (
     cmp := (f,p,q) -> (
         if p===null then return false;
         d := product(sumSOS\p) - f*product(sumSOS\q);
-        if isExactField f then return d==0;
-        return norm(d) < LowPrecision;
+        return isZero(LowPrecision, d);
         );
 
     t0:= if applyTest(0) then(
@@ -1769,8 +1770,7 @@ checkSosInIdeal = (solver,applyTest) -> (
         if s===null then return false;
         h = sub(h,ring s);
         d := (h*mult)_(0,0) - sumSOS s;
-        if isExactField h then return d==0;
-        return norm(d)<MedPrecision;
+        return isZero(MedPrecision, d);
         );
 
     t0:= if applyTest(0) then(
@@ -1831,8 +1831,7 @@ checkLowerBound = (solver,applyTest) -> (
     cmp := (f,h,bound,mon,Q,mult) -> (
         if Q===null then return false;
         d := f - bound + (h*mult - transpose mon * Q * mon)_(0,0);
-        if isExactField h then return d==0;
-        return norm(d)<MedPrecision;
+        return isZero(MedPrecision, d);
         );
 
     --------------UNCONSTRAINED1--------------

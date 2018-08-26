@@ -243,7 +243,8 @@ i3 : sol = solveSOS g;
 Executing CSDP
 Status: SDP solved, primal-dual feasible
 i4 : sol#Parameters
-o4 = {34, 34}
+o15 = | 34 |
+      | 34 |
 \end{verbatim}
 }
 
@@ -259,7 +260,7 @@ i14 : sol = solveSOS (f-t, -t, RoundTol=>12);
 Executing CSDP
 Status: SDP solved, primal-dual feasible
 i15 : sol#Parameters
-o15 = {- 729/4096}
+o15 = | -729/4096 |
 \end{verbatim}
 }
 The function \verb|lowerBound| does this construction automatically.

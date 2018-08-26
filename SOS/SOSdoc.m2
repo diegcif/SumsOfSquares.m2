@@ -377,7 +377,8 @@ doc /// --solveSOS
       Example
         R = QQ[x,y,z][s,t]
         g = library("Robinson", {x,y,z}) + s*x^6 + t*y^6
-        solveSOS g
+        sol = solveSOS g;
+        sol#Parameters
       Text
         {\bf SOS with parameter optimization:}
         The method also allows to optimize a linear function of the parameters.
