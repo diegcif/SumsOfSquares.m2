@@ -22,6 +22,7 @@ parametric
 
 WOULD BE NICE TO HAVE
 -) realZeros should work on a nontrivial example
--) Support for Mosek
 -) createSOSModel should be faster than solving the SDP
+-) find rational certificate of non-SOS-ness
+-) refine PSDResult using Newton's method
 
