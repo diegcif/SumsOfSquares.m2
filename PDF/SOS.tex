@@ -81,12 +81,12 @@ The most basic method is \verb|solveSOS|.
 It takes a polynomial and tries to write it as a sum of squares:
 {\small
 \begin{verbatim}
-i6 : R = QQ[x,y];
-i7 : f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
-i8 : sosPoly solveSOS f
+i1 : R = QQ[x,y];
+i2 : f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
+i3 : sosPoly solveSOS f
 Executing CSDP
 Status: SDP solved, primal-dual feasible
-o8 = coeffs: {5, 43/20, 231773/344000}              
+o3 = coeffs: {5, 43/20, 231773/344000}              
      gens: {- 83/200 x^2  + y^2 , 20/43 x^2  + x*y, x^2 }
 \end{verbatim}
 }
@@ -115,12 +115,12 @@ For such a computation, a degree bound must be given by the user as it is not a 
 This is the second argument to \verb|solveSOS| in the following example.
 {\small
 \begin{verbatim}
-i2 : R = QQ[x,y]/ideal(x^2 + y^2 - 1);
-i3 : f = 10-x^2-y;
-i4 : sosPoly solveSOS (f, 2, TraceObj=>true)
+i1 : R = QQ[x,y]/ideal(x^2 + y^2 - 1);
+i2 : f = 10-x^2-y;
+i3 : sosPoly solveSOS (f, 2, TraceObj=>true)
 Executing CSDP
 Status: SDP solved, primal-dual feasible
-o4 = coeffs: {9, 35/36}      
+o3 = coeffs: {9, 35/36}      
      gens: {- 1/18 y + 1, y} 
 \end{verbatim}
 }
@@ -183,10 +183,10 @@ As an illustration, we will write the Motzkin polynomial as a quotient of SOS po
 We first use the function \verb|library|, which contains a small library of interesting nonnegative forms.
 {\small
 \begin{verbatim}
-i2 : R = QQ[x,y,z]
-i3 : f = library ("Motzkin", {x,y,z})
+i1 : R = QQ[x,y,z]
+i2 : f = library ("Motzkin", {x,y,z})
       4 2    2 4     2 2 2    6
-o3 = x y  + x y  - 3x y z  + z
+o2 = x y  + x y  - 3x y z  + z
 \end{verbatim}
 }
 
@@ -194,13 +194,13 @@ o3 = x y  + x y  - 3x y z  + z
 We now apply the function \verb|sosdecTernary|, which implements the iterative algorithm from above.
 {\small
 \begin{verbatim}
-i4 : (nums,dens) = sosdecTernary f;
+i3 : (nums,dens) = sosdecTernary f;
 Executing CSDP
-i5 : first nums
-o5 = coeffs: {2059/64, 28, 3851/256, 3851/256, 2059/256}
+i4 : first nums
+o4 = coeffs: {2059/64, 28, 3851/256, 3851/256, 2059/256}
      gens: {x^2*y^2-z^4, -(1/2)*x^3*y-(1/2)*x*y^3+x*y*z^2, ... }
-i6 : first dens
-     coeffs: {2059/64, 3851/256, 3851/256}
+i5 : first dens
+o5 = coeffs: {2059/64, 3851/256, 3851/256}
      gens: {x, y, z}
 \end{verbatim}
 }
@@ -224,8 +224,8 @@ i3 : sol = solveSOS g;
 Executing CSDP
 Status: SDP solved, primal-dual feasible
 i4 : sol#Parameters
-o15 = | 34 |
-      | 34 |
+o4 = | 34 |
+     | 34 |
 \end{verbatim}
 }
 
@@ -236,13 +236,13 @@ Here we apply this method to the dehomogenized Motzkin polynomial.
 
 {\small
 \begin{verbatim}
-i12 : R = QQ[x,z][t];
-i13 : f = library ("Motzkin", {x,1,z});
-i14 : sol = solveSOS (f-t, -t, RoundTol=>12);
+i1 : R = QQ[x,z][t];
+i2 : f = library ("Motzkin", {x,1,z});
+i3 : sol = solveSOS (f-t, -t, RoundTol=>12);
 Executing CSDP
 Status: SDP solved, primal-dual feasible
-i15 : sol#Parameters
-o15 = | -729/4096 |
+i4 : sol#Parameters
+o4 = | -729/4096 |
 \end{verbatim}
 }
 
@@ -255,8 +255,8 @@ i2 : f = library ("Motzkin", {x,1,z});
 i3 : (t,sol) = lowerBound (f, RoundTol=>12);
 Executing CSDP
 Status: SDP solved, primal-dual feasible
-i16 : t
-o16 = - 729/4096
+i4 : t
+o4 = - 729/4096
 \end{verbatim}
 }
 
@@ -277,15 +277,15 @@ A degree bound must be given by the user.
 
 {\small
 \begin{verbatim}
-i6 : R = QQ[x,y]/ideal(x^2 - x, y^2 - y);
-i7 : f = x - y;
-i8 : (t,sol) = lowerBound(f,2);
+i1 : R = QQ[x,y]/ideal(x^2 - x, y^2 - y);
+i2 : f = x - y;
+i3 : (t,sol) = lowerBound(f,2);
 Executing CSDP
 Status: SDP solved, primal-dual feasible
-i9 : t
-o9 = -1
-i10 : f - t == sosPoly sol
-o10 = true
+i4 : t
+o4 = -1
+i5 : f - t == sosPoly sol
+o5 = true
 \end{verbatim}
 }
 
@@ -296,16 +296,16 @@ This results in larger SDP's and possibly weaker bounds.
 
 {\small
 \begin{verbatim}
-i11 : R = QQ[x,y];
-i12 : f = x - y;
-i13 : h = matrix{{x^2 - x, y^2 - y}};
-i14 : (t,sol,mult) = lowerBound (f, h, 2);
+i1 : R = QQ[x,y];
+i2 : f = x - y;
+i3 : h = matrix{{x^2 - x, y^2 - y}};
+i4 : (t,sol,mult) = lowerBound (f, h, 2);
 Executing CSDP
 Status: SDP solved, primal-dual feasible
-i15 : t
-o15 = -1
-i16 : f - t + h*mult == sosPoly sol
-o16 = true
+i5 : t
+o5 = -1
+i6 : f - t + h*mult == sosPoly sol
+o6 = true
 \end{verbatim}
 }
 
@@ -316,8 +316,8 @@ In some cases, the minimizer might also be recovered from the \verb|SDPResult| w
 
 {\small
 \begin{verbatim}
-i17 : recoverSolution sol
-o17 = {x => 1.77345e-9, y => 1}
+i7 : recoverSolution sol
+o7 = {x => 1.77345e-9, y => 1}
 \end{verbatim}
 }
 
