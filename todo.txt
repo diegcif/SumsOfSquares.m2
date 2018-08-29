@@ -15,9 +15,7 @@ c) SOS/examples/*.out for all files with CSDP output
 
 TODO:
 
-1) Talk to Pablo (or you talk to us if you are reading this :)
-
-7) solveSOS has no test in quotient rings and only one which is
+4) solveSOS has no test in quotient rings and only one which is
 parametric
 
 WOULD BE NICE TO HAVE
@@ -25,4 +23,4 @@ WOULD BE NICE TO HAVE
 -) createSOSModel should be faster than solving the SDP
 -) find rational certificate of non-SOS-ness
 -) refine PSDResult using Newton's method
-
+-) implement LLL rounding?
