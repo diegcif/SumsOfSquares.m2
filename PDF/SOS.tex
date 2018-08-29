@@ -34,6 +34,7 @@
 
 \newcommand{\QQ}{\mathbb{Q}}
 \newcommand{\RR}{\mathbb{R}}
+\newcommand{\kk}{\mathbb{K}}
 
 \begin{document}
 
@@ -64,9 +65,10 @@
 \section{Introduction}
 \label{s:intro}
 
-Let $k = \QQ$ or $k = \RR$ denote the rational or real numbers and let $R = k[x_{1},\dots,x_{n}]$ be the polynomial ring.  
+Let $\kk = \QQ$ or $\kk = \RR$ denote the rational or real numbers and let $R = \kk[x_{1},\dots,x_{n}]$ be the polynomial ring.  
 An element $f\in R$ is \emph{nonnegative} if $f(x) \ge 0$ for all $x \in \RR^{n}$.  
-The element $f$ is a \emph{sum of squares} or \emph{SOS} if there exist $f_{1},\dots,f_{m} \in R$ such that $f=\sum_{i}f_{i}^{2}$.
+The element $f$ is a \emph{sum of squares} or \emph{SOS} if there exist polynomials $f_{1},\dots,f_{m} \in R$ and positive scalars $\lambda_{1},\dots,\lambda_{m}\in \kk$ such that $f=\sum_{i}\lambda_i f_{i}^{2}$.
+The scalars are not necessary when the field is $\kk=\RR$.
 Clearly, an SOS polynomial is nonnegative, but not every nonnegative polynomial is SOS.
 Classically, Hilbert characterized in which cases sums of squares coincide with nonnegative polynomials as univariate polynomials, quadratic polynomials and bivariate quartics.  
 For an introduction to the area we recommend~\cite{scheiderer2009positivity,blekherman2012semidefinite}.
@@ -89,18 +91,18 @@ o8 = coeffs: {5, 43/20, 231773/344000}
      gens: {- 83/200 x^2  + y^2 , 20/43 x^2  + x*y, x^2 }
 \end{verbatim}
 }
+\noindent
 This output has been reformatted for the paper, but contains the same information as the actual output.
-The type \verb|SOSPoly| stores a sum of squares $f$ as coefficients $\lambda_{1},\dots,\lambda_{m}$ (under \verb|coeffs|) and polynomials $f_{1},\dots,f_{m}$ (under \verb|gens|) such that $f = \sum_{i}\lambda_{i}f_{i}^{2}$.
-Storing the coefficients separately avoids the necessity to adjoin square roots to~$\QQ$.
+The type \verb|SOSPoly| stores the coefficients $\lambda_{i}$ (under \verb|coeffs|) and polynomials $f_{i}$ (under \verb|gens|) such that $f = \sum_{i}\lambda_{i}f_{i}^{2}$.
 
 In the above example the package is configured to use the SDP solver CSDP which is called by \verb|solveSOS|.
 The SOS decomposition of the input polynomial solves an SDP numerically and then rounds the result to obtain a rational SOS decomposition~\cite{peyrl2008computing}.
-The return value of \verb|solveSOS| is an object \verb|SDPresult| which contains details about the numerical computation.
+The return value of \verb|solveSOS| is an object \verb|SDPResult| which contains details about the numerical computation.
 Then \verb|sosPoly| extracts the SOS.
 In this case there are three squares:
 \[
   f = 5(-\tfrac{83}{200} x^{2}+y^{2})^{2} + \tfrac{43}{20}
-  (\tfrac{20}{43}x^{2} + xy)^{2} + \tfrac{231773}{344000} (x^{2})^{2}
+  (\tfrac{20}{43}x^{2} + xy)^{2} + \tfrac{231773}{344000} (x^{2})^{2}.
 \]
 This decomposition is not the simplest one, but it is fully rational. 
 Simplifications can be done in post-processing.
@@ -108,11 +110,10 @@ Simplifications can be done in post-processing.
 The package also allows to compute SOS decompositions in quotient rings.
 This can be useful to prove nonnegativity of a polynomial on a variety.  
 The following example is taken from~\cite{parrilo2005exploiting}.  
-Consider the problem of proving that the polynomial $f = 10-x^2-y$ is nonnegative on the circle defined by $g = x^2 + y^2 - 1$.
+Consider the problem of proving that the polynomial $f = 10{-}x^2{-}y$ is nonnegative on the circle defined by $g = x^2 {+} y^2 {-} 1$.
 To do this we check if the image of $f$ in $\QQ[x,y]/g$ is a sum-of-squares.
 For such a computation, a degree bound must be given by the user as it is not a priori obvious how to choose a monomial basis.
 This is the second argument to \verb|solveSOS| in the following example.
-
 {\small
 \begin{verbatim}
 i2 : R = QQ[x,y]/ideal(x^2 + y^2 - 1);
@@ -124,8 +125,8 @@ o4 = coeffs: {9, 35/36}
      gens: {- 1/18 y + 1, y} 
 \end{verbatim}
 }
-
-Setting the option \verb|TraceObj=>true| is a heuristic to minimize the number of summands in a sum of squares (see Section~\ref{s:arguments}).
+\noindent
+In the above computation the option \verb|TraceObj=>true| was used to minimize the number of summands in the SOS decomposition (see Section~\ref{s:arguments}).
 
 % \subsection{History of the package}
 % The new version of \SOS was developed starting with version 1.5 of the
@@ -134,10 +135,10 @@ Setting the option \verb|TraceObj=>true| is a heuristic to minimize the number o
 % that work.
 
 \section{Sums of squares in ideals}
-Let $I \subset k[x_{1},\dots,x_{n}]$ be an ideal.  The \SOS package can be used to find a sum of squares in~$I$.
+Let $I \subset \kk[x_{1},\dots,x_{n}]$ be an ideal.  The \SOS package can be used to find a sum of squares in~$I$.
 Of course every ideal contains the squares of its generators.
 The aim is to find low degree sums of squares.
-An alternative formulation of the same problem is to consider the quotient $S = k[x_{1},\dots,x_{n}]/I$ and write $0\in S$ as a sum of squares.
+An alternative formulation of the same problem is to consider the quotient $S = \kk[x_{1},\dots,x_{n}]/I$ and write $0\in S$ as a sum of squares.
 Both formulations of the problem are available in the \SOS package.
 The first takes a one row matrix of polynomials and tries to find a sum of squares that is a polynomial combination of them.
 For this, \verb|sosInIdeal| needs to be called with a matrix of polynomials and a degree bound on the desired sum of squares:
@@ -168,9 +169,9 @@ In particular, we can see that the real radical of the ideal from above is gener
 
 \section{SOS decomposition of ternary forms}
 
-Hilbert showed that any nonnegative form $f\in k[x,y,z]$ can be decomposed as a quotient of sums of squares.
+Hilbert showed that any nonnegative form $f\in \kk[x,y,z]$ can be decomposed as a quotient of sums of squares.
 We can obtain this decomposition by iteratively calling \verb|sosInIdeal|.
-Specifically, one can find a multiplier $q_{1}$ such that $q_{1}f$ is SOS.
+Specifically, one can first find a multiplier $q_{1}$ such that $q_{1}f$ is SOS.
 Since $q_1$ is also nonnegative, we can then search for a multiplier $p_{1}$ such that $p_{1}q_{1}$ is SOS, and so on.
 The main observation is that the necessary degree of $p_{1}$ is lower than that of $q_{1}$~\cite{de2004products}.
 Hence this procedure terminates, and we can write 
@@ -207,31 +208,10 @@ The result consist of two sums of squares only, the second being the denominator
 Seeing this, one might get the idea that the product of $(x^{2}+y^{2}+z^{2})$ and the Motzkin polynomial is a sum of squares.
 That this is the case can easily be checked with \verb|solveSOS (x^2+y^2+z^2)*f|.
 
-% The \emph{Harris polynomial} is a ternary form with a record number zeros. 
-% {\small
-% \begin{verbatim}
-% i3 : R = QQ[x,y,z]
-% i4 : library ("Harris", {x,y,z})
-
-%         10      8 2      6 4      4 6      2 8      10      8 2      6 2 2      4 4 2
-% o4 = 16x   - 36x y  + 20x y  + 20x y  - 36x y  + 16y   - 36x z  + 57x y z  - 38x y z  +
-%      ----------------------------------------------------------------------------------
-%         2 6 2      8 2      6 4      4 2 4      2 4 4      6 4      4 6      2 2 6
-%      57x y z  - 36y z  + 20x z  - 38x y z  - 38x y z  + 20y z  + 20x z  + 57x y z  +
-%      ----------------------------------------------------------------------------------
-%         4 6      2 8      2 8      10
-%      20y z  - 36x z  - 36y z  + 16z
-% \end{verbatim}
-% }
-
-% At some point, SOS decompositions might be helpful in computing the
-% real radical of an ideal.
-% Namely,
-
 \section{Parametric SOS problems}
 
 SOS problems can also be solved parametrically.
-For this, assume now that $f(x;t)$ is a polynomial function, that depends affinely on some parameters~$t$.
+For this, assume now that $x \mapsto f(x;t)$ is a polynomial function, that depends affinely on some parameters~$t$.
 The command \verb|solveSOS| allows to search for values of the parameters such that the polynomial is a SOS.
 In the following example, we increase two terms of the Robinson polynomial so that it becomes SOS.
 
@@ -263,6 +243,7 @@ i15 : sol#Parameters
 o15 = | -729/4096 |
 \end{verbatim}
 }
+\noindent
 The function \verb|lowerBound| does this construction automatically.
 {\small
 \begin{verbatim}
@@ -285,7 +266,7 @@ More precisely, consider the problem
   \quad \text{ where }\quad
   X := \{x \in \RR^n : h_1(x)=\dots=h_m(x)=0\},
 \end{align*}
-where $f, h_1,\dots,h_m$ are polynomials.
+and where $f, h_1,\dots,h_m$ are polynomials.
 The \SOS package provides two ways to compute lower bound for such a problem.
 The most elegant approach is to construct the associated quotient ring, and then call \verb|lowerBound|.
 This will look for the largest $t$ such that $f(x)-t$ is SOS (in the quotient ring).
@@ -308,7 +289,7 @@ o10 = true
 Calling \verb|lowerBound| as above is the most practical approach, but it requires knowledge of a Gröbner basis, which is computed when constructing the quotient ring.
 If no Gröbner basis is available there is an alternative way to call \verb|lowerBound| with just the equations $h_1,\dots,h_m$ as the input.
 The method will then look for polynomial multipliers $l_i(x)$ such that $f(x) - t + \sum_i l_i(x)h_i(x)$ is SOS.
-This results in larger SDP problems and possibly weaker bounds.
+This results in larger SDP's and possibly weaker bounds.
 
 {\small
 \begin{verbatim}
@@ -343,19 +324,19 @@ o17 = {x => 1.77345e-9, y => 1}
 \subsection*{SDP Solver}
 The \SOS package relies on numerical SDP solvers for SOS decompositions.  
 While it does have a built in solver in the \Mac language, larger examples require an external solver.
-At the moment the package has interfaces to the open source solvers CSDP~\cite{borchers1999csdp} and SDPA~\cite{yamashita2003implementation}, and the commercial solver MOSEK.
+At the moment the package has interfaces to the open source solvers CSDP~\cite{borchers1999csdp} and SDPA~\cite{yamashita2003implementation}, and the commercial solver MOSEK~\cite{mosek}.
 In our experience CSDP and MOSEK give the best results.
 The solver can be specified with the optional argument \verb|Solver|.
 We refer to the package documentation for further information.
 
 \subsection*{Rounding tolerance}
 The method \verb|lowerBound| has the optional argument \verb|RoundTol|, which specifies the precision of the rational rounding.
-Lower values of \verb|RoundTol| lead to simpler bounds (smaller denominators), at the expense of a loss in optimality.
-We may also skip the rounding by setting it to infinity.
+Smaller values of \verb|RoundTol| lead to simpler bounds (smaller denominators), at the expense of a loss in optimality.
+The rounding may be skipped by setting it to infinity.
 
 \subsection*{Trace objective}
 This option tells the SDP solver to use the matrix trace as an objective function for the SDP.
-This is a known heuristic to minimize the number of summands in a sum of squares by minimizing the rank of the Gram matrix.
+This is a known heuristic to minimize the number of summands in a sum of squares.
 
 
 \section*{Acknowledgment}
