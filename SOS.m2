@@ -66,19 +66,31 @@ makeGlobalPath = (fname) -> (
     -- Used to find global file names of external solvers
     tmp := temporaryFileName();
     r := run( "which '" | fname | "' > " | tmp);
-    if r>0 then(
-        print("Warning: " | fname | " executable was not found.");
-        return;
-        );
+    if r>0 then return;
     fname = replace("\n","",get tmp);
     if first fname != "/" then fname = currentDirectory() | fname;
     return "'" | fname | "'";
     )
 
+-- Choose default solver
+chooseDefaultSolver = execs -> (
+    solvers := {"CSDP", "MOSEK", "SDPA"}; --sorted by preference
+    found := for i to #solvers-1 list
+        if execs#i=!=null then solvers#i else continue;
+    print if #found>0 then "Solvers found: "|demark(", ",found)
+        else "Warning: No external solver was found.";
+    found = append(found,"M2");
+    defaultSolver = ((options SOS).Configuration)#"DefaultSolver";
+    if not member(defaultSolver,found) then
+        defaultSolver = first found;
+    print("Default solver: " | defaultSolver);
+    return defaultSolver;
+    )
+
 csdpexec = makeGlobalPath ((options SOS).Configuration)#"CSDPexec"
-sdpaexec = makeGlobalPath ((options SOS).Configuration)#"SDPAexec"
 mosekexec = makeGlobalPath ((options SOS).Configuration)#"MOSEKexec"
-defaultSolver = ((options SOS).Configuration)#"DefaultSolver"
+sdpaexec = makeGlobalPath ((options SOS).Configuration)#"SDPAexec"
+defaultSolver = chooseDefaultSolver(csdpexec,mosekexec,sdpaexec)
 
 -- SDP status
 StatusFeas = "Status: SDP solved, primal-dual feasible"
@@ -1055,14 +1067,7 @@ solveSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y0) -> (
     return (,y,Z);
     )
 
-chooseSolver = o -> (
-    if o.Solver=!=null then return o.Solver;
-    if defaultSolver=!=null then return defaultSolver;
-    if csdpexec=!=null then return "CSDP";
-    if mosekexec=!=null then return "MOSEK";
-    if sdpaexec=!=null then return "SDPA";
-    return "M2";
-    )
+chooseSolver = o -> if o.Solver=!=null then o.Solver else defaultSolver
 
 toReal = (C,A,b) -> (
     C = promote(C,RR);
