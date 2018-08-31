@@ -15,7 +15,7 @@ newPackage(
      {Name => "Helfried Peyrl", 
       Email => "peyrl@control.ee.ethz.ch",
       HomePage => "https://scholar.google.com/citations?user=cFOV7nYAAAAJ&hl=de"},
-     {Name => "Special thanks: Nidhi Kaihnsa, Anton Leykin"}
+     {Name => "Special thanks: Ilir Dema, Nidhi Kaihnsa, Anton Leykin"}
     },
     Headline => "Sum-of-Squares Package",
     Configuration => {"CSDPexec"=>"csdp","MOSEKexec"=>"mosek","SDPAexec"=>"sdpa","DefaultSolver"=>null},

@@ -11,7 +11,7 @@ document {
     but not all nonnegative polynomials are sum-of-squares.
     While nonnegativity of a polynomial is hard to check, there are efficient methods to find
     sums-of-squares decompositions and this package makes some of them available in Macaulay2.  
-    These methods rely on semi-definite-programming solvers from
+    These methods rely on semidefinite-programming solvers from
     mathematical optimization.  While there is a built in solver in the package, 
     it is highly recommended to configure an external ", TO Solver, ".",
 
