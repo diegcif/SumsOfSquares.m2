@@ -92,7 +92,7 @@ doc /// --PSDdecomposition
     Headline
         factorization of a positive semidefinite matrix
     Usage
-        (L,D,P,err) = PSDdecomposition A
+        (L,D,P) = PSDdecomposition A
     Inputs
         A:Matrix
     Outputs
@@ -102,8 +102,6 @@ doc /// --PSDdecomposition
           diagonal
         P:Matrix
           permutation matrix
-        err:ZZ
-          which is 0 when the factorization was successful, i.e., if A is positive semidefinite.
     Consequences
     Description
       Text
@@ -113,9 +111,10 @@ doc /// --PSDdecomposition
         $D$ is diagonal.
         If $A$ is a real matrix, this factorization is obtained from its eigenvalue decomposition.
         For rational matrices we use the LDL decomposition [Golub-vanLoan'89].
+        The method returns null if $A$ is not positive semidefinite.
       Example
         A = matrix(QQ, {{5,3,5},{3,2,4},{5,4,10}})
-        (L,D,P,err) = PSDdecomposition(A)
+        (L,D,P) = PSDdecomposition(A)
         L*D*transpose(L) == transpose(P)*A*P
       Text
         {\bf References:}

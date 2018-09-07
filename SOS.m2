@@ -341,8 +341,8 @@ zeros = (kk,m,n) -> map(kk^m,kk^n,{})
 
 sosPoly(Matrix,Matrix) := (mon,Q) -> (
     if mon===null or Q===null then return;
-    (L,D,P,err) := PSDdecomposition(Q);
-    if err != 0 then (
+    (L,D,P) := PSDdecomposition(Q);
+    if L===null then (
         print "Gram Matrix is not positive semidefinite";
         return 
         );

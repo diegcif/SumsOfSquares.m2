@@ -152,26 +152,23 @@ PSDdecomposition = A -> (
         error "field must be QQ or RR";
     tol := HighPrecision;
     (e,V) := eigenvectors(A,Hermitian=>true);
-    err := if all(e, i -> i > -tol) then 0 else 1;
+    if any(e, i -> i < -tol) then return (,,);
     e = max_0 \ e;
     D := diagonalMatrix e;
     P := id_(kk^(numRows A));
-    return (V,D,P,err);
+    return (V,D,P);
     )
 
 LDLdecomposition = (A) -> (
     -- This implements Algorithm 4.2.2 from [Golub-VanLoan-2012]
     kk := ring A;
-    if kk=!=QQ and kk=!=RR and not instance(kk,RealField) then
-       error "field must be QQ or RR";
-    tol := if isExactField kk then 0 else HighPrecision;
+    if kk=!=QQ then error "field must be QQ";
 
     n := numRows A;
     Ah := new MutableHashTable;
     for i to n-1 do for j to n-1 do Ah#(i,j) = A_(i,j);
     v := new MutableList from for i to n-1 list 0_kk;
     piv := new MutableList from toList(0..n-1);
-    err := 0;
 
     permuteMat := (k,q) -> (  -- k<=q
         if k==q then return;
@@ -180,16 +177,15 @@ LDLdecomposition = (A) -> (
         for i to n-1 do (tmp := Ah#(q,i); Ah#(q,i) = Ah#(k,i); Ah#(k,i) = tmp;);
         );
 
-    for k from 0 to n-1 do (
+    for k to n-1 do (
         q := k + maxPosition apply(k..n-1, i->Ah#(i,i));
         permuteMat(k,q);
 
         --  positive semidefinite?
         a := Ah#(k,k);
-        if a < -tol then (err = k+1; break;);
-        if a <= tol then(
-            if any(k+1..n-1, i->abs(Ah#(i,k))>tol) then (
-                err = k+1; break;);
+        if a < 0 then return (,,);
+        if a <= 0 then(
+            if any(k+1..n-1, i->abs(Ah#(i,k))>0) then return (,,);
             continue;
             );
 
@@ -207,7 +203,7 @@ LDLdecomposition = (A) -> (
     D := map(kk^n,kk^n,(i,j)->if i==j then Ah#(i,j) else 0_kk);
     P := submatrix(id_(kk^n),toList piv);
 
-    return (L,D,P,err);
+    return (L,D,P);
 )
 
 --###################################
@@ -231,8 +227,8 @@ roundPSDmatrix = (Q,A,b,d) -> (
      xp := project2linspace(A,b,x0);
      Q = vec2smat(xp);
 
-     (L,D,P,Qpsd) := LDLdecomposition(Q);
-     if Qpsd == 0 then (true, Q) else (false,Q)
+     (L,D,P) := LDLdecomposition(Q);
+     if L =!= null then (true, Q) else (false,Q)
      )
 
 --###################################
@@ -860,29 +856,30 @@ beginDocumentation()
 load "./SemidefiniteProgramming/SDPdoc.m2"
 
 --0
-TEST /// --LDLdecomposition
+TEST /// --PSDdecomposition
     debug needsPackage "SemidefiniteProgramming"
+    equal = (f1,f2) -> norm(f1-f2) < HighPrecision;
+    
     A = matrix(QQ, {{5,3,5},{3,2,4},{5,4,10}})
-    (L,D,P,err) = LDLdecomposition A
-    assert(err==0 and L*D*transpose L == transpose P * A * P)
-    (L,D,P,err) = LDLdecomposition promote(A,RR)
-    assert(err==0 and L*D*transpose L == transpose P * A * P)
+    (L,D,P) = PSDdecomposition A
+    assert(L=!=null and L*D*transpose L == transpose P * A * P)
+    (L,D,P) = PSDdecomposition promote(A,RR)
+    assert(L=!=null and equal(L*D*transpose L, transpose P * A * P))
     
     V = random(QQ^12,QQ^8)
     A = V * transpose V 
-    (L,D,P,err) = LDLdecomposition(A)
-    assert(err==0 and L*D*transpose L == transpose P * A * P)
+    (L,D,P) = PSDdecomposition(A)
+    assert(L=!=null and L*D*transpose L == transpose P * A * P)
 
-    equal = (f1,f2) -> norm(f1-f2) < MedPrecision;
     V = random(RR^12,RR^8)
     A = V * transpose V 
-    (L,D,P,err) = LDLdecomposition(A)
-    assert(err==0 and equal(L*D*transpose L, transpose P * A * P))
+    (L,D,P) = PSDdecomposition(A)
+    assert(L=!=null and equal(L*D*transpose L, transpose P * A * P))
 
     -- this matrix is not psd, but its principal minors are zero
     A = matrix(QQ,{{1,-1,1},{-1,1,1},{1,1,1}})
-    (L,D,P,err) = LDLdecomposition A
-    assert(err>0)
+    (L,D,P) = PSDdecomposition A
+    assert(L===null)
 ///
 
 --1
