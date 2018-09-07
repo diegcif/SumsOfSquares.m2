@@ -335,23 +335,6 @@ kernelGens = A -> (
 
 zeros = (kk,m,n) -> map(kk^m,kk^n,{})
 
-PSDdecomposition = A -> (
-    -- Factors a PSD matrix A = L D L^T
-    -- with D diagonal
-    kk := ring A;
-    if isExactField kk then
-        return LDLdecomposition(A);
-    if kk=!=RR and not instance(kk,RealField) then
-        error "field must be QQ or RR";
-    tol := HighPrecision;
-    (e,V) := eigenvectors(A,Hermitian=>true);
-    err := if all(e, i -> i > -tol) then 0 else 1;
-    e = max_0 \ e;
-    D := diagonalMatrix e;
-    P := id_(kk^(numRows A));
-    return (V,D,P,err);
-    )
-
 --###################################
 -- solveSOS
 --###################################

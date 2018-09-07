@@ -3,7 +3,8 @@ document {
     Key => SemidefiniteProgramming,
     Headline => "A package for solving semidefinite programs",
     "This is a package for solving semidefinite programming (SDP) problems. ",
-    "See ", TO "Solver", " for a discussion of the required SDP solvers. ",
+    "The main method of this package is ", TO "solveSDP", ". ",
+    "See ", TO "Solver", " for a discussion of the available SDP solvers. ",
     }
 
 --###################################
@@ -85,18 +86,18 @@ doc /// --smat2vec
     SeeAlso
 ///
 
-doc /// --LDLdecomposition
+doc /// --PSDdecomposition
     Key
-        LDLdecomposition
+        PSDdecomposition
     Headline
-        LDL factorization of a positive semidefinite matrix
+        factorization of a positive semidefinite matrix
     Usage
-        (L,D,P,err) = LDLdecomposition A
+        (L,D,P,err) = PSDdecomposition A
     Inputs
         A:Matrix
     Outputs
         L:Matrix
-          lower triangular
+          nonsingular
         D:Matrix
           diagonal
         P:Matrix
@@ -106,10 +107,15 @@ doc /// --LDLdecomposition
     Consequences
     Description
       Text
-        Given a positive semidefinite matrix $A$, this method returns a lower triangular matrix $L$ with ones in the diagonal, a diagonal matrix $D$ and a permutation matrix $P$ such that $L D L' = P' A P.$
+        Given a positive semidefinite matrix $A$, this method factorizes it in the form $P' A P = L D L'$,
+        where $P$ is a permutation matrix,
+        $L$ is nonsingular, 
+        $D$ is diagonal.
+        If $A$ is a real matrix, this factorization is obtained from its eigenvalue decomposition.
+        For rational matrices we use the LDL decomposition [Golub-vanLoan'89].
       Example
         A = matrix(QQ, {{5,3,5},{3,2,4},{5,4,10}})
-        (L,D,P,err) = LDLdecomposition(A)
+        (L,D,P,err) = PSDdecomposition(A)
         L*D*transpose(L) == transpose(P)*A*P
       Text
         {\bf References:}

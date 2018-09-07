@@ -24,7 +24,7 @@ newPackage(
 export {
 --Types
 --Methods/Functions
-    "LDLdecomposition",
+    "PSDdecomposition",
     "solveSDP",
     "roundPSDmatrix",
     "smat2vec",
@@ -141,6 +141,23 @@ vec2smat(List) := o -> v -> (
     return A;
     )
 vec2smat(Matrix) := o -> v -> matrix(ring v, vec2smat(flatten entries v,o))
+
+PSDdecomposition = A -> (
+    -- Factors a PSD matrix A = L D L^T
+    -- with D diagonal
+    kk := ring A;
+    if isExactField kk then
+        return LDLdecomposition(A);
+    if kk=!=RR and not instance(kk,RealField) then
+        error "field must be QQ or RR";
+    tol := HighPrecision;
+    (e,V) := eigenvectors(A,Hermitian=>true);
+    err := if all(e, i -> i > -tol) then 0 else 1;
+    e = max_0 \ e;
+    D := diagonalMatrix e;
+    P := id_(kk^(numRows A));
+    return (V,D,P,err);
+    )
 
 LDLdecomposition = (A) -> (
     -- This implements Algorithm 4.2.2 from [Golub-VanLoan-2012]
