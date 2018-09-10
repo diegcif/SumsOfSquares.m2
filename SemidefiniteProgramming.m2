@@ -30,10 +30,17 @@ export {
     "smat2vec",
     "vec2smat",
     "checkSolveSDP",
+    "changeSolver",
 --Method options
     "Solver",
     "Scaling"
 }
+
+exportMutable {
+    "csdpexec",
+    "sdpaexec",
+    "mosekexec"
+    }
 
 --##########################################################################--
 -- GLOBAL VARIABLES 
@@ -56,7 +63,7 @@ chooseDefaultSolver = execs -> (
     solvers := {"CSDP", "MOSEK", "SDPA"}; --sorted by preference
     found := for i to #solvers-1 list
         if execs#i=!=null then solvers#i else continue;
-    print if #found>0 then "Solvers found: "|demark(", ",found)
+    print if #found>0 then "Solvers configured: "|demark(", ",found)
         else "Warning: No external solver was found.";
     found = append(found,"M2");
     defaultSolver = ((options SemidefiniteProgramming).Configuration)#"DefaultSolver";
@@ -64,6 +71,17 @@ chooseDefaultSolver = execs -> (
         defaultSolver = first found;
     print("Default solver: " | defaultSolver);
     return defaultSolver;
+    )
+
+-- Change a solver path
+changeSolver = (solver, execpath) -> (
+    if solver == "CSDP" then csdpexec = execpath;
+    if solver == "SDPA" then sdpaexec = execpath;
+    if solver == "mosek" then mosekexec = execpath;
+    SemidefiniteProgramming.defaultSolver = chooseDefaultSolver(
+	csdpexec,
+	mosekexec,
+	sdpaexec)
     )
 
 csdpexec = makeGlobalPath ((options SemidefiniteProgramming).Configuration)#"CSDPexec"
