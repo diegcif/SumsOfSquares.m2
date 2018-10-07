@@ -18,7 +18,7 @@ newPackage(
     AuxiliaryFiles => true,
 --  DebuggingMode => true,
     PackageImports => {"SimpleDoc"},
-    PackageExports => {}
+    PackageExports => {"NumericalAlgebraicGeometry"}
 )
 
 export {
@@ -31,9 +31,12 @@ export {
     "vec2smat",
     "checkSolveSDP",
     "changeSolver",
+    "sdpIdeal",
 --Method options
     "Solver",
-    "Scaling"
+    "Scaling",
+    "Square",
+    "Rank"
 }
 
 exportMutable {
@@ -252,6 +255,60 @@ roundPSDmatrix = (Q,A,b,d) -> (
      )
 
 --###################################
+-- EXACT SDP
+--###################################
+
+sdpIdeal = method( Options => {CoefficientRing => null, Square=>false, Rank=>null} )
+sdpIdeal (Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
+    kk := o.CoefficientRing;
+    if kk===null then kk = ring C;
+    local x; x = symbol x;
+    local y; y = symbol y;
+    n := numRows C;
+    n2 := binomial(n+1,2);
+    m := numRows b;
+    R := kk(monoid [x_0..x_(n2-1),y_0..y_(m-1)]);
+    (C,A,b) = mat2ring_R (C,A,b);
+    -- primal/dual matrices
+    X := genericSymmetricMatrix(R,R_0,n);
+    y = drop(gens R, n2);
+    Z := C - sum(for i to m-1 list y_i * A_i);
+    -- primal feasibility
+    I1 := ideal(for i to m-1 list trace(A_i*X)-b_(i,0));
+    -- complementary slackness
+    I2 := if o.Square then ideal smat2vec entries(Z*X + X*Z)
+        else ideal flatten entries(X*Z);
+    I := I1 + I2;
+    r := o.Rank;
+    if r=!=null then
+        I = I + minors(r+1,Z) + minors(n-r+1,X);
+    y = matrix transpose {y};
+    return (I,X,y,Z);
+    )
+
+mat2ring = (R,C,A,b) -> (
+    C = promote(C,R);
+    A = apply(A, Ai -> promote(Ai,R));
+    b = promote(b,R);
+    return (C,A,b);
+    )
+
+refine(Matrix,Sequence,Matrix,Sequence) := o -> (C,A,b,X0y0) -> (
+    (X0,y0) := X0y0;
+    (J,X,y,Z) := sdpIdeal(C,A,b,Square=>true);
+    pt := smat2vec entries X0 | flatten entries y0;
+    pt' := first refine (polySystem J, {pt}, o);
+    if pt'#SolutionStatus==RefinementFailure then(
+        print "refinement failed";
+        return (X0,y0) );
+    L := coordinates pt';
+    m := numColumns y0;
+    X1 := matrix vec2smat drop(L,-m);
+    y1 := matrix transpose {take(L,-m)};
+    return (X1,y1);
+    )
+
+--###################################
 -- SOLVE SDP
 --###################################
 
@@ -264,7 +321,7 @@ solveSDP(Matrix, Matrix, Matrix, Matrix) := o -> (C,A,b,y) -> solveSDP(C,sequenc
 
 solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
     if numRows b=!=#A then error "Bad matrix dimensions.";
-    (C,A,b) = toReal(C,A,b);
+    (C,A,b) = mat2ring(RR,C,A,b);
     (ok,X,y,Z) := (,,,);
     (ok,X,y,Z) = sdpNoConstraints(C,A);
     if ok then return (X,y,Z);
@@ -309,7 +366,7 @@ findNonZeroSolution = (C,A,b,o,y,Z,ntries) -> (
     )
 
 solveSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y0) -> (
-    (C,A,b) = toReal(C,A,b);
+    (C,A,b) = mat2ring(RR,C,A,b);
     y0 = promote(y0,RR);
     (ok,X,y,Z) := (,,,);
     (ok,X,y,Z) = sdpNoConstraints(C,A);
@@ -322,13 +379,6 @@ solveSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y0) -> (
     )
 
 chooseSolver = o -> if o.Solver=!=null then o.Solver else defaultSolver
-
-toReal = (C,A,b) -> (
-    C = promote(C,RR);
-    A = apply(A, Ai -> promote(Ai,RR));
-    b = promote(b,RR);
-    return (C,A,b);
-    )
 
 -- Solve very simple SDP with no constraints
 sdpNoConstraints = (C,A) -> (

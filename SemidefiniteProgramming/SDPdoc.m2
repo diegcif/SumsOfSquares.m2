@@ -5,6 +5,7 @@ document {
     "This is a package for solving semidefinite programming (SDP) problems. ",
     "The main method of this package is ", TO "solveSDP", ". ",
     "See ", TO "Solver", " for a discussion of the available SDP solvers. ",
+    "The method ", TO2{"refine(Matrix,Sequence,Matrix,Sequence)","refine"}, " can be used to improve the precision of the solution."
     }
 
 --###################################
@@ -142,6 +143,8 @@ doc /// --solveSDP
           a symmetric $n\times n$ matrix
         A:Sequence
           consisting of $m$ symmetric $n\times n$ matrices
+        b:Matrix
+          a $m\times 1$ matrix
         y0:Matrix
           a dual feasible $m\times 1$ matrix (optional)
     Outputs
@@ -182,6 +185,100 @@ doc /// --solveSDP
 
         $\bullet$ The "M2" solver might fail if the dual problem is not strictly feasible.
     SeeAlso
+///
+
+doc /// --sdpIdeal
+    Key
+        sdpIdeal
+        (sdpIdeal,Matrix,Sequence,Matrix)
+        Square
+        [sdpIdeal,Square]
+        Rank
+        [sdpIdeal,Rank]
+    Headline
+        ideal of critical equations of a semidefinite program
+    Usage
+        (I,X,y,Z) = sdpIdeal(C,A,b)
+    Inputs
+        C:Matrix
+          a symmetric $n\times n$ matrix
+        A:Sequence
+          consisting of $m$ symmetric $n\times n$ matrices
+        b:Matrix
+          a $m\times 1$ matrix
+    Outputs
+        I:Ideal
+          of critical equations
+        X:
+          an $n\times n$ matrix, primal variable
+        y:
+          an $m\times 1$ matrix, dual variable
+        Q:
+          an $n\times n$ matrix, dual variable
+    Consequences
+    Description
+      Text
+        This method computes the ideal of critical equations of an SDP.
+        This ideal can be used to solve the SDP symbolically.
+      Example
+        C = matrix{{1/1,0,3},{0,5,0},{3,0,9}};
+        A1 = -matrix{{0,1,0},{1,0,0},{0,0,1}};
+        A2 = -matrix{{0,0,-1},{0,0,0},{-1,0,0}};
+        A3 = -matrix{{0,0,0},{0,0,1},{0,1,0}};
+        b = -matrix{{1},{1},{1}};
+        A = (A1,A2,A3);
+        (I,X,y,Z) = sdpIdeal(C,A,b);
+        degree I
+      Text
+        We can restrict the rank of the primal matrix X.
+      Example
+        (J,X,y,Z) = sdpIdeal(C,A,b,Rank=>1);
+        degree J
+      Text
+        The option Square can be used to produce a square polynomial system, with possibly larger variety.
+      Code
+      Pre
+    SeeAlso
+///
+
+doc /// --refine
+    Key
+        (refine,Matrix,Sequence,Matrix,Sequence)
+    Headline
+        refine an SDP solution
+    Usage
+        (X1,y1) = refineSolution(C,A,b,(X0,y0))
+    Inputs
+        C:Matrix
+          a symmetric $n\times n$ matrix
+        A:Sequence
+          consisting of $m$ symmetric $n\times n$ matrices
+        b:Matrix
+          a $m\times 1$ matrix
+        X0y0:
+          primal and dual solutions
+    Outputs
+        X1y1:
+          refined primal and dual solutions
+    Consequences
+    Description
+      Text
+        This function uses Newton's method to improve the precision of an optimal primal/dual pair.
+        The refined solution has relative error bounded by min(@TO ErrorTolerance@,2(-@TO Bits@)). 
+        The number of iterations made is at most @TO Iterations@.
+      Example
+        C = matrix {{1,0},{0,2}};
+        A1 = matrix {{0,1},{1,0}};
+        A = sequence(A1);
+        b = matrix {{-1}};
+        X0 = matrix {{.706989, -.5}, {-.5, .353612}}
+        y0 = matrix {{-1.41421}}
+        (X1,y1) = refine(C,A,b,(X0,y0))
+      Code
+      Pre
+    SeeAlso
+        refine
+        sdpIdeal
 ///
 
 --###################################

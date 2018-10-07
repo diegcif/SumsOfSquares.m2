@@ -182,7 +182,6 @@ doc /// -- SDPResult
        (net, SDPResult)
        GramMatrix
        MomentMatrix
-       Parameters
     Headline
        result of an SDP computation
     Description

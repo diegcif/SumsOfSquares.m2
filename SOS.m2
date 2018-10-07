@@ -41,7 +41,6 @@ export {
 --Method options
     "GramMatrix",
     "MomentMatrix",
-    "Parameters",
     "RoundTol",
     "TraceObj"
 }
@@ -1205,8 +1204,8 @@ TEST ///--toRing
     f = 0.1*x_S^2 + y^2
     g = 1/10*(symbol x)_R^2 + (symbol y)_R^2
     -- comparison in rationals is complicated:
-    residual = sum \\ abs \ (x -> lift (x,QQ)) \ flatten entries last coefficients (toRing_R f - g)
-    assert (residual < tol)
+    resid = sum \\ abs \ (x -> lift (x,QQ)) \ flatten entries last coefficients (toRing_R f - g)
+    assert (resid < tol)
     -- comparison in reals:
     assert (norm (toRing_S g - f) < tol)
 ///
