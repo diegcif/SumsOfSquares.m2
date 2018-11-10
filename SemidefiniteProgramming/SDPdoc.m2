@@ -247,7 +247,7 @@ doc /// --refine
     Headline
         refine an SDP solution
     Usage
-        (X1,y1) = refineSolution(C,A,b,(X0,y0))
+        (X1,y1) = refine(C,A,b,(X0,y0))
     Inputs
         C:Matrix
           a symmetric $n\times n$ matrix
@@ -398,17 +398,15 @@ doc ///
     Headline
       check an SDP solver
     Usage
-      checkSolveSDP (solver, applyTest)
+      checkSolveSDP (solver)
     Inputs
-        Solver:String
-	  the name of the solver to configure: CSDP, MOSEK, M2, or SDPA
-	applyTest:Function
-	  A boolean function that specifies for each integer i if the ith test should be run.
+      solver:String
+	    the name of the solver to configure: CSDP, MOSEK, M2, or SDPA
     Description
       Text
         Use this function to run some basic checks with an SDP solver
       Example
-        checkSolveSDP ("CSDP", i->true)
+        checkSolveSDP ("CSDP")
     Caveat
     SeeAlso
       Solver

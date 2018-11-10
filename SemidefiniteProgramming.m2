@@ -847,7 +847,7 @@ readMOSEK = (fout,fout2,n,Verbose) -> (
 --###################################
 
 --checkSolveSDP
-checkSolveSDP = (solver,applyTest) -> (
+checkSolveSDP = (solver) -> (
     tol := .001;
     equal := (y0,y) -> y=!=null and norm(y0-y)<tol*(1+norm(y0));
     checkZ := (C,A,y,Z) -> if y===null then false
@@ -855,7 +855,7 @@ checkSolveSDP = (solver,applyTest) -> (
     local C; local b; local A; local A1; local A2; local A3; 
     local y0; local y; local X; local Z; local yopt;
 
-    t0:= if applyTest(0) then(
+    t0:= (
         C = matrix{{0,2,0,0,0,0},{2,0,0,0,0,0},
          {0,0,10,0,0,0},{0,0,0,10,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0}};
         A1 = matrix{{-1,0,0,0,0,0},{0,0,0,0,0,0},
@@ -870,7 +870,7 @@ checkSolveSDP = (solver,applyTest) -> (
         equal(yopt,y)
         );
 
-    t1:= if applyTest(1) then(
+    t1:= (
         C = matrix {{2,1,-1},{1,0,0},{-1,0,5}};
         A1 = matrix {{0,0,1/2},{0,-1,0},{1/2,0,0}};
         A2 = matrix {{1,0,0},{0,1,0},{0,0,1}};
@@ -882,7 +882,7 @@ checkSolveSDP = (solver,applyTest) -> (
         equal(yopt,y)
         );
 
-    t2:= if applyTest(2) then(
+    t2:= (
         C = matrix{{2,2,-1,3},{2,0,0,2},{-1,0,1,0},{3,2,0,1}};
         A1 = matrix{{-1,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}};
         A2 = matrix{{0,0,0,1/2},{0,-1,0,0},{0,0,0,0},{1/2,0,0,0}};
@@ -893,7 +893,7 @@ checkSolveSDP = (solver,applyTest) -> (
         equal(yopt,y)
         );
 
-    t3:= if applyTest(3) then( -- not strictly feasible
+    t3:= ( -- not strictly feasible
         C = matrix {{2,2,-1,3},{2,0,0,2},{-1,0,1,0},{3,2,0,1}};
         A1 = matrix {{0,0,0,1/2},{0,-1,0,0},{0,0,0,0},{1/2,0,0,0}};
         A = sequence A1;
@@ -903,7 +903,7 @@ checkSolveSDP = (solver,applyTest) -> (
         equal(yopt,y)
         );
 
-    t4:= if applyTest(4) then( -- zero objective
+    t4:= ( -- zero objective
         C = matrix(RR, {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
         A1 = matrix(RR, {{1, 3/2, 3/2}, {3/2, 0, 1/2}, {3/2, 1/2, 0}});
         A2 = matrix(RR, {{0, 1/2, 3/2}, {1/2, 0, 3/2}, {3/2, 3/2, 1}});
@@ -987,8 +987,7 @@ TEST /// --solveSDP
     (X,y,Z) = solveSDP (matrix{{1,0},{0,1}},(),zeros(QQ,0,1),Solver=>"M2");
     assert(y==0);
 
-    tests := {0,1,2,4};
-    results := checkSolveSDP("M2",i->member(i,tests));
+    results := checkSolveSDP("CSDP")
     assert all(results,t->t=!=false);
 ///
 

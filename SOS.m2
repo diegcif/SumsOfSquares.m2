@@ -845,14 +845,14 @@ checkSolver(String,String) := (solver,fun) -> (
         "lowerBound" => checkLowerBound
         };
     if checkMethod#?fun then 
-        return checkMethod#fun(solver,i->true);
+        return checkMethod#fun(solver);
     if fun != "AllMethods" then
         error "No test implemented for this function";
     T := for f in keys checkMethod list(
         print "################################";
         print("checking method "|f);
         print "################################";
-        t := checkMethod#f(solver,i->true);
+        t := checkMethod#f(solver);
         informAboutTests t;
         {f, testsString t}
         );
@@ -869,13 +869,9 @@ informAboutTests = t -> (
     print("Test Results: " | testsString t);
     )
 
--- In the following methods the argument applyTest is a boolean
--- function that for i should return whether the i-th test should be
--- run.
-
 
 --checkSolveSOS
-checkSolveSOS = (solver,applyTest) -> (
+checkSolveSOS = (solver) -> (
     local x; x= symbol x;
     local y; y= symbol y;
     local z; z= symbol z;
@@ -893,27 +889,27 @@ checkSolveSOS = (solver,applyTest) -> (
         if tval===null then false else isGram(sub(f,t=>tval_(0,0)),mon,Q);
 
     ---------------GOOD CASES1---------------
-    t0:= if applyTest(0) then(
+    t0:= (
         R := QQ[x,y];
         f := 4*x^4+y^4;
         (mon,Q,X,tval) := readSdpResult solveSOS(f,Solver=>solver);
         isGram(f,mon,Q)
         );
 
-    t1:= if applyTest(1) then(
+    t1:= (
         f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
         (mon,Q,X,tval) = readSdpResult solveSOS(f,Solver=>solver);
         isGram(f,mon,Q)
         );
 
-    t2:= if applyTest(2) then(
+    t2:= (
         R = QQ[x,y,z];
         f = x^4+y^4+z^4-4*x*y*z+x+y+z+3;
         (mon,Q,X,tval) = readSdpResult solveSOS(f,Solver=>solver);
         isGram(f,mon,Q)
         );
     
-    t3:= if applyTest(3) then(
+    t3:= (
         R = QQ[x,y,z,w];
         f = 2*x^4 + x^2*y^2 + y^4 - 4*x^2*z - 4*x*y*z - 2*y^2*w + y^2 - 2*y*z + 8*z^2 - 2*z*w + 2*w^2;
         (mon,Q,X,tval) = readSdpResult solveSOS(f,Solver=>solver);
@@ -921,7 +917,7 @@ checkSolveSOS = (solver,applyTest) -> (
         );
 
     ---------------PARAMETRIC1---------------
-    t4:= if applyTest(4) then(
+    t4:= (
         R = QQ[x][t];
         f = (t-1)*x^4+1/2*t*x+1;
         (mon,Q,X,tval) = readSdpResult solveSOS (f,Solver=>solver);
@@ -929,7 +925,7 @@ checkSolveSOS = (solver,applyTest) -> (
         );
 
     ---------------QUOTIENT1---------------
-    t5:= if applyTest(5) then(
+    t5:= (
         R = QQ[x,y];
         S := R/ideal(x^2 + y^2 - 1);
         f = sub(10-x^2-y,S);
@@ -938,14 +934,14 @@ checkSolveSOS = (solver,applyTest) -> (
         );
 
     ---------------BAD CASES1---------------
-    t6:= if applyTest(6) then(
+    t6:= (
         R = QQ[x,y][t];
         f = x^4*y^2 + x^2*y^4 - 3*x^2*y^2 + 1; --Motzkin
         (mon,Q,X,tval) = readSdpResult solveSOS(f,Solver=>solver); 
         ( Q === null )
         );
 
-    t7:= if applyTest(7) then(
+    t7:= (
         (mon,Q,X,tval) = readSdpResult solveSOS(f-t,-t, Solver=>solver); 
         ( Q === null )
         );
@@ -955,7 +951,7 @@ checkSolveSOS = (solver,applyTest) -> (
     )
 
 -- check sosdecTernary
-checkSosdecTernary = (solver,applyTest) -> (
+checkSosdecTernary = (solver) -> (
     local x; x= symbol x;
     local y; y= symbol y;
     local z; z= symbol z;
@@ -966,21 +962,21 @@ checkSosdecTernary = (solver,applyTest) -> (
         return isZero(LowPrecision, d);
         );
 
-    t0:= if applyTest(0) then(
+    t0:= (
         R:= QQ[x,y,z];
         f := x^6 + y^6 +z^6;
         (p,q) := sosdecTernary (f, Solver=>solver);
         cmp(f,p,q)
         );
 
-    t1:= if applyTest(1) then(
+    t1:= (
         R = QQ[x,y,z];
         f = x^4*y^2 + x^2*y^4 + z^6 - 4*x^2 *y^2 * z^2;
         (p,q) = sosdecTernary (f, Solver=>solver);
         (p===null)
         );
 
-    t2:= if applyTest(2) then(
+    t2:= (
         R = RR[x,y,z];
         f = x^4*y^2 + x^2*y^4 + z^6 - 3*x^2 *y^2 * z^2; --Motzkin
         (p,q) = sosdecTernary (f, Solver=>solver);
@@ -992,7 +988,7 @@ checkSosdecTernary = (solver,applyTest) -> (
 
 
 -- check sosInIdeal
-checkSosInIdeal = (solver,applyTest) -> (
+checkSosInIdeal = (solver) -> (
     local x; x= symbol x;
     local y; y= symbol y;
     local z; z= symbol z;
@@ -1004,7 +1000,7 @@ checkSosInIdeal = (solver,applyTest) -> (
         return isZero(MedPrecision, d);
         );
 
-    t0:= if applyTest(0) then(
+    t0:= (
         R:= QQ[x];
         h:= matrix {{x+1}};
         (sol,mult) = sosInIdeal (h,2, Solver=>solver);
@@ -1012,7 +1008,7 @@ checkSosInIdeal = (solver,applyTest) -> (
         cmp(h,s,mult)
         );
     
-    t1:= if applyTest(1) then( --similar to test0
+    t1:= ( --similar to test0
         R= RR[x];
         h= matrix {{x+1}};
         (sol,mult) = sosInIdeal (h,4, Solver=>solver);
@@ -1020,7 +1016,7 @@ checkSosInIdeal = (solver,applyTest) -> (
         cmp(h,s,mult)
         );
 
-    t2:= if applyTest(2) then(
+    t2:= (
         R = RR[x,y,z];
         h = matrix {{x-y, x+z}};
         (sol,mult) = sosInIdeal (h,2, Solver=>solver);
@@ -1028,7 +1024,7 @@ checkSosInIdeal = (solver,applyTest) -> (
         cmp(h,s,mult)
         );
 
-    t3:= if applyTest(3) then( --similar to test 2
+    t3:= ( --similar to test 2
         R = RR[x,y,z];
         h = matrix {{x-y, x+z}};
         (sol,mult) = sosInIdeal (h,6, Solver=>solver);
@@ -1037,7 +1033,7 @@ checkSosInIdeal = (solver,applyTest) -> (
         );
 
     -----------------QUOTIENT1-----------------
-    t4:= if applyTest(4) then(
+    t4:= (
         R = QQ[x,y,z]/ideal {x^2+y^2+y, y-z^2};
         s = sosPoly sosInIdeal (R,2,Solver=>solver);
         s=!=null and sumSOS s==0
@@ -1048,7 +1044,7 @@ checkSosInIdeal = (solver,applyTest) -> (
 
 
 -- check lowerBound
-checkLowerBound = (solver,applyTest) -> (
+checkLowerBound = (solver) -> (
     tol := 0.001;
     local x; x= symbol x;
     local y; y= symbol y;
@@ -1066,28 +1062,28 @@ checkLowerBound = (solver,applyTest) -> (
         );
 
     --------------UNCONSTRAINED1--------------
-    t0:= if applyTest(0) then(
+    t0:= (
         R := QQ[x];
         f := (x-1)^2 + (x+3)^2;
         (bound,sol) := lowerBound(f, Solver=>solver);
         equal(bound,8)
         );
 
-    t1:= if applyTest(1) then(
+    t1:= (
         R = RR[x,y];
         f = (x-pi*y)^2 + x^2 + (y-4)^2;
         (bound,sol) = lowerBound(f, Solver=>solver);
         equal(bound,16*pi^2/(2+pi^2))
         );
 
-    t2:= if applyTest(2) then(
+    t2:= (
         R = QQ[x,z];
         f = x^4+x^2+z^6-3*x^2*z^2;
         (bound,sol) = lowerBound (f,Solver=>solver,RoundTol=>infinity);
         equal(bound,-.17798)
         );
 
-    t3:= if applyTest(3) then( --rational function
+    t3:= ( --rational function
         R = QQ[x];
         f = (x^2-x)/(x^2+1);
         (bound,sol) = lowerBound(f, Solver=>solver, RoundTol=>infinity);
@@ -1095,7 +1091,7 @@ checkLowerBound = (solver,applyTest) -> (
         );
 
     ---------------CONSTRAINED1---------------
-    t4:= if applyTest(4) then(
+    t4:= (
         R = RR[x,y];
         f = y;
         h := matrix {{y-pi*x^2}};
@@ -1104,7 +1100,7 @@ checkLowerBound = (solver,applyTest) -> (
         equal(bound,0) and cmp(f,h,bound,mon,Q,mult)
         );
 
-    t5:= if applyTest(5) then(
+    t5:= (
         R = QQ[x,y,z];
         f = z;
         h = matrix {{x^2 + y^2 + z^2 - 1}};
@@ -1114,7 +1110,7 @@ checkLowerBound = (solver,applyTest) -> (
         );
 
     -----------------QUOTIENT1-----------------
-    t6:= if applyTest(6) then(
+    t6:= (
         R = QQ[x,y];
         I := ideal (x^2 - x);
         S := R/I;
@@ -1304,30 +1300,28 @@ TEST ///--recoverSolution
 --10
 TEST /// --solveSOS
     debug needsPackage "SOS"
-    results := checkSolveSOS("M2",i->true)
+    results := checkSolveSOS("CSDP")
     assert all(results,t->t=!=false);
 ///
 
 --11
 TEST /// --lowerBound
     debug needsPackage "SOS"
-    tests := set{0,1,2,4,5,6};
-    results := checkLowerBound("M2",i->member(i,tests))
+    results := checkLowerBound("CSDP")
     assert all(results,t->t=!=false);
 ///
 
 --12
--- Run all checks with CSDP
-TEST ///
+TEST /// --sosInIdeal
     debug needsPackage "SOS"
-    results := checkLowerBound("CSDP", i->true);
-    assert (unique results == {true});
-    results = checkSolveSOS("CSDP", i->true);
-    assert (unique results == {true});
-    results = checkSosInIdeal("CSDP", i->true);
-    assert (unique results == {true});
-    results = checkSolveSDP("CSDP", i->true);
-    assert (unique results == {true});
-    results = checkSosdecTernary("CSDP", i->true);
-    assert (unique results == {true});
+    results := checkSosInIdeal("CSDP")
+    assert all(results,t->t=!=false);
 ///
+
+--13
+TEST /// --sosdecTernary
+    debug needsPackage "SOS"
+    results := checkSosdecTernary("CSDP")
+    assert all(results,t->t=!=false);
+///
+
