@@ -31,6 +31,7 @@
 
 \newcommand{\Mac}{Macaulay2\xspace}
 \newcommand{\SOS}{\textsc{SOS}\xspace}
+\newcommand{\SDP}{\textsc{SemidefiniteProgramming}\xspace}
 
 \newcommand{\QQ}{\mathbb{Q}}
 \newcommand{\RR}{\mathbb{R}}
@@ -38,7 +39,7 @@
 
 \begin{document}
 
-\title[SOS.m2]{Sums of squares in Macaulay2}
+\title[SOS.m2]{Sums of squares in \Mac}
 
 \author{Diego Cifuentes}
 \address{Massachusetts Institute of Technology \\ Cambridge, MA, USA}
@@ -55,7 +56,7 @@
 
 \begin{abstract}
   The package \SOS implements sums of squares (SOS) decompositions in
-  Macaulay2.  
+  \Mac.
   It is based on methods to rationalize SOS decompositions due to Parrilo and Peyrl.
   The package features a data type for SOS decompositions, support for external SDP solvers, and optimization over varieties.
 \end{abstract}
@@ -73,7 +74,7 @@ Clearly, an SOS polynomial is nonnegative, but not every nonnegative polynomial 
 Classically, Hilbert characterized in which cases sums of squares coincide with nonnegative polynomials as univariate polynomials, quadratic polynomials and bivariate quartics.  
 For an introduction to the area we recommend~\cite{scheiderer2009positivity,blekherman2012semidefinite}.
 
-The purpose of the \SOS package is to deal with sums of squares in Macaulay2.
+The purpose of the \SOS package is to deal with sums of squares in \Mac.
 A particular focus is on trying to find rational SOS decompositions of polynomials with rational coefficients (whenever they exist).
 
 The package contains the data type \verb|SOSPoly| to store and process SOS decompositions.
@@ -86,7 +87,7 @@ i2 : f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
 i3 : sosPoly solveSOS f
 Executing CSDP
 Status: SDP solved, primal-dual feasible
-o3 = coeffs: {5, 43/20, 231773/344000}              
+o3 = coeffs: {5, 43/20, 231773/344000}
      gens: {- 83/200 x^2  + y^2 , 20/43 x^2  + x*y, x^2 }
 \end{verbatim}
 }
@@ -94,7 +95,9 @@ o3 = coeffs: {5, 43/20, 231773/344000}
 This output has been reformatted for the paper, but contains the same information as the actual output.
 The type \verb|SOSPoly| stores the coefficients $\lambda_{i}$ (under \verb|coeffs|) and polynomials $f_{i}$ (under \verb|gens|) such that $f = \sum_{i}\lambda_{i}f_{i}^{2}$.
 
-In the above example the package is configured to use the SDP solver CSDP which is called by \verb|solveSOS|.
+In the above example the package is configured to use the SDP solver CSDP~\cite{borchers1999csdp}.
+It comes with \Mac and is the default.
+The function \verb|solveSOS| calls an SDP solver in the background.
 The SOS decomposition of the input polynomial solves an SDP numerically and then rounds the result to obtain a rational SOS decomposition~\cite{peyrl2008computing}.
 The return value of \verb|solveSOS| is an object \verb|SDPResult| which contains details about the numerical computation.
 Then \verb|sosPoly| extracts the SOS.
@@ -103,15 +106,15 @@ In this case there are three squares:
   f = 5(-\tfrac{83}{200} x^{2}+y^{2})^{2} + \tfrac{43}{20}
   (\tfrac{20}{43}x^{2} + xy)^{2} + \tfrac{231773}{344000} (x^{2})^{2}.
 \]
-This decomposition is not the simplest one, but it is fully rational. 
+This decomposition is not the simplest one, but it is fully rational.
 Simplifications can be done in post-processing.
 
 The package also allows to compute SOS decompositions in quotient rings.
-This can be useful to prove nonnegativity of a polynomial on a variety.  
-The following example is taken from~\cite{parrilo2005exploiting}.  
+This can be useful to prove nonnegativity of a polynomial on a variety.
+The following example is taken from~\cite{parrilo2005exploiting}.
 Consider the problem of proving that the polynomial $f = 10{-}x^2{-}y$ is nonnegative on the circle defined by $g = x^2 {+} y^2 {-} 1$.
 To do this we check if the image of $f$ in $\QQ[x,y]/g$ is a sum-of-squares.
-For such a computation, a degree bound must be given by the user as it is not a priori obvious how to choose a monomial basis.
+For such a computation, a degree bound must be given by the user as it is not a priori obvious how to choose a monomial basis in which to run the SDP computations.
 This is the second argument to \verb|solveSOS| in the following example.
 {\small
 \begin{verbatim}
@@ -120,8 +123,8 @@ i2 : f = 10-x^2-y;
 i3 : sosPoly solveSOS (f, 2, TraceObj=>true)
 Executing CSDP
 Status: SDP solved, primal-dual feasible
-o3 = coeffs: {9, 35/36}      
-     gens: {- 1/18 y + 1, y} 
+o3 = coeffs: {9, 35/36}
+     gens: {- 1/18 y + 1, y}
 \end{verbatim}
 }
 \noindent
@@ -173,7 +176,7 @@ We can obtain this decomposition by iteratively calling \verb|sosInIdeal|.
 Specifically, one can first find a multiplier $q_{1}$ such that $q_{1}f$ is SOS.
 Since $q_1$ is also nonnegative, we can then search for a multiplier $p_{1}$ such that $p_{1}q_{1}$ is SOS, and so on.
 The main observation is that the necessary degree of $p_{1}$ is lower than that of $q_{1}$~\cite{de2004products}.
-Hence this procedure terminates, and we can write 
+Hence this procedure terminates, and we can write
 \[
   f = \frac{p_{1}\cdots p_{s}}{q_{1}\cdots q_{t}} \qquad \text {
     $p_{i},q_{i}$ SOS}.
@@ -190,7 +193,7 @@ o2 = x y  + x y  - 3x y z  + z
 \end{verbatim}
 }
 
-\noindent 
+\noindent
 We now apply the function \verb|sosdecTernary|, which implements the iterative algorithm from above.
 {\small
 \begin{verbatim}
@@ -325,12 +328,14 @@ o7 = {x => 1.77345e-9, y => 1}
 \label{s:arguments}
 
 \subsection*{SDP Solver}
-The \SOS package relies on numerical SDP solvers for SOS decompositions.  
-While it does have a built in solver in the \Mac language, larger examples require an external solver.
-At the moment the package has interfaces to the open source solvers CSDP~\cite{borchers1999csdp} and SDPA~\cite{yamashita2003implementation}, and the commercial solver MOSEK~\cite{mosek}.
+The \SOS package relies on numerical SDP solvers for SOS decompositions.
+These solvers are interfaced via an auxiliary Macaulay2 package \SDP.
+This package does have a built in solver in the \Mac language, but larger examples require an external solver.
+The package provides interfaces to the open source solvers CSDP~\cite{borchers1999csdp} and SDPA~\cite{yamashita2003implementation}, and the commercial solver MOSEK~\cite{mosek}.
 In our experience CSDP and MOSEK give the best results.
-The solver can be specified with the optional argument \verb|Solver|.
-We refer to the package documentation for further information.
+CSDP is provided as part of \Mac and configured as the default.
+A different solver can be configured with \verb|changeSolver|.
+% We refer to the package documentation for further information.
 
 \subsection*{Rounding tolerance}
 The method \verb|lowerBound| has the optional argument \verb|RoundTol|, which specifies the precision of the rational rounding.
@@ -352,9 +357,11 @@ Thomas Kahle is supported by the German Research Foundation under grant 31483817
 \bibliographystyle{amsplain}
 \bibliography{sos}
 
-\end{document}  
+\end{document}
 
 %%% Local Variables:
-%%% mode: latex
 %%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% eval: (auto-fill-mode -1)
+%%% mode: latex
 %%% End:
