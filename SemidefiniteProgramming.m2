@@ -16,27 +16,27 @@ newPackage(
     Headline => "Semidefinite Programming Package",
     Configuration => {"CSDPexec"=>"","MOSEKexec"=>"mosek","SDPAexec"=>"sdpa","DefaultSolver"=>null},
     AuxiliaryFiles => true,
---  DebuggingMode => true,
+    DebuggingMode => true,
     PackageImports => {"SimpleDoc"},
     PackageExports => {"NumericalAlgebraicGeometry"}
 )
 
 export {
 --Types
+    "SDP",
 --Methods/Functions
+    "sdp",
     "PSDdecomposition",
-    "solveSDP",
+    "optimize",
     "roundPSDmatrix",
     "smat2vec",
     "vec2smat",
-    "checkSolveSDP",
+    "checkOptimize",
     "changeSolver",
-    "sdpIdeal",
+    "criticalIdeal",
 --Method options
     "Solver",
-    "Scaling",
-    "Square",
-    "Rank"
+    "Scaling"
 }
 
 exportMutable {
@@ -109,6 +109,26 @@ MedPrecision = 1e-6 --e.g. for SDP solutions
 --##########################################################################--
 -- TYPES
 --##########################################################################--
+
+SDP = new Type of HashTable
+
+sdp = method()
+sdp (Matrix, Sequence, Matrix) := (C, A, b) -> (
+    kk := if isExactField ring C then QQ else RR;
+    checkMat := (dims,M) -> (
+        if dims!={numrows M,numcols M} then error "Bad matrix dimensions.";
+        return sub(M,kk);
+        );
+    n := numrows C;
+    C = checkMat_{n,n} C;
+    A = checkMat_{n,n} \ A;
+    b = checkMat_{#A,1} b;
+    return sdp0(C,A,b);
+    )
+sdp (Matrix, Matrix, Matrix) := (C, A, b) -> sdp(C,sequence A,b)
+sdp0 = (C,A,b) -> new SDP from { "C" => C, "A" => A, "b" => b }
+
+ring SDP := P -> ring P#"C";
 
 --##########################################################################--
 -- METHODS
@@ -258,10 +278,13 @@ roundPSDmatrix = (Q,A,b,d) -> (
 -- EXACT SDP
 --###################################
 
-sdpIdeal = method( Options => {CoefficientRing => null, Square=>false, Rank=>null} )
-sdpIdeal (Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
-    kk := o.CoefficientRing;
-    if kk===null then kk = ring C;
+criticalIdeal = method()
+criticalIdeal(SDP) := (P) -> rawCriticalIdeal(P,,false)
+criticalIdeal(SDP,ZZ) := (P,Rank) -> rawCriticalIdeal(P,Rank,false)
+
+rawCriticalIdeal = (P,Rank,Square) -> (
+    (C,A,b) := (P#"C",P#"A",P#"b");
+    kk := ring P;
     local x; x = symbol x;
     local y; y = symbol y;
     n := numRows C;
@@ -276,10 +299,10 @@ sdpIdeal (Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
     -- primal feasibility
     I1 := ideal(for i to m-1 list trace(A_i*X)-b_(i,0));
     -- complementary slackness
-    I2 := if o.Square then ideal smat2vec entries(Z*X + X*Z)
+    I2 := if Square then ideal smat2vec entries(Z*X + X*Z)
         else ideal flatten entries(X*Z);
     I := I1 + I2;
-    r := o.Rank;
+    r := Rank;
     if r=!=null then
         I = I + minors(r+1,Z) + minors(n-r+1,X);
     y = matrix transpose {y};
@@ -293,9 +316,9 @@ mat2ring = (R,C,A,b) -> (
     return (C,A,b);
     )
 
-refine(Matrix,Sequence,Matrix,Sequence) := o -> (C,A,b,X0y0) -> (
+refine(SDP,Sequence) := o -> (P,X0y0) -> (
     (X0,y0) := X0y0;
-    (J,X,y,Z) := sdpIdeal(C,A,b,Square=>true);
+    (J,X,y,Z) := rawCriticalIdeal(P,,true);
     pt := smat2vec entries X0 | flatten entries y0;
     pt' := first refine (polySystem J, {pt}, o);
     if pt'#SolutionStatus==RefinementFailure then(
@@ -312,15 +335,11 @@ refine(Matrix,Sequence,Matrix,Sequence) := o -> (C,A,b,X0y0) -> (
 -- SOLVE SDP
 --###################################
 
-solveSDP = method(
+optimize = method(
      Options => {Solver=>null, Verbose => false} )
 
-solveSDP(Matrix, Matrix, Matrix) := o -> (C,A,b) -> solveSDP(C,sequence A,b,o)
-
-solveSDP(Matrix, Matrix, Matrix, Matrix) := o -> (C,A,b,y) -> solveSDP(C,sequence A,b,y,o)
-
-solveSDP(Matrix, Sequence, Matrix) := o -> (C,A,b) -> (
-    if numRows b=!=#A then error "Bad matrix dimensions.";
+optimize(SDP) := o -> P -> (
+    (C,A,b) := (P#"C",P#"A",P#"b");
     (C,A,b) = mat2ring(RR,C,A,b);
     (ok,X,y,Z) := (,,,);
     (ok,X,y,Z) = sdpNoConstraints(C,A);
@@ -357,7 +376,7 @@ findNonZeroSolution = (C,A,b,o,y,Z,ntries) -> (
         if #badCoords==m then break;
         b' := map(RR^m,RR^1, (j,l) -> 
             if member(j,badCoords) then 0 else random(RR)-.5 );
-        (X',y',Z') := solveSDP(C,A,b',o);
+        (X',y',Z') := optimize(sdp0(C,A,b'),o);
         if Z'=!=null and not iszero Z' then return (y',Z');
         if X'===null and y'=!=null and (transpose(-b') * y')_(0,0) < -.1 then
             badCoords = badCoords + set select(0..m-1, j -> not iszero y'_(j,0));
@@ -365,13 +384,14 @@ findNonZeroSolution = (C,A,b,o,y,Z,ntries) -> (
     return (y,Z);
     )
 
-solveSDP(Matrix, Sequence, Matrix, Matrix) := o -> (C,A,b,y0) -> (
+optimize(SDP, Matrix) := o -> (P,y0) -> (
+    (C,A,b) := (P#"C",P#"A",P#"b");
     (C,A,b) = mat2ring(RR,C,A,b);
     y0 = promote(y0,RR);
     (ok,X,y,Z) := (,,,);
     (ok,X,y,Z) = sdpNoConstraints(C,A);
     if ok then return (X,y,Z);
-    if chooseSolver o != "M2" then return solveSDP(C,A,b,o);
+    if chooseSolver o != "M2" then return optimize(P,o);
     (ok,X,y,Z) = trivialSDP(C,A,b);
     if ok then return (X,y,Z);
     (y,Z) = simpleSDP2(C,A,b,y0,false,Verbose=>o.Verbose);
@@ -846,8 +866,8 @@ readMOSEK = (fout,fout2,n,Verbose) -> (
 -- Methods for testing
 --###################################
 
---checkSolveSDP
-checkSolveSDP = (solver) -> (
+--checkOptimize
+checkOptimize = (solver) -> (
     tol := .001;
     equal := (y0,y) -> y=!=null and norm(y0-y)<tol*(1+norm(y0));
     checkZ := (C,A,y,Z) -> if y===null then false
@@ -865,7 +885,7 @@ checkSolveSDP = (solver) -> (
         A = (A1,A2);
         y0 = matrix{{7},{9}};
         b = matrix{{-1},{-1}};
-        (X,y,Z) = solveSDP(C,A,b,y0,Solver=>solver);
+        (X,y,Z) = optimize(sdp0(C,A,b),y0,Solver=>solver);
         yopt = matrix{{2.},{2.}};
         equal(yopt,y)
         );
@@ -877,7 +897,7 @@ checkSolveSDP = (solver) -> (
         A = (A1,A2);
         b = matrix {{0},{1}};
         y0 = matrix {{0},{-.486952}};
-        (X,y,Z) = solveSDP(C,A,b,y0,Solver=>solver);
+        (X,y,Z) = optimize(sdp0(C,A,b),y0,Solver=>solver);
         yopt = matrix{{1.97619},{.466049}};
         equal(yopt,y)
         );
@@ -888,7 +908,7 @@ checkSolveSDP = (solver) -> (
         A2 = matrix{{0,0,0,1/2},{0,-1,0,0},{0,0,0,0},{1/2,0,0,0}};
         A = (A1,A2);
         b = matrix{{-1},{0}};
-        (X,y,Z) = solveSDP(C,A,b,Solver=>solver);
+        (X,y,Z) = optimize(sdp0(C,A,b),Solver=>solver);
         yopt = matrix{{0.},{4.}};
         equal(yopt,y)
         );
@@ -898,7 +918,7 @@ checkSolveSDP = (solver) -> (
         A1 = matrix {{0,0,0,1/2},{0,-1,0,0},{0,0,0,0},{1/2,0,0,0}};
         A = sequence A1;
         b = matrix {{-1}};
-        (X,y,Z) = solveSDP(C,A,b,Solver=>solver);
+        (X,y,Z) = optimize(sdp0(C,A,b),Solver=>solver);
         yopt = 4.;
         equal(yopt,y)
         );
@@ -910,7 +930,7 @@ checkSolveSDP = (solver) -> (
         A3 = matrix(RR, {{0, 0, 1/2}, {0, -1, 0}, {1/2, 0, 0}});
         A = (A1,A2,A3);
         b = matrix(RR, {{0}, {0}, {0}});
-        (X,y,Z) = solveSDP(C, A, b, Solver=>solver);
+        (X,y,Z) = optimize(sdp0(C,A,b), Solver=>solver);
         checkZ(C,A,y,Z)
         );
 
@@ -978,16 +998,18 @@ TEST /// --roundPSDmatrix
 ///
 
 --2
-TEST /// --solveSDP
+TEST /// --optimize
     debug needsPackage "SemidefiniteProgramming"
 
     -- trivial cases (solved in preprocessing)
-    (X,y,Z) = solveSDP (matrix{{1,0},{0,-1}},(),zeros(QQ,0,1),Solver=>"M2");
+    P = sdp0(matrix{{1,0},{0,-1}},(),zeros(QQ,0,1));
+    (X,y,Z) = optimize(P,Solver=>"M2");
     assert(y===null and X===null);
-    (X,y,Z) = solveSDP (matrix{{1,0},{0,1}},(),zeros(QQ,0,1),Solver=>"M2");
+    P = sdp0(matrix{{1,0},{0,1}},(),zeros(QQ,0,1));
+    (X,y,Z) = optimize(P,Solver=>"M2");
     assert(y==0);
 
-    results := checkSolveSDP("CSDP")
+    results := checkOptimize("CSDP")
     assert all(results,t->t=!=false);
 ///
 

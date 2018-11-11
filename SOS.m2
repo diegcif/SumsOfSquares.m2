@@ -19,7 +19,7 @@ newPackage(
     },
     Headline => "Sum-of-Squares Package",
     AuxiliaryFiles => true,
---  DebuggingMode => true,
+    DebuggingMode => true,
     PackageImports => {"SimpleDoc","FourierMotzkin"},
     PackageExports => {"SemidefiniteProgramming"}
 )
@@ -381,13 +381,13 @@ rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
 
     obj := 
         if o.TraceObj then
-            map(RR^(#Ai),RR^1,(i,j)-> trace Ai#i)
+            map(kk^(#Ai),kk^1,(i,j)-> trace Ai#i)
         else
             (transpose V * objP); 
     if obj==0 then verbose( "Solving SOS feasibility problem...", o)
     else verbose("Solving SOS optimization problem...", o);
 
-    (X,my,Q) := solveSDP(C, Ai, obj, Solver=>o.Solver, Verbose=>o.Verbose);
+    (X,my,Q) := optimize(sdp(C,Ai,obj), Solver=>o.Solver, Verbose=>o.Verbose);
     if Q===null then return sdpResult(mon,Q,X,);
     y := -my;
     pVec0 := (p0 + V*y);
@@ -838,7 +838,7 @@ lowerBound(RingElement,Matrix,ZZ) := o -> (f,h,D) -> (
 checkSolver = method()
 checkSolver(String,String) := (solver,fun) -> (
     checkMethod := hashTable {
-        "solveSDP" => checkSolveSDP,
+        "optimize" => checkOptimize,
         "solveSOS" => checkSolveSOS,
         "sosdecTernary" => checkSosdecTernary,
         "sosInIdeal" => checkSosInIdeal,
