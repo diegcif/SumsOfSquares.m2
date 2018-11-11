@@ -1013,3 +1013,23 @@ TEST /// --optimize
     assert all(results,t->t=!=false);
 ///
 
+--3
+TEST /// --criticalIdeal
+    A = (-matrix{{0,1,0},{1,0,0},{0,0,1}}, matrix{{0,0,1},{0,0,0},{1,0,0}}, -matrix{{0,0,0},{0,0,1},{0,1,0}});
+    (C, b) = (matrix{{1/1,0,3},{0,5,0},{3,0,9}}, matrix{{-1},{-1},{-1}});
+    P = sdp(C,A,b);
+    (I,X,y,Z) = criticalIdeal P;
+    assert(degree I==6);
+    (I,X,y,Z) = criticalIdeal(P, 1);
+    assert(degree I==4);
+///
+
+--4
+TEST /// --refine
+    debug needsPackage "SemidefiniteProgramming"
+    tol = HighPrecision;
+    P = sdp(matrix{{1,0},{0,2}}, matrix{{0,1},{1,0}}, matrix{{-1}});
+    (X0,y0) = (matrix{{.71, -.5}, {-.5, .35}}, matrix{{-1.41}})
+    (X1,y1) = refine(P,(X0,y0))
+    assert(norm(y1+sqrt 2)<tol)
+///
