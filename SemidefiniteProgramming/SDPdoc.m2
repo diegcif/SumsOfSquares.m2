@@ -393,7 +393,7 @@ document { --Solver
        needsPackage ("SemidefiniteProgramming", Configuration=>{"MOSEKexec"=>"/some/path/mosek"});
     ///,
     "A third method is to use the function ", TO changeSolver, ". ",
-    "After configuring, the method ", TO "checkSolver", " can be used to check if a solver works.",
+    "After configuring, the method ", TO "checkOptimize", " can be used to check if a solver works.",
     BR{},
     BR{},
 
