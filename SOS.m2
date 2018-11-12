@@ -1045,7 +1045,7 @@ checkSosInIdeal = (solver) -> (
 
 -- check lowerBound
 checkLowerBound = (solver) -> (
-    tol := 0.001;
+    tol := LowPrecision;
     local x; x= symbol x;
     local y; y= symbol y;
     local z; z= symbol z;
