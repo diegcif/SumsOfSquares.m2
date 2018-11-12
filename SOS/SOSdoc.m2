@@ -126,7 +126,7 @@ doc /// --SOSPoly
       Text
         A polynomial $f\in K[x]$ is a sum-of-squares (SOS) if it can be written as
         $$f = \sum_i d_i g_i^2,$$
-        where the $g_i$ are polynomials in $K[x]$ and the $d_i$ are weights in $K$.
+        where the $g_i$ are polynomials in $K[x]$ and the $d_i$ are positive weights in $K$.
         This data type stores SOS polynomials in terms of the summands.
         The type is a hash table consisting of the polynomials to be
         squared and summed (the 'generators'), corresponding coefficients,
@@ -165,9 +165,9 @@ doc /// --SOSPoly
       Example
         sumSOS s
       Text
-        @TO SOSPoly@ supports the @TO substitute@ command.  This
-        cannot be used to change the coefficient field, though.  See @TO "Coefficients"@ for some
-	of the limitations.
+        @TO SOSPoly@ supports the @TO substitute@ command.  
+        This cannot be used to change the coefficient field, though.  
+        See @TO "coefficients field"@ for some of the limitations.
       Example
         S = QQ[x,y,z];
         sub (s, S)
