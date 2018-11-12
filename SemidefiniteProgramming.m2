@@ -1,7 +1,7 @@
 newPackage(
     "SemidefiniteProgramming",
-    Version => "0.1",
-    Date => "September 2018",
+    Version => "0.2",
+    Date => "November 2018",
     Authors => {
      {Name => "Diego Cifuentes",
       Email => "diegcif@mit.edu",
@@ -11,7 +11,10 @@ newPackage(
       HomePage => "https://thomas-kahle.de/"},
      {Name => "Pablo A. Parrilo",
       Email => "parrilo@mit.edu",
-      HomePage => "http://www.mit.edu/~parrilo/"}
+      HomePage => "http://www.mit.edu/~parrilo/"},
+     {Name => "Helfried Peyrl",
+      Email => "peyrl@control.ee.ethz.ch",
+      HomePage => "https://scholar.google.com/citations?user=cFOV7nYAAAAJ&hl=de"}
     },
     Headline => "Semidefinite Programming Package",
     Configuration => {"CSDPexec"=>"","MOSEKexec"=>"mosek","SDPAexec"=>"sdpa","DefaultSolver"=>null},
@@ -126,6 +129,7 @@ sdp (Matrix, Sequence, Matrix) := (C, A, b) -> (
     return sdp0(C,A,b);
     )
 sdp (Matrix, Matrix, Matrix) := (C, A, b) -> sdp(C,sequence A,b)
+-- Internal constructor that runs no checks:
 sdp0 = (C,A,b) -> new SDP from { "C" => C, "A" => A, "b" => b }
 
 ring SDP := P -> ring P#"C";

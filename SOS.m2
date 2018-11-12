@@ -1,7 +1,7 @@
 newPackage(
     "SOS",
     Version => "2.0",
-    Date => "September 2018",
+    Date => "November 2018",
     Authors => {
      {Name => "Diego Cifuentes",
       Email => "diegcif@mit.edu",
@@ -12,7 +12,7 @@ newPackage(
      {Name => "Pablo A. Parrilo",
       Email => "parrilo@mit.edu",
       HomePage => "http://www.mit.edu/~parrilo/"},
-     {Name => "Helfried Peyrl", 
+     {Name => "Helfried Peyrl",
       Email => "peyrl@control.ee.ethz.ch",
       HomePage => "https://scholar.google.com/citations?user=cFOV7nYAAAAJ&hl=de"},
      {Name => "Special thanks: Ilir Dema, Nidhi Kaihnsa, Anton Leykin"}
@@ -20,7 +20,7 @@ newPackage(
     Headline => "Sum-of-Squares Package",
     AuxiliaryFiles => true,
     DebuggingMode => true,
-    PackageImports => {"SimpleDoc","FourierMotzkin"},
+    PackageImports => {"SimpleDoc","FourierMotzkin","SemidefiniteProgramming"},
     PackageExports => {"SemidefiniteProgramming"}
 )
 
