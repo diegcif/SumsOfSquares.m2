@@ -83,7 +83,7 @@ doc /// --coefficients field
         When calling such a solver, even if the input was a polynomial with rational coefficients, the result is numerical.  
         The package makes some effort to round and return a rational result, but this can fail, independent of whether a rational SOS decomposition exists or not.
         In this case of failure, a real result is returned.
-        The following example of Scheiderer is SOS, but does not admit any rational SOS decomposition.  Consequently the package must return a real solution:,
+        The following example of Scheiderer is SOS, but does not admit any rational SOS decomposition.  Consequently the package must return a real solution:
       Example
         f = library("Scheiderer", QQ[x,y,z])
         sol = solveSOS (f, Solver=>"CSDP");
@@ -193,7 +193,7 @@ doc /// -- SDPResult
         sol = solveSOS (f, -t, RoundTol=>12)
         peek sol
       Text
-        The fields can be extracted with the operator "#"
+        The fields can be extracted with the operator @TO "#"@
       Example
         sol#GramMatrix
       Text
