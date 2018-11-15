@@ -34,13 +34,13 @@ solsSDP (Matrix,RingElement) := (M',obj') -> (
 -- Perhaps using a GB is better?
 -- solveSystem(flatten entries gens gb I)
 
---QQ[a,b,c]
---M = matrix {{1,a,3-b},{a,5,c},{3-b,c,9+a}} ;
---obj = a+b+c ;
---I = solveSDP(M,obj)
+QQ[a,b,c]
+M = matrix {{1,a,3-b},{a,5,c},{3-b,c,9+a}} ;
+obj = a+b+c ;
+I = solsSDP(M,obj)
 
 --QQ[a,b]
 --M = matrix {{1,a,b},{a,1,0},{b,0,1}}
 --obj = a+b
---solveSDP(M,obj)
+--solsSDP(M,obj)
 

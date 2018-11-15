@@ -929,7 +929,7 @@ checkSolveSOS = (solver) -> (
         R = QQ[x,y];
         S := R/ideal(x^2 + y^2 - 1);
         f = sub(10-x^2-y,S);
-        (mon,Q,X,tval) = readSdpResult solveSOS (f, 2, TraceObj=>true);
+        (mon,Q,X,tval) = readSdpResult solveSOS (f, 2, TraceObj=>true, Solver=>solver);
         isGram(f,mon,Q) and rank Q == 2
         );
 
