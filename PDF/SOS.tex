@@ -40,7 +40,7 @@
 
 \begin{document}
 
-\title[SOS.m2]{Sums of squares in Macaulay2}
+\title[Sums of squares in Macaulay2]{Sums of squares in Macaulay2}
 
 \author{Diego Cifuentes}
 \address{Massachusetts Institute of Technology \\ Cambridge, MA, USA}
@@ -69,7 +69,7 @@
 
 Let $\kk \!=\! \QQ$ or $\kk \!=\! \RR$ be the rational or real numbers and $R = \kk[x_{1},\dots,x_{n}]$ be the polynomial ring.
 An element $f\!\in\! R$ is \emph{nonnegative} if $f(x) \!\ge\! 0$ for all $x \!\in\! \RR^{n}$.
-An element $f\!\in\! R$ is a \emph{sum-of-squares} or \emph{SOS} if there are polynomials $f_{1},\dots,f_{m} \!\in\! R$ and positive scalars $\lambda_{1},\dots,\lambda_{m} \!\in\! \kk$ such that $f=\sum_{i}\lambda_i f_{i}^{2}$.
+And $f$ is a \emph{sum-of-squares} or \emph{SOS} if there are polynomials $f_{1},\dots,f_{m} \!\in\! R$ and positive scalars $\lambda_{1},\dots,\lambda_{m} \!\in\! \kk$ such that $f=\sum_{i}\lambda_i f_{i}^{2}$.
 The scalars are not necessary when the field is $\kk\!=\!\RR$.
 Clearly, an SOS polynomial is nonnegative, but not every nonnegative polynomial is SOS.
 Classically, Hilbert characterized in which cases sums-of-squares coincide with nonnegative polynomials as univariate polynomials, quadratic polynomials and bivariate quartics.  
@@ -79,21 +79,20 @@ The \SOS package allows to perform computations with sums-of-squares in \Mac.
 A particular focus is on trying to find rational SOS decompositions of polynomials with rational coefficients (whenever they exist).
 
 Consider the basic problem of deciding if a polynomial is a sum-of-squares.
-Let $f(x)\in R$ of degree~$2d$,
-and $v$ a vector with all the $N=\binom{n+d}{d}$ monomials of degree $\leq\!d$.
+Let $f \!\in\! R$ of degree~$2d$,
+and $v \!\in\! R^N$ a vector with all the $N \!=\! \binom{n+d}{d}$ monomials of degree $\leq\!d$.
 The following fundamental result holds:
 \begin{align*}
-  f(x) \text{ is SOS } 
+  f \text{ is SOS } 
   \qquad\iff\qquad
-  \exists\, Q\in \mathbb{S}_+^N \text{ such that } f(x) = v^T Q v,
+  \exists\, Q\in \mathbb{S}_+^N \text{ such that } f = v^T Q v,
 \end{align*}
 where $\mathbb{S}_+^N$ is the cone of $N{\times} N$ symmetric positive semidefinite matrices.
 This reduces the problem to finding a matrix $Q$ as above. 
 This is called a \emph{Gram matrix}, and it can be efficiently found with \emph{semidefinite programming} (SDP).
 
 The method \verb|solveSOS| performs the above computation.
-We use it to verify that $f = 2 x^4 + 5 y^4 - 2 x^2 y^2 + 2 x^3 y$ is a sum-of-squares.
-%The input is the polynomial $f(x)$.
+We use it here to verify that $f = 2 x^4 {+} 5 y^4 {-} 2 x^2 y^2 {+} 2 x^3 y$ is a sum-of-squares:
 {\small
 \begin{verbatim}
 i1 : R = QQ[x,y];
@@ -104,7 +103,7 @@ Status: SDP solved, primal-dual feasible
 \end{verbatim}
 }
 \noindent
-The last line indicates that a Gram matrix was found, so $f$ is indeed~SOS.
+The ``Status'' line indicates that a Gram matrix was found, so $f$ is indeed~SOS.
 In the above example the package called the SDP solver CSDP~\cite{borchers1999csdp} in the background.
 This solver comes with \Mac and is the default.
 The output of \verb|solveSOS| is an object of type \verb|SDPResult|.
@@ -121,7 +120,8 @@ o4 = ( | 2      1     -83/40 |,   | x2 | )
 Although the result of the SDP solver is numerical, Macaulay2 rounds it to obtain a rational Gram matrix~\cite{peyrl2008computing}.
 
 The method \verb|sosPoly| extracts the SOS decomposition from the returned object \verb|SDPResult|.
-In the above example there are three squares:
+This is done via a Cholesky factorization of the Gram matrix.
+For the function $f$ from above we get three squares:
 \[
   f = 5(-\tfrac{83}{200} x^{2}+y^{2})^{2} + \tfrac{43}{20}
   (\tfrac{20}{43}x^{2} + xy)^{2} + \tfrac{231773}{344000} (x^{2})^{2}.
@@ -141,9 +141,9 @@ This type stores the coefficients $\lambda_{i}$ (under \verb|coeffs|) and polyno
 
 The method \verb|solveSOS| also allows to compute SOS decompositions in quotient rings.
 This can be useful to prove nonnegativity of a polynomial on a variety.
-We consider an example from~\cite{parrilo2005exploiting}:
-proving that $f = 10{-}x^2{-}y$ is nonnegative on the circle defined by $g = x^2 {+} y^2 {-} 1$.
-To do this we check if the image of $f$ in $\QQ[x,y]/\langle g\rangle$ is a sum-of-squares.
+We take an example from~\cite{parrilo2005exploiting}.
+Consider proving that $f = 10{-}x^2{-}y$ is nonnegative on the circle defined by $g = x^2 {+} y^2 {-} 1$.
+To do this, we check if the image of $f$ in $\QQ[x,y]/\langle g\rangle$ is a sum-of-squares.
 For such a computation, a degree bound $2d$ must be given by the user, as otherwise it is not obvious how to choose the monomial vector~$v$.
 In the next example we set $2d=2$.
 {\small
@@ -168,16 +168,17 @@ In the above computation the option \verb|TraceObj=>true| was used to reduce the
 
 \section{Sums of squares in ideals}
 Let $I \subset \kk[x_{1},\dots,x_{n}]$ be an ideal.  
-Given a bound $d\in\NN$, consider the problem of finding a nonzero SOS polynomial of degree $\leq \!2d$ in the ideal~$I$.
+Given a bound $2d\in\NN$, consider the problem of finding a nonzero SOS polynomial of degree $\leq \!2d$ in the ideal~$I$.
 If one of the generators of $I$ has degree $\leq \!d$ then this problem is trivial.
-But otherwise the problem can be hard, and the method \verb|sosInIdeal| can be used to solve it.
+But otherwise the problem can be hard.
+The method \verb|sosInIdeal| can be used to solve it.
 One of the main motivations for this problem is that it reveals information about the \emph{real radical} of the ideal~$I$.
 Indeed, if $f = \sum \lambda_i f_i^2 \in I$ then each of the factors $f_i$ must lie in the real radical of~$I$.
 
 Given generators of the ideal $I=\langle h_1,\dots,h_m\rangle$, we may solve this problem by looking for some polynomial multipliers $l_i(x)$ such that  $\sum_i l_i(x) h_i(x)$ is a sum-of-squares.
 The method \verb|sosInIdeal| allows to find these multipliers.
-The input is a matrix containing the generators and the degree bound~$2d$.
-As an illustration, we do this computation for the ideal $I=\langle x^2{+}y^2{+}y, y{-}z^2 \rangle$.
+The input of the method is a matrix containing the generators, and the degree bound~$2d$.
+We illustrate this for the ideal $I=\langle x^2{+}y^2{+}y, y{-}z^2 \rangle$.
 {\small
 \begin{verbatim}
 i1 : R = QQ[x,y,z];
@@ -228,7 +229,6 @@ i2 : f = library ("Motzkin", {x,y,z})
 o2 = x y  + x y  - 3x y z  + z
 \end{verbatim}
 }
-
 \noindent
 We now apply the function \verb|sosdecTernary|, which implements the iterative algorithm from above.
 {\small
@@ -243,22 +243,22 @@ o5 = coeffs: {2059/64, 3851/256, 3851/256}
      gens: {x, y, z}
 \end{verbatim}
 }
-
+\noindent
 The result consist of two sums-of-squares only, the second being the denominator.
-The above computation reveals that the product of the Motzkin polynomial by $(x^{2}+y^{2}+z^{2})$ is a sum-of-squares.
-That this can easily be checked with \verb|solveSOS (x^2+y^2+z^2)*f|.
+The above computation reveals that the product of the Motzkin polynomial by $(x^2{+}y^2{+}z^2)$ is a sum-of-squares.
+That this can easily be checked with the command \verb|solveSOS (x^2+y^2+z^2)*f|.
 
 \section{Parametric SOS problems}
 
-One can also use the \SOS package to solve parametric problems.
-For this, assume now that $x \mapsto f(x;t)$ is a polynomial function, that depends affinely on some parameters~$t$.
+The \SOS package can also solve parametric problems.
+Assume now that $x \mapsto f(x;t)$ is a polynomial function, that depends affinely on some parameters~$t$.
 The command \verb|solveSOS| allows to search for values of the parameters such that the polynomial is a SOS.
-In the following example, we increase two terms of the Robinson polynomial so that it becomes SOS.
-
+%In the following example, we increase two terms of the Robinson polynomial so that it becomes SOS.
+In the following example, we change two coefficients of the Robinson polynomial so that it becomes SOS.
 {\small
 \begin{verbatim}
-i1 : R = QQ[x,y,z][s,t]
-i2 : g = library("Robinson", {x,y,z}) + s*x^6 + t*y^6
+i1 : R = QQ[x,y,z][s,t]; -- s,t are treated as parameters
+i2 : g = library("Robinson", {x,y,z}) + s*x^6 + t*y^6;
 i3 : sol = solveSOS g;
 Executing CSDP
 Status: SDP solved, primal-dual feasible
@@ -275,7 +275,7 @@ Here we apply this method to the dehomogenized Motzkin polynomial.
 
 {\small
 \begin{verbatim}
-i1 : R = QQ[x,z][t];
+i1 : R = QQ[x,z][t]; -- t is treated as a parameter
 i2 : f = library ("Motzkin", {x,1,z});
 i3 : sol = solveSOS (f-t, -t, RoundTol=>12);
 Executing CSDP
@@ -286,7 +286,9 @@ o4 = | -729/4096 |
 }
 
 \noindent
-The function \verb|lowerBound| does this construction automatically.
+Alternatively, the method \verb|lowerBound| can be called with input~$f(x)$.
+The method internally declares a new parameter~$t$ and optimizes $f(x)-t$.
+%The function \verb|lowerBound| does this construction automatically.
 {\small
 \begin{verbatim}
 i1 : R = QQ[x,z];
@@ -331,7 +333,7 @@ o5 = true
 Calling \verb|lowerBound| as above is the most practical approach, but it requires knowledge of a Gröbner basis, which is computed when constructing the quotient ring.
 If no Gröbner basis is available there is an alternative way to call \verb|lowerBound| with just the equations $h_1,\dots,h_m$ as the input.
 The method will then look for polynomial multipliers $l_i(x)$ such that $f(x) - t + \sum_i l_i(x)h_i(x)$ is SOS.
-This results possibly in larger SDP's and weaker bounds.
+This may result in larger SDP's and weaker bounds.
 
 {\small
 \begin{verbatim}
@@ -376,7 +378,7 @@ A different solver can be configured with \verb|changeSolver|.
 \subsection*{Rounding tolerance}
 The method \verb|lowerBound| has the optional argument \verb|RoundTol|, which specifies the precision of the rational rounding.
 Smaller values of \verb|RoundTol| lead to simpler bounds (smaller denominators), at the expense of a loss in optimality.
-The rounding may be skipped by setting it to infinity.
+The rational rounding may be skipped by setting it to infinity.
 
 \subsection*{Trace objective}
 This option tells the SDP solver to minimize the trace of the Gram matrix.
