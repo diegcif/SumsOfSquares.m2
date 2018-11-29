@@ -306,9 +306,9 @@ o4 = - 729/4096
 Oftentimes in application one needs to find lower bounds for polynomials subject to some polynomial constraints.
 More precisely, consider the problem
 \begin{align*}
-  \min_{x\in X} \quad f(x),
-  \quad \text{ where }\quad
-  X := \{x \in \RR^n : h_1(x)=\dots=h_m(x)=0\},
+  \min_{x\in \RR^n} \quad f(x)
+  \quad \text{ such that }\quad
+  h_1(x)=\dots=h_m(x)=0,
 \end{align*}
 where $f, h_1,\dots,h_m$ are polynomials.
 The \SOS package provides two ways to compute a lower bound for such a problem.
