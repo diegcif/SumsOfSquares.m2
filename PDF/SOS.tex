@@ -366,13 +366,12 @@ o7 = {x => 1.77345e-9, y => 1}
 \label{s:arguments}
 
 \subsection*{SDP Solver}
-The \SOS package relies on numerical SDP solvers for SOS decompositions.
+The optional argument \verb|Solver| allows to select the SDP solver.
 These solvers are interfaced via the auxiliary Macaulay2 package \SDP.
 The package provides interfaces to the open source solvers CSDP~\cite{borchers1999csdp} and SDPA~\cite{yamashita2003implementation}, and the commercial solver MOSEK~\cite{mosek}.
 There is also a built-in solver in the \Mac language.
 In our experience CSDP and MOSEK give the best results.
 CSDP is provided as part of \Mac and configured as the default.
-A different solver can be configured with the function \verb|changeSolver|.
 % We refer to the package documentation for further information.
 
 \subsection*{Rounding tolerance}
@@ -381,7 +380,7 @@ Smaller values of \verb|RoundTol| lead to simpler bounds (smaller denominators),
 The rational rounding may be skipped by setting it to infinity.
 
 \subsection*{Trace objective}
-This option tells the SDP solver to minimize the trace of the Gram matrix.
+The option \verb|TraceObj| tells the SDP solver to minimize the trace of the Gram matrix.
 This is a known heuristic to reduce the number of summands in the sum-of-squares decomposition.
 
 
