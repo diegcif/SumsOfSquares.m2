@@ -144,8 +144,8 @@ This can be useful to prove nonnegativity of a polynomial on a variety.
 We take an example from~\cite{parrilo2005exploiting}.
 Consider proving that $f = 10{-}x^2{-}y$ is nonnegative on the circle defined by $g = x^2 {+} y^2 {-} 1$.
 To do this, we check if the image of $f$ in $\QQ[x,y]/\langle g\rangle$ is a sum-of-squares.
-For such a computation, a degree bound $2d$ must be given by the user, as otherwise it is not obvious how to choose the monomial vector~$v$.
-In the next example we set $2d=2$.
+For such a computation, a degree bound~$2d$ must be given by the user, as otherwise it is not obvious how to choose the monomial vector~$v$.
+In this case we set $2d=2$.
 {\small
 \begin{verbatim}
 i1 : R = QQ[x,y]/ideal(x^2 + y^2 - 1);
@@ -181,9 +181,9 @@ The input of the method is a matrix containing the generators, and the degree bo
 We illustrate this for the ideal $I=\langle x^2{+}y^2{+}y, y{-}z^2 \rangle$.
 {\small
 \begin{verbatim}
-i1 : R = QQ[x,y,z];
+i1 : R = QQ[x,y,z];  d = 1;
 i2 : h = matrix {{x^2+y^2+y, y-z^2}};
-i3 : (sol,mult) = sosInIdeal (h, 2);
+i3 : (sol,mult) = sosInIdeal (h, 2*d);
 i4 : sosPoly sol
 o4 = coeffs: {63/4, 63/4, 63/4}
      gens: {x, y, z}
@@ -197,7 +197,7 @@ In this case the argument to \verb|sosInIdeal| is simply the quotient ring~$S$.
 {\small
 \begin{verbatim}
 i6 : S = R/ideal h;
-i7 : sosPoly sosInIdeal (S, 2);
+i7 : sosPoly sosInIdeal (S, 2*d);
 o7 = coeffs: {59/2, 59/2, 59/2}
      gens: {x, y, z}
 \end{verbatim}
@@ -244,7 +244,7 @@ o5 = coeffs: {2059/64, 3851/256, 3851/256}
 \end{verbatim}
 }
 \noindent
-The result consist of two sums-of-squares only, the second being the denominator.
+The result consists of two SOS polynomials, the second being the denominator.
 The above computation reveals that the product of the Motzkin polynomial by $(x^2{+}y^2{+}z^2)$ is a sum-of-squares.
 That this can easily be checked with the command \verb|solveSOS (x^2+y^2+z^2)*f|.
 
@@ -314,13 +314,13 @@ where $f, h_1,\dots,h_m$ are polynomials.
 The \SOS package provides two ways to compute a lower bound for such a problem.
 The most elegant approach is to construct the associated quotient ring, and then call \verb|lowerBound|.
 This will look for the largest $t$ such that $f(x)-t$ is SOS (in the quotient ring).
-A degree bound must be given by the user.
+A degree bound~$2d$ must be given by the user.
 
 {\small
 \begin{verbatim}
 i1 : R = QQ[x,y]/ideal(x^2 - x, y^2 - y);
-i2 : f = x - y;
-i3 : (t,sol) = lowerBound(f,2);
+i2 : f = x - y;  d = 1;
+i3 : (t,sol) = lowerBound(f,2*d);
 Executing CSDP
 Status: SDP solved, primal-dual feasible
 i4 : t
@@ -338,9 +338,9 @@ This may result in larger SDP's and weaker bounds.
 {\small
 \begin{verbatim}
 i1 : R = QQ[x,y];
-i2 : f = x - y;
+i2 : f = x - y;  d = 1;
 i3 : h = matrix{{x^2 - x, y^2 - y}};
-i4 : (t,sol,mult) = lowerBound (f, h, 2);
+i4 : (t,sol,mult) = lowerBound (f, h, 2*d);
 Executing CSDP
 Status: SDP solved, primal-dual feasible
 i5 : t
@@ -367,12 +367,12 @@ o7 = {x => 1.77345e-9, y => 1}
 
 \subsection*{SDP Solver}
 The \SOS package relies on numerical SDP solvers for SOS decompositions.
-These solvers are interfaced via an auxiliary Macaulay2 package \SDP.
-This package does have a built in solver in the \Mac language, but larger examples require an external solver.
+These solvers are interfaced via the auxiliary Macaulay2 package \SDP.
 The package provides interfaces to the open source solvers CSDP~\cite{borchers1999csdp} and SDPA~\cite{yamashita2003implementation}, and the commercial solver MOSEK~\cite{mosek}.
+There is also a built-in solver in the \Mac language.
 In our experience CSDP and MOSEK give the best results.
 CSDP is provided as part of \Mac and configured as the default.
-A different solver can be configured with \verb|changeSolver|.
+A different solver can be configured with the function \verb|changeSolver|.
 % We refer to the package documentation for further information.
 
 \subsection*{Rounding tolerance}
