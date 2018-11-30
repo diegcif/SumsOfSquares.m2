@@ -25,5 +25,6 @@ SOS.pdf
 *.bbl
 *.blg
 *.synctex*
+*.fdb_latexmk
 
 diego*
