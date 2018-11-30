@@ -88,8 +88,8 @@ The following fundamental result holds:
   \exists\, Q\in \mathbb{S}_+^N \text{ such that } f = v^T Q v,
 \end{align*}
 where $\mathbb{S}_+^N$ is the cone of $N{\times} N$ symmetric positive semidefinite matrices.
-This reduces the problem to finding a matrix $Q$ as above. 
-This is called a \emph{Gram matrix}, and it can be efficiently found with \emph{semidefinite programming} (SDP).
+% This reduces the problem to finding a matrix $Q$ as above. 
+This reduces the problem to finding a \emph{Gram matrix} $Q$ as above, which can be done efficiently with \emph{semidefinite programming} (SDP).
 
 The method \verb|solveSOS| performs the above computation.
 We use it here to verify that $f = 2 x^4 {+} 5 y^4 {-} 2 x^2 y^2 {+} 2 x^3 y$ is a sum-of-squares:
@@ -119,7 +119,7 @@ o4 = ( | 2      1     -83/40 |,   | x2 | )
 \noindent
 Although the result of the SDP solver is numerical, Macaulay2 rounds it to obtain a rational Gram matrix~\cite{peyrl2008computing}.
 
-The method \verb|sosPoly| extracts the SOS decomposition from the returned object \verb|SDPResult|.
+The method \verb|sosPoly| extracts the SOS decomposition from the returned \verb|SDPResult|.
 This is done via a Cholesky factorization of the Gram matrix.
 For the function $f$ from above we get three squares:
 \[
@@ -169,7 +169,7 @@ In the above computation the option \verb|TraceObj=>true| was used to reduce the
 \section{Sums of squares in ideals}
 Let $I \subset \kk[x_{1},\dots,x_{n}]$ be an ideal.  
 Given a bound $2d\in\NN$, consider the problem of finding a nonzero SOS polynomial of degree $\leq \!2d$ in the ideal~$I$.
-If one of the generators of $I$ has degree $\leq \!d$ then this problem is trivial.
+If one of the generators of $I$ has degree $\leq \!d$, then the problem is trivial.
 But otherwise the problem can be hard.
 The method \verb|sosInIdeal| can be used to solve it.
 One of the main motivations for this problem is that it reveals information about the \emph{real radical} of the ideal~$I$.
@@ -219,7 +219,7 @@ Hence this procedure terminates, and we can write
     $p_{i},q_{i}$ SOS}.
 \]
 
-As an illustration, we will write the Motzkin polynomial as a quotient of SOS polynomials.
+As an illustration, we write the Motzkin polynomial as a quotient of SOS polynomials.
 We first use the function \verb|library|, which contains a small library of interesting nonnegative forms.
 {\small
 \begin{verbatim}
@@ -245,8 +245,8 @@ o5 = coeffs: {2059/64, 3851/256, 3851/256}
 }
 \noindent
 The result consists of two SOS polynomials, the second being the denominator.
-The above computation reveals that the product of the Motzkin polynomial by $(x^2{+}y^2{+}z^2)$ is a sum-of-squares.
-That this can easily be checked with the command \verb|solveSOS (x^2+y^2+z^2)*f|.
+The above computation reveals that the product of the Motzkin polynomial and $(x^2{+}y^2{+}z^2)$ is a sum-of-squares.
+This can be checked independently with the command \verb|solveSOS (x^2+y^2+z^2)*f|.
 
 \section{Parametric SOS problems}
 
@@ -330,7 +330,7 @@ o5 = true
 \end{verbatim}
 }
 
-Calling \verb|lowerBound| as above is the most practical approach, but it requires knowledge of a Gröbner basis, which is computed when constructing the quotient ring.
+Calling \verb|lowerBound| as above is conceptually simple, but requires knowledge of a Gröbner basis, which is computed when constructing the quotient ring.
 If no Gröbner basis is available there is an alternative way to call \verb|lowerBound| with just the equations $h_1,\dots,h_m$ as the input.
 The method will then look for polynomial multipliers $l_i(x)$ such that $f(x) - t + \sum_i l_i(x)h_i(x)$ is SOS.
 This may result in larger SDP's and weaker bounds.
@@ -366,7 +366,7 @@ o7 = {x => 1.77345e-9, y => 1}
 \label{s:arguments}
 
 \subsection*{SDP Solver}
-The optional argument \verb|Solver| allows to select the SDP solver.
+The optional argument \verb|Solver| is available for many package methods and allows to select the SDP solver.
 These solvers are interfaced via the auxiliary Macaulay2 package \SDP.
 The package provides interfaces to the open source solvers CSDP~\cite{borchers1999csdp} and SDPA~\cite{yamashita2003implementation}, and the commercial solver MOSEK~\cite{mosek}.
 There is also a built-in solver in the \Mac language.
