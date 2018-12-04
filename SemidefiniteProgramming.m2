@@ -426,7 +426,7 @@ sdpNoConstraints = (C,A) -> (
     if #A==0 then(
         lambda := min eigenvalues(C, Hermitian=>true);
         if lambda>=-tol then(
-            print "SDP solved";
+            print "SDP solved in preprocessing";
             y0 := zeros(RR,#A,1);
             return (true, 0*C, y0, C);
         )else(
@@ -442,7 +442,7 @@ trivialSDP = (C,A,b) -> (
     if #A==0 or b==0 then(
         lambda := min eigenvalues(C, Hermitian=>true);
         if lambda>=0 then(
-            print "SDP solved";
+            print "SDP solved in preprocessing";
             y0 := zeros(RR,#A,1);
             return (true, 0*C, y0, C);
         )else if #A==0 then(
