@@ -118,6 +118,7 @@ o4 = ( | 2      1     -83/40 |,   | x2 | )
 }
 \noindent
 Although the result of the SDP solver is in floating point, Macaulay2 rounds it to obtain a rational Gram matrix~\cite{peyrl2008computing}.
+The rounding procedure is guaranteed to work when the floating point Gram matrix lies in the interior of~$\mathbb{S}_+^N$.
 
 The method \verb|sosPoly| extracts the SOS decomposition from the returned \verb|SDPResult|.
 This is done via a Cholesky factorization of the Gram matrix.
