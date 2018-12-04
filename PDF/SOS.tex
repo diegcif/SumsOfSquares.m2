@@ -68,8 +68,8 @@
 \label{s:intro}
 
 Let $\kk \!=\! \QQ$ or $\kk \!=\! \RR$ be the rational or real numbers and $R = \kk[x_{1},\dots,x_{n}]$ be the polynomial ring.
-An element $f\!\in\! R$ is \emph{nonnegative} if $f(x) \!\ge\! 0$ for all $x \!\in\! \RR^{n}$.
-And $f$ is a \emph{sum-of-squares} or \emph{SOS} if there are polynomials $f_{1},\dots,f_{m} \!\in\! R$ and positive scalars $\lambda_{1},\dots,\lambda_{m} \!\in\! \kk$ such that $f=\sum_{i}\lambda_i f_{i}^{2}$.
+An element $f\!\in\! R$ is \emph{nonnegative} if $f(x) \!\ge\! 0$ for all $x \!\in\! \RR^{n}$,
+and $f$ is a \emph{sum-of-squares} or \emph{SOS} if there are polynomials $f_{1},\dots,f_{m} \!\in\! R$ and positive scalars $\lambda_{1},\dots,\lambda_{m} \!\in\! \kk$ such that $f=\sum_{i}\lambda_i f_{i}^{2}$.
 The scalars are not necessary when the field is $\kk\!=\!\RR$.
 Clearly, an SOS polynomial is nonnegative, but not every nonnegative polynomial is SOS.
 Classically, Hilbert characterized in which cases sums-of-squares coincide with nonnegative polynomials as univariate polynomials, quadratic polynomials and bivariate quartics.  
@@ -117,7 +117,7 @@ o4 = ( | 2      1     -83/40 |,   | x2 | )
 \end{verbatim}
 }
 \noindent
-Although the result of the SDP solver is numerical, Macaulay2 rounds it to obtain a rational Gram matrix~\cite{peyrl2008computing}.
+Although the result of the SDP solver is in floating point, Macaulay2 rounds it to obtain a rational Gram matrix~\cite{peyrl2008computing}.
 
 The method \verb|sosPoly| extracts the SOS decomposition from the returned \verb|SDPResult|.
 This is done via a Cholesky factorization of the Gram matrix.
@@ -143,7 +143,7 @@ The method \verb|solveSOS| also allows to compute SOS decompositions in quotient
 This can be useful to prove nonnegativity of a polynomial on a variety.
 We take an example from~\cite{parrilo2005exploiting}.
 Consider proving that $f = 10{-}x^2{-}y$ is nonnegative on the circle defined by $g = x^2 {+} y^2 {-} 1$.
-To do this, we check if the image of $f$ in $\QQ[x,y]/\langle g\rangle$ is a sum-of-squares.
+To do this, we check if $f$ is a sum-of-squares in the quotient ring $\QQ[x,y]/\langle g\rangle$.
 For such a computation, a degree bound~$2d$ must be given by the user, as otherwise it is not obvious how to choose the monomial vector~$v$.
 In this case we set $2d=2$.
 {\small
@@ -177,34 +177,37 @@ Indeed, if $f = \sum \lambda_i f_i^2 \in I$ then each of the factors $f_i$ must 
 
 Given generators of the ideal $I=\langle h_1,\dots,h_m\rangle$, we may solve this problem by looking for some polynomial multipliers $l_i(x)$ such that  $\sum_i l_i(x) h_i(x)$ is a sum-of-squares.
 The method \verb|sosInIdeal| allows to find these multipliers.
-The input of the method is a matrix containing the generators, and the degree bound~$2d$.
-We illustrate this for the ideal $I=\langle x^2{+}y^2{+}y, y{-}z^2 \rangle$.
+The input is a matrix containing the generators, and the degree bound~$2d$.
+We illustrate this for the ideal 
+%$I=\langle x^2{+}y^2{+}y, y{-}z^2 \rangle$.
+$I=\langle x^2{-}4 x{+}2 y^2, 2 z^2{-}y^2{+}2 \rangle$
 {\small
 \begin{verbatim}
 i1 : R = QQ[x,y,z];  d = 1;
-i2 : h = matrix {{x^2+y^2+y, y-z^2}};
+i2 : h = matrix {{x^2-4*x+2*y^2, 2*z^2-y^2+2}};
 i3 : (sol,mult) = sosInIdeal (h, 2*d);
 i4 : sosPoly sol
-o4 = coeffs: {63/4, 63/4, 63/4}
-     gens: {x, y, z}
+o4 = coeffs: {327/2, 327/2}
+     gens: {- 1/2 x + 1, z}
 i5 : h * mult == sosPoly sol
 o5 = true
 \end{verbatim}
 }
 \noindent
 An alternative way to approach this problem is to construct the quotient $S = \kk[x_{1},\dots,x_{n}]/I$ and then write $0\in S$ as a sum-of-squares.
-In this case the argument to \verb|sosInIdeal| is simply the quotient ring~$S$.
+In this case the input to \verb|sosInIdeal| is simply the quotient ring~$S$.
 {\small
 \begin{verbatim}
 i6 : S = R/ideal h;
 i7 : sosPoly sosInIdeal (S, 2*d);
-o7 = coeffs: {59/2, 59/2, 59/2}
-     gens: {x, y, z}
+o7 = coeffs: {23/4, 23/4}
+     gens: {- 1/2 x + 1, z}
 \end{verbatim}
 }
 \noindent
-In both cases we obtained a multiple of the SOS polynomial $x^2{+}y^2{+}z^2$.
-From this computation we conclude that the real radical of~$I$ is the ideal $\langle x,y,z\rangle$.
+In both cases we obtained a multiple of the SOS polynomial $(\frac{1}{2}x{-}1)^2{+}z^2$.
+This computation reveals that $x{-}2,z$ lie in the real radical of~$I$.
+Indeed, we have $\sqrt[\RR]{I} = \langle x{-}2,z,y^2{-}2\rangle$.
 
 \section{SOS decomposition of ternary forms}
 
@@ -303,7 +306,7 @@ o4 = - 729/4096
 
 \section{Polynomial optimization}
 
-Oftentimes in application one needs to find lower bounds for polynomials subject to some polynomial constraints.
+In applications one oftentimes needs to find lower bounds for polynomials subject to some polynomial constraints.
 More precisely, consider the problem
 \begin{align*}
   \min_{x\in \RR^n} \quad f(x)
@@ -352,7 +355,7 @@ o6 = true
 
 Lower bounds for polynomial optimization problems critically depend on the degree bound chosen.
 While higher degree bounds lead to better bounds, the computational complexity escalates quite rapidly.
-Nonetheless, low degree SOS lower bounds perform very well in several applications.
+Nonetheless, low degree SOS lower bounds often perform very well in applications.
 In some cases, the minimizer might also be recovered from the \verb|SDPResult| with the method \verb|recoverSolution|.
 
 {\small
@@ -390,6 +393,7 @@ The authors would like to thank Bernd Sturmfels and the Max-Planck-Institute MiS
 We thank Ilir Dema, Nidhi Kainsa and Anton Leykin, who contributed to the code.
 Parts of this work were done while Diego Cifuentes visited the Max-Planck-Institute MiS, and while the first two authors visited ICERM supported by NSF grant No. DMS-1439786.
 Thomas Kahle is supported by the German Research Foundation under grant 314838170, GRK 2297 MathCoRe.
+Pablo Parrilo is supported in part by the National Science Foundation through NSF Grant CCF-1565235.
 
 \bibliographystyle{amsplain}
 \bibliography{sos}
