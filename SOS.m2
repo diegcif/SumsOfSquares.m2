@@ -1034,7 +1034,6 @@ checkSosInIdeal = (solver) -> (
         R = QQ[x,y];
         h = matrix {{y^2+y, x*y, -x^2*y-x^2-y-1}};
         (sol,mult) = sosInIdeal(h,2, Solver=>solver);
-        2/0;
         (sol#GramMatrix===null)
         );
 
