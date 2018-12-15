@@ -11,7 +11,7 @@ exact rational decomposition from the numerical solution.
 
 ***
 
-Authors: Diego Cifuentes (MIT), Thomas Kahle (OvGU Magdeburg), Pablo A. Parrilo (MIT), Helfried Peyrl (ReActive Robotics).
+Authors: Diego Cifuentes (MIT), Thomas Kahle (OvGU Magdeburg), Pablo A. Parrilo (MIT), Helfried Peyrl (Reactive Robotics).
 
 Special thanks: Nidhi Kaihnsa, Anton Leykin.
 
