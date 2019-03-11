@@ -117,8 +117,14 @@ o4 = ( | 2      1     -83/40 |,   | x2 | )
 \end{verbatim}
 }
 \noindent
-Although the result of the SDP solver is in floating point, Macaulay2 rounds it to obtain a rational Gram matrix~\cite{peyrl2008computing}.
-The rounding procedure is guaranteed to work when the floating point Gram matrix lies in the interior of~$\mathbb{S}_+^N$.
+Although the result of the SDP solver is in floating point, Macaulay2 attempts to round it to obtain a rational Gram matrix~\cite{peyrl2008computing}.
+{\color{blue}
+If the rounding procedure fails, the method returns the floating point solution.
+}
+The procedure is guaranteed to work when the floating point Gram matrix lies in the interior of~$\mathbb{S}_+^N$.
+{\color{blue}
+See Appendix~\ref{sec:rounding} for more details about rational rounding.
+}
 
 The method \verb|sosPoly| extracts the SOS decomposition from the returned \verb|SDPResult|.
 This is done via an LDL factorization (a variant of Cholesky factorization) of the Gram matrix.
@@ -387,30 +393,33 @@ The rational rounding may be skipped by setting it to infinity.
 The option \verb|TraceObj| tells the SDP solver to minimize the trace of the Gram matrix.
 This is a known heuristic to reduce the number of summands in the sum-of-squares decomposition.
 
-
 \appendix
+
+{\color{blue}
 \section{Rational rounding}%
 \label{sec:rounding}
 
-We briefly describe the rounding procedure from~\cite{peyrl2008computing},
-implemented in the \SOS package.
-Consider the problem of finding a rational SOS decomposition for a polynomial $f\in \QQ[x_1,\dots,x_n]$.
-The most important step is computing a Gram matrix~$Q$ with rational entries.
-Given such a matrix, we can recover the SOS decomposition via an LDL factorization.
+SOS problems are solved numerically using an SDP solver,
+and afterwards the package attempts to round the floating point solution to rational numbers.
+We briefly describe the rounding procedure, which was proposed in~\cite{peyrl2008computing}.
 
-We need to find a rational matrix in $\mathcal{L}\cap \mathbb{S}_+^N$,
-where $\mathcal{L}\subset \mathbb{S}^N$ is the affine space $\{Q : v^T\! Q v \!=\! f\}$.
-The SDP solver gives a numerical matrix $Q_0\in\mathbb{S}_+^N$ that lies close to~$\mathcal{L}$.
-Let $Q_1$ be a rational matrix obtained by rounding the entries of~$Q_0$.
-Let $Q_2$ be the projection of $Q_1$ onto~$\mathcal{L}$.
-The matrix $Q_2$ lies in~$\mathcal{L}$ and has rational entries, 
-so it remains to see if it is positive semidefinite. 
-This can be ensured as long as $Q_0$ lies in the interior of $\mathbb{S}_+^N$;
+Let $f\in \QQ[x_1,\dots,x_n]$ and let the affine space $\mathcal{L}:= \{Q: v^T\! Q v \!=\! f\}\subset \mathbb{S}^N$.
+Recall that a Gram matrix is an element of $\mathcal{L}\cap \mathbb{S}_+^N$.
+SDP returns a numerical matrix~$Q_n$, an ``approximate'' Gram matrix.
+The rounding problem consists in finding a nearby Gram matrix~$Q_r$ with rational entries.
+The procedure from~\cite{peyrl2008computing} is quite simple.
+We first round the entries of~$Q_n$ to get a rational matrix~$Q_r'$,
+and then obtain $Q_r$ by projecting $Q_r'$ onto~$\mathcal{L}$.
+
+The rounded matrix $Q_r$ has rational entries and lies in~$\mathcal{L}$, but may not always be positive semidefinite. 
+However, if the numerical matrix $Q_n$ is in the interior of~$\mathbb{S}_+^N$,
+then we can ensure that $Q_r\in \mathbb{S}_+^N$ by setting some parameters appropriately;
 see \cite[Prop.~8]{peyrl2008computing}.
-More precisely, we need to choose a small enough {infeasibility tolerance}~$\delta:= \textrm{dist}(Q_0,\mathcal{L})$
-and {rounding tolerance}~$\tau:= \textrm{dist}(Q_0,Q_1)$,
-so that the smallest eigenvalue of~$Q_0$ is greater than $\sqrt{\delta^2 {+} \tau^2}$.
+More precisely, we need to choose a small enough {infeasibility tolerance}~$\delta:= \textrm{dist}(Q_n,\mathcal{L})$
+and {rounding tolerance}~$\tau:= \textrm{dist}(Q_n,Q_r')$,
+so that $\sqrt{\delta^2 {+} \tau^2}$ is less than the smallest eigenvalue of~$Q_n$.
 
+}
 \section*{Acknowledgment}
 \label{sec:acknowledgement}
 The authors would like to thank Bernd Sturmfels and the Max-Planck-Institute MiS for hosting the \Mac workshop in May 2018.
