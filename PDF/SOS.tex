@@ -403,21 +403,26 @@ SOS problems are solved numerically using an SDP solver,
 and afterwards the package attempts to round the floating point solution to rational numbers.
 We briefly describe the rounding procedure, which was proposed in~\cite{peyrl2008computing}.
 
-Let $f\in \QQ[x_1,\dots,x_n]$ and consider the affine space $\mathcal{L}:= \{Q: v^T\! Q v \!=\! f\}$.
+Let $f\in \QQ[x_1,\dots,x_n]$ and consider the affine space $\mathcal{L}:= \{Q: v^T\! Q v \!=\! f\}$, where $v$ is a given monomial vector.
 % \subset \mathbb{S}^N$.
 A Gram matrix is an element of $\mathcal{L}\cap \mathbb{S}_+^N$.
 SDP returns a numerical matrix~$Q_n$, an ``approximate'' Gram matrix.
+Note that $Q_n$ may not lie exactly on~$\mathcal{L}$.
 The rounding problem consists in finding a nearby Gram matrix~$Q_r$ with rational entries.
+
 The procedure from~\cite{peyrl2008computing} consists of two steps.
-First, the entries of~$Q_n$ are rounded to a rational matrix~$Q_r'$, which usually leaves $\mathcal{L}$.
+First, the entries of~$Q_n$ are rounded to a rational matrix~$Q_r'$.
 Then $Q_r$ is obtained as the orthogonal projection of $Q_r'$ onto~$\mathcal{L}$.
 The image of the projection is rational, lies in~$\mathcal{L}$, but need not be positive semidefinite.
-%
-% The rounded matrix $Q_r$ has rational entries and lies in~$\mathcal{L}$, but may not always be positive semidefinite. 
-% However,
-If the numerical matrix $Q_n$ is in the interior of~$\mathbb{S}_+^N$,
-then $Q_r\in \mathbb{S}_+^N$ can be ensured using appropriate parameters.
-Given the \emph{infeasibility tolerance}~$\delta:= \textrm{dist}(Q_n,\mathcal{L})$, if the \emph{rounding tolerance}~$\tau:= \textrm{dist}(Q_n,Q_r')$ is so that $\sqrt{\delta^2 {+} \tau^2}$ is less than the smallest eigenvalue of~$Q_n$, then \cite[Prop.~8]{peyrl2008computing} guarantees that $Q_r \in \mathbb{S}_+^N$.
+We may ensure that $Q_r\in \mathbb{S}_+^N$ if the numerical matrix $Q_n$ is sufficiently in the interior of~$\mathbb{S}_+^N$.
+More precisely, assume that $\lambda$, the smallest eigenvalue of~$Q_n$, is greater than the {infeasibility tolerance}~$\delta:= \textrm{dist}(Q_n,\mathcal{L})$.
+Then setting the {rounding tolerance} $\textrm{dist}(Q_n,Q_r')$ smaller than $\sqrt{\lambda^2 - \delta^2}$ guarantees that $Q_r \in \mathbb{S}_+^N$; 
+see \cite[Prop.~8]{peyrl2008computing}.
+% If the numerical matrix $Q_n$ is in the interior of~$\mathbb{S}_+^N$,
+% then $Q_r\in \mathbb{S}_+^N$ might be ensured using appropriate parameters.
+% Given the {infeasibility tolerance}~$\delta:= \textrm{dist}(Q_n,\mathcal{L})$, 
+% if the {rounding tolerance}~$\tau:= \textrm{dist}(Q_n,Q_r')$ is so that $\sqrt{\delta^2 {+} \tau^2}$ is less than the smallest eigenvalue of~$Q_n$, 
+% then \cite[Prop.~8]{peyrl2008computing} guarantees that $Q_r \in \mathbb{S}_+^N$.
 }
 \section*{Acknowledgment}
 \label{sec:acknowledgement}
