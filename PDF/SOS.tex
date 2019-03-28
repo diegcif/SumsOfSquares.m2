@@ -118,13 +118,9 @@ o4 = ( | 2      1     -83/40 |,   | x2 | )
 }
 \noindent
 Although the result of the SDP solver is in floating point, Macaulay2 attempts to round it to obtain a rational Gram matrix~\cite{peyrl2008computing}.
-{\color{blue}
 If the rounding procedure fails, the method returns the floating point solution.
-}
 The procedure is guaranteed to work when the floating point Gram matrix lies in the interior of~$\mathbb{S}_+^N$.
-{\color{blue}
 See Appendix~\ref{sec:rounding} for more details about rational rounding.
-}
 
 The method \verb|sosPoly| extracts the SOS decomposition from the returned \verb|SDPResult|.
 This is done via an LDL factorization (a variant of Cholesky factorization) of the Gram matrix.
@@ -395,7 +391,6 @@ This is a known heuristic to reduce the number of summands in the sum-of-squares
 
 \appendix
 
-{\color{blue}
 \section{Rational rounding}%
 \label{sec:rounding}
 
@@ -417,7 +412,6 @@ We may ensure that $Q_r\in \mathbb{S}_+^N$ if the numerical matrix $Q_n$ is in t
 More precisely, assume that $\lambda$, the smallest eigenvalue of~$Q_n$, is greater than the distance $\delta:= \textrm{dist}(Q_n,\mathcal{L})$.
 Then setting the {rounding tolerance} $\textrm{dist}(Q_n,Q_r')$ smaller than $\sqrt{\lambda^2 - \delta^2}$ guarantees that $Q_r \in \mathbb{S}_+^N$; 
 see \cite[Prop.~8]{peyrl2008computing}.
-}
 \section*{Acknowledgment}
 \label{sec:acknowledgement}
 The authors would like to thank Bernd Sturmfels and the Max-Planck-Institute MiS for hosting the \Mac workshop in May 2018.
