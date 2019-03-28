@@ -1,0 +1,11 @@
+Dear Professor Christine Berkesch,
+
+We thank you and the referee very much for reading our paper. The referee requested us to give more details about the rational rounding. We revised the document to address this issue. We explain below the changes made.
+
+The main change is that we included a new appendix in the paper. The appendix gives a brief summary of the rounding procedure, describing the two stage approach from [Peyrl-Parrilo]. It also explains why the Gram matrix Q needs to be positive definite, and discusses the role of the rounding tolerance (an optional argument). We refer to this new appendix in the introduction (page 2). We also indicate there that if the rational rounding fails then the package returns the numerical solution.
+
+Please let us know if anything else is needed.
+
+Sincerely,
+
+Diego Cifuentes, Thomas Kahle, Pablo Parrilo
