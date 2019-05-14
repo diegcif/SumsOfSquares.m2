@@ -395,9 +395,9 @@ document { --Solver
     "The package supports the following solvers: ",
     UL{
       {"\"M2\"", " -- a simple dual interior point method implemented in Macaulay2"},
-       {"\"CSDP\"", " -- this is an open source solver, available at ", TT "https://projects.coin-or.org/Csdp/" },
-       {"\"SDPA\"", " -- this is an open source solver, available at ", TT "http://sdpa.sourceforge.net/" },
-       {"\"MOSEK\"", " -- this is a commercial solver, free for academic use, available at ", TT "https://www.mosek.com/" },
+       {"\"CSDP\"", " -- this is an open source solver, available at ", HREF "https://projects.coin-or.org/Csdp/" },
+       {"\"SDPA\"", " -- this is an open source solver, available at ", HREF "http://sdpa.sourceforge.net/" },
+       {"\"MOSEK\"", " -- this is a commercial solver, free for academic use, available at ", HREF "https://www.mosek.com/" },
       },
     "The CSDP solver is shipped with Macaulay2 and configured as the default solver. ",
     "In our experience CSDP and MOSEK give the best results. ",
