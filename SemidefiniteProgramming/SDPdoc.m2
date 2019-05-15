@@ -372,15 +372,19 @@ doc /// --project2linspace
 --###################################
 -- Symbols
 --###################################
-doc /// -- Verbose
-     Key
-        [optimize,Verbose]
-     Headline
-        non-essential but informative output
-     Description
-        Text
-           Setting this option to true enables additional informative output. The default is @TO false@.
-///
+document { --Verbosity
+    Key => {
+        [optimize,Verbosity]
+        },
+    Headline => "control the level of information printed",
+    "This optional argument indicates how much information should be given to the user.  The possible values are:",
+    UL{
+      {"0", " -- no information is printed."},
+      {"1 (default)", " -- minimal information (solver used, input/output files, status of the solver)."},
+      {"2", " -- more detailed information (e.g., progress of the solver)."},
+      },
+    BR{},
+    }
 
 document { --Solver
     Key => {
