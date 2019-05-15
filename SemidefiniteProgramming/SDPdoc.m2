@@ -16,11 +16,11 @@ doc /// --SemidefiniteProgramming
 
         $$max_{y,Z} \, \sum_i b_i y_i \,\,\, s.t. \,\,\, Z = C - \sum_i y_i A_i \, and \, Z \geq 0$$
 
-        We can construct a semidefinite program using the method @TO sdp@, as follows:
+        We can construct a semidefinite program using the method @TO sdp@.
       Example
         P = sdp(matrix{{1,0},{0,2}}, matrix{{0,1},{1,0}}, matrix{{-1}})
       Text
-        The semidefinite program can be solved numerically using the method @TO optimize@:
+        The semidefinite program can be solved numerically using the method @TO optimize@.
       Example
         (X,y,Z) = optimize P;
         (X,y)
@@ -252,7 +252,7 @@ doc /// --optimize
         y
       Text
         {\bf References:}
-        {\it Convex Optimization}, Boyd, Vandenberghe, Cambridge University Press (2004), pp. 618-619, pp. 463-466
+        {\it Convex Optimization}, Boyd, Vandenberghe, Cambridge University Press (2004), pp. 618-619, pp. 463-466.
       Code
       Pre
     Caveat
