@@ -107,7 +107,7 @@ Diego: done
 15) Dan: What is a "solver"?
 
 Diego:
-I tried to explain.
+I explain in the documentation that it is tool.
 
 16) "The most basic invocation is using only the name of the solver. "
 
@@ -117,7 +117,7 @@ Diego: done
 
 17) Dan: The output from checkSolver looks bad:
 
-Diego: I fixed it.
+Diego: fixed
 
 18) Dan: The documentation for chooseMons is incomplete.
 
@@ -190,7 +190,7 @@ Diego: Fixed.
 28) Dan: What's the definition of "real radical"?
 
 Diego:
-Needs to be done. I forgot it today.
+It is explained now.
 
 29) "i1 : R = QQ[x,y,z][s,t]; -- s,t are treated as parameters"
 

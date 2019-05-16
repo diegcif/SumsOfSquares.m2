@@ -175,7 +175,8 @@ Given an even bound $2d$, consider the problem of finding a nonzero sum-of-squar
 If one of the generators of $I$ has degree $\leq \!d$, then the problem is trivial.
 But otherwise the problem can be hard.
 The method \verb|sosInIdeal| can be used to solve it.
-One of the main motivations for this problem is that it reveals information about the \emph{real radical} of the ideal~$I$.
+One of the main motivations for this problem is that it reveals information about the \emph{real radical} of the ideal~$I$, 
+i.e., the vanishing ideal of the real zeros of~$I$.
 Indeed, if $f = \sum \lambda_i f_i^2 \in I$ then each of the factors $f_i$ must lie in the real radical of~$I$.
 
 Given generators of the ideal $I=\langle h_1,\dots,h_m\rangle$, we may solve this problem by looking for some polynomial multipliers $l_i(x)$ such that  $\sum_i l_i(x) h_i(x)$ is a sum of squares.
