@@ -1,0 +1,208 @@
+
+My guess is that the referee was Dan, and he gave us lots of comments.  Many of the comments are about English grammar, so I am not completely sure that I addressed them correctly.
+
+Below I enumerate all the comments.
+
+********************
+*  Macaulay2 code  *
+********************
+
+1) Dan: Articles in JSAG are always about a single package.
+
+Diego:
+It seems that the SemidefiniteProgramming package won't be certified. I assume that the procedure here should be similar as in NumericalAlgebraicGeometry and its many dependencies. Personally, I do not mind if only the SOS package is certified.
+
+2) Dan: There are differences in the top level files, which reflect various housekeeping tasks performed on the Macaulay2 side.
+
+     --11
+    +-- fails every night under Ubuntu 16.04
+    +-- TEST /// --lowerBound
+     --13
+    +-- keeps failing overnight under Ubuntu 16.04, host habanero
+    +-- TEST /// --sosdecTernary
+
+Diego:
+The M2 repository omits two checks (above). Each of them has multiple subtests (lowerBound has six and sosdecTernary has three). I would like to know which of them are failing, and perhaps only drop those.
+
+3) Dan: What about changing the name of the package to SumsOfSquares?
+
+Diego:
+I don't mind. What do you think, Thomas?
+
+4) "Executing CSDP
+    Input file: /var/folders/hq/7lqcg89j1pq8m9vq_333xfwh0000gn/T/M2-3434-0/53.dat-s
+    Output file: /var/folders/hq/7lqcg89j1pq8m9vq_333xfwh0000gn/T/M2-3434-0/54
+    Status: SDP solved, primal-dual feasible
+    Start rational rounding"
+
+Dan: The 5 lines of trace output are noise
+
+Diego:
+I changed the optional argument Verbose to Verbosity. Nothing is printed when it is set to 0.
+
+5) Dan: Don't use "return" so much
+
+Diego:
+I removed most of them.
+
+*******************
+*  documentation  *
+*******************
+
+6) Dan: Be careful with hyphens (e.g. sum-of-squares)
+
+Diego:
+I did my best to fix this.
+
+7) "The SemidefiniteProgramming package in Macaulay2 ships with the CSDP solver"
+
+Dan: Reveal the name of the package as a link to it
+    Replace "ships with" with "includes"
+
+Diego: done
+
+Dan: Spell out "CSDP" 
+
+Diego:
+I clarified that CSDP is a solver.
+
+8) "Check Solver for how to configure different solvers."
+
+Dan: Change "Check" to "See"
+    Remove "different"
+
+Diego: done
+
+9) Dan: All sentences should end with punctuation. Don't end with colons.
+
+Diego: done
+
+10) "contains in particular the SOS decomposition"
+
+Dan: Remove "in particular"
+
+Diego: done
+
+11) Dan: change "found decomposition" to "decomposition found", and check similar constructions
+
+Diego:
+I changed it, but I am not sure what he means by "similar constructions"
+
+12) Dan: Spell out acronyms (SOS, SDP).
+
+Diego:
+I spelled out most of the occurrences.
+
+13) Dan: The word "summands" is unclear.
+
+Diego:
+I fixed it. The word "summand" no longer appears.
+
+14) "This method tests if various functions work properly using a specified solver. "
+
+Dan: change "if" to "whether"
+
+Diego: done
+
+15) Dan: What is a "solver"?
+
+Diego:
+I tried to explain.
+
+16) "The most basic invocation is using only the name of the solver. "
+
+Dan: Change "is using "to "uses"
+
+Diego: done
+
+17) Dan: The output from checkSolver looks bad:
+
+Diego: I fixed it.
+
+18) Dan: The documentation for chooseMons is incomplete.
+
+Diego:
+This was supposed to be hidden. So I deleted it.
+
+19) "Given an SOSPoly with coefficients in the reals"
+    
+Dan: You are using the identifier SOSPoly as though it were an English word.  Stick
+to words.  Check for other similar things.
+
+Diego:
+I fixed it in the places where I noticed it.
+
+20) Dan: Change documentation node "coefficients field" to "coefficient field".
+
+Diego: done
+
+21) "Once the rational world has been left, there is usually now way back."
+
+Dan: Change "now" to "no".
+
+Diego: done
+
+Dan: Leaving the rational world is ambiguous. The paragraph goes on to discuss "clean", but that doesn't get you back to the rational world.
+
+Diego:
+I rewrote the paragraph.
+
+=============================================================================
+
+*****************
+*  PDF Article  *
+*****************
+
+22) Dan: Peyrl is listed as an author of the package, but this authorship is not
+acknowledged in the article.  Perhaps it should be. Or not?
+
+Diego:
+We discussed about this before, and we agreed to leave him out of the article. But we need to justify it.
+
+23) Dan: Bibliography should include an item for Macaulay2 and for the SemidefiniteProgramming package
+
+Diego:
+Done. But I am not so sure how to cite SemidefiniteProgramming properly.
+
+24) Dan: Fix hyphens
+
+Diego:
+I did my best.
+
+25) "The SOS package allows to perform computations ..."
+    "... and allows to select the SDP solver. "
+
+Dan: Allows whom to perform computations?  Check all other uses of "allow".
+
+Diego:
+What is the problem with the word "allow"?
+
+26) Dan: Change "In the above computation" to "In the computation above"
+
+Diego: done
+
+27) "Given a bound 2d ∈ N, "
+
+Dan: The reader will wonder whether d ∈ N is required!
+
+Diego: Fixed.
+
+28) Dan: What's the definition of "real radical"?
+
+Diego:
+Needs to be done. I forgot it today.
+
+29) "i1 : R = QQ[x,y,z][s,t]; -- s,t are treated as parameters"
+
+Dan: Move comments about the code to the surrounding prose
+
+Diego: done
+
+30) Dan: Don't overuse acronyms such as SOS and SDP.  
+
+Diego:
+I spelled out most of them.
+
+31) Dan: What is a solver?  
+
+Diego: fixed
