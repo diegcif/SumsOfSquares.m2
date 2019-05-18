@@ -1140,7 +1140,7 @@ checkLowerBound = (solver) -> (
 
 beginDocumentation()
 
-load "./SOS/SOSdoc.m2"
+load "./SumsOfSquares/SOSdoc.m2"
 
 --0
 TEST /// --sosPoly and sumSOS
