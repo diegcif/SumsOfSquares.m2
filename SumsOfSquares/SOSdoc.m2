@@ -670,7 +670,7 @@ doc /// --recoverSolution
     Consequences
     Description
       Text
-        This method attempts to find the optimizing solutions of a sum-of-squres problem
+        This method attempts to find the optimizing solutions of a sum-of-squares problem
         by checking if the moment matrix is rank one.  In this case it
         factorizes the matrix and returns the defining vector.
       Example
@@ -842,7 +842,7 @@ doc /// -- RoundTol
       Text
         The optional argument {\tt RoundTol} specifies the minimal rounding precision in $d$ binary digits.
 
-        Sums-of-squres problems are solved numerically using an semidefinite programming solver, and afterwards the package attempts to round the floating point solution to rational numbers.
+        Sums-of-squares problems are solved numerically using an semidefinite programming solver, and afterwards the package attempts to round the floating point solution to rational numbers.
         The rounding strategy is guaranteed to work whenever the space of Gram matrices is full dimensional.
         For optimization problems the rounding may cause a loss in optimality.
         The argument {\tt RoundTol} allows to control the trade-off between optimality and simplicity.
