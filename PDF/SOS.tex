@@ -75,7 +75,7 @@ Clearly, an sum of squares is nonnegative, but not every nonnegative polynomial 
 Classically, Hilbert characterized in which cases sums of squares coincide with nonnegative polynomials as univariate polynomials, quadratic polynomials and bivariate quartics.  
 For an introduction to the area we recommend~\cite{scheiderer2009positivity,blekherman2012semidefinite}.
 
-The \SOS package allows to perform computations with sums of squares in \Mac~\cite{macaulay2}.
+The \SOS package contains methods to compute sums-of-squares in \Mac~\cite{macaulay2}.
 A particular focus is on trying to find rational sums-of-squares decompositions of polynomials with rational coefficients (whenever they exist).
 
 Consider the basic problem of deciding if a polynomial is a sum of squares.
@@ -142,7 +142,7 @@ o5 = coeffs: {5, 43/20, 231773/344000}
 The last output is an object of type \verb|SOSPoly|.
 This type stores the coefficients $\lambda_{i}$ (under \verb|coeffs|) and polynomials $f_{i}$ (under \verb|gens|) such that $f = \sum_{i}\lambda_{i}f_{i}^{2}$.
 
-The method \verb|solveSOS| also allows to compute sums-of-squares decompositions in quotient rings.
+The method \verb|solveSOS| can also compute sums-of-squares decompositions in quotient rings.
 This can be useful to prove nonnegativity of a polynomial on a variety.
 We take an example from~\cite{parrilo2005exploiting}.
 Consider proving that $f = 10{-}x^2{-}y$ is nonnegative on the circle defined by $g = x^2 {+} y^2 {-} 1$.
@@ -180,7 +180,7 @@ i.e., the vanishing ideal of the real zeros of~$I$.
 Indeed, if $f = \sum \lambda_i f_i^2 \in I$ then each of the factors $f_i$ must lie in the real radical of~$I$.
 
 Given generators of the ideal $I=\langle h_1,\dots,h_m\rangle$, we may solve this problem by looking for some polynomial multipliers $l_i(x)$ such that  $\sum_i l_i(x) h_i(x)$ is a sum of squares.
-The method \verb|sosInIdeal| allows to find these multipliers.
+The method \verb|sosInIdeal| can find these multipliers.
 The input is a matrix containing the generators, and the degree bound~$2d$.
 We illustrate this for the ideal 
 %$I=\langle x^2{+}y^2{+}y, y{-}z^2 \rangle$.
@@ -259,7 +259,7 @@ This can be checked independently with the command \verb|solveSOS (x^2+y^2+z^2)*
 
 The \SOS package can also solve parametric problems.
 Assume now that $x \mapsto f(x;t)$ is a polynomial function, that depends affinely on some parameters~$t$.
-The command \verb|solveSOS| allows to search for values of the parameters such that the polynomial is a sum of squares.
+The command \verb|solveSOS| can be used to search for values of the parameters such that the polynomial is a sum of squares.
 In the following example, we change two coefficients of the Robinson polynomial so that it becomes a sum of squares.
 {\small
 \begin{verbatim}
@@ -376,7 +376,7 @@ o7 = {x => 1.77345e-9, y => 1}
 \label{s:arguments}
 
 \subsection*{SDP Solver}
-The optional argument \verb|Solver| is available for many package methods and allows to select the semidefinite programming solver.
+The optional argument \verb|Solver| is available for many package methods and a particular semidefinite programming solver can be picked by setting it.
 These solvers are interfaced via the auxiliary Macaulay2 package \SDP~\cite{sdpM2}.
 The package provides interfaces to the open source solvers CSDP~\cite{borchers1999csdp} and SDPA~\cite{yamashita2003implementation}, and the commercial solver MOSEK~\cite{mosek}.
 There is also a built-in solver in the \Mac language.
