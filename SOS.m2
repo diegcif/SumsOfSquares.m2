@@ -1,5 +1,5 @@
 newPackage(
-    "SOS",
+    "SumsOfSquares",
     Version => "2.0",
     Date => "November 2018",
     Authors => {

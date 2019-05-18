@@ -1,8 +1,8 @@
 
 document {
-    Key => SOS,
+    Key => SumsOfSquares,
     Headline => "A package for sums-of-squares problems",
-    TT "SOS", " is a package to solve sums-of-squares (SOS) problems. ",
+    TT "SumsOfSquares", " is a package to solve sums-of-squares (SOS) problems. ",
     "The main tool behind this package is ",
     TO2{"SemidefiniteProgramming", "semidefinite programming"}, " (SDP). ",
 
@@ -85,7 +85,7 @@ doc /// --coefficient field
         the role of the coefficient field
     Description
       Text
-        The SOS package works with two coefficient rings: the rational numbers $\QQ$ and the real numbers $\RR$.
+        The SumsOfSquares package works with two coefficient rings: the rational numbers $\QQ$ and the real numbers $\RR$.
         Almost all operations in this package rely on a numerical semidefinite programming @TO Solver@.  
         When calling such a solver, even if the input was a polynomial with rational coefficients, the result is numerical.  
         The package makes some effort to round and return a rational result, but this can fail, independent of whether a rational sum-of-squares decomposition exists or not.
