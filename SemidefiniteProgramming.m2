@@ -38,6 +38,7 @@ export {
     "changeSolver",
     "criticalIdeal",
 --Method options
+    "Verbosity",
     "Solver",
     "Scaling"
 }
