@@ -19,7 +19,6 @@ newPackage(
     },
     Headline => "sums of squares",
     AuxiliaryFiles => true,
-    DebuggingMode => true,
     PackageImports => {"FourierMotzkin"},
     PackageExports => {"SemidefiniteProgramming"}
 )

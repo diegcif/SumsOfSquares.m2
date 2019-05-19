@@ -1,23 +1,22 @@
+Dear Professor Christine Berkesch,
 
-My guess is that the referee was Dan, and he gave us lots of comments.  Many of the comments are about English grammar, so I am not completely sure that I addressed them correctly.
+We thank you and the referee for looking at our package. Following the referee's comments, we made several changes in the source code, documentation, and in the article. Below we provide a point by point explanation of the changes.
 
-Below I enumerate all the comments.
+Please let us know if anything else is needed.
 
-********************
-*  Macaulay2 code  *
-********************
+Sincerely,
 
-1) Dan: Articles in JSAG are always about a single package.
+Diego Cifuentes, Thomas Kahle, Pablo Parrilo
 
-Diego:
-It seems that the SemidefiniteProgramming package won't be
-certified. I assume that the procedure here should be similar as in
-NumericalAlgebraicGeometry and its many dependencies. Personally, I do
-not mind if only the SOS package is certified.
+*****************
+*  Source code  *
+*****************
 
-Thomas: OK.
+1) Referee: Articles in JSAG are always about a single package. Resubmit the source code with just SOS in it.
 
-2) Dan: There are differences in the top level files, which reflect various housekeeping tasks performed on the Macaulay2 side.
+Authors: We understand that this is the policy of the journal. The newly uploaded code only includes the SOS package.
+
+2) Referee: There are differences in the top level files, which reflect various housekeeping tasks performed on the Macaulay2 side.
 
      --11
     +-- fails every night under Ubuntu 16.04
@@ -26,23 +25,18 @@ Thomas: OK.
     +-- keeps failing overnight under Ubuntu 16.04, host habanero
     +-- TEST /// --sosdecTernary
 
-Diego:
-The M2 repository omits two checks (above). Each of them has multiple
-subtests (lowerBound has six and sosdecTernary has three). I would
-like to know which of them are failing, and perhaps only drop those.
+Diego: The M2 repository omits two tests (above). Each of them has multiple subtests. For instance, lowerBound has six subtests, as can be seen when running the command: 
+    checkSolver ("CSDP",lowerBound)
+I would like to know which subtests are failing.
 
-Thomas: I remeber discussing this issue with Dan last fall.  I don't
+Thomas: I remeber discussing this issue with Referee last fall.  I don't
 understand why these tests fail for him.  Ideally they should not
 fail?  I think Mike Stillman built it under some sort of Linux and all
 tests passed.
 
-3) Dan: What about changing the name of the package to SumsOfSquares?
+3) Referee: What about changing the name of the package to SumsOfSquares?
 
-Diego:
-I don't mind. What do you think, Thomas?
-
-Thomas: Yes, let's change it.  I think I did the change, but please
-check.
+Authors: We adopted the name suggested by the referee.
 
 4) "Executing CSDP
     Input file: /var/folders/hq/7lqcg89j1pq8m9vq_333xfwh0000gn/T/M2-3434-0/53.dat-s
@@ -50,11 +44,10 @@ check.
     Status: SDP solved, primal-dual feasible
     Start rational rounding"
 
-Dan: The 5 lines of trace output are noise
+Referee: The 5 lines of trace output are noise
 
 Diego:
-I changed the optional argument Verbose to Verbosity. Nothing is
-printed when it is set to 0.
+I changed the optional argument Verbose to Verbosity. Nothing is printed when it is set to 0.
 
 Thomas: I think this is not so good.  "Verbose" is a symbol that is
 globally defined and used by many packages.  Maybe it is better to
@@ -62,114 +55,107 @@ stick to the Boolean Verbose and just omit the above lines if not
 Verbose?  Currently the package is also broken because "Verbosity" is
 not exported.
 
-5) Dan: Don't use "return" so much
+5) Referee: Don't use "return" so much
 
-Diego:
-I removed most of them.
+Authors: We removed all appearances of "return" in the last line.
 
 *******************
-*  documentation  *
+*  Documentation  *
 *******************
 
-6) Dan: Be careful with hyphens (e.g. sum-of-squares)
+6) Referee: Make sure that the hyphens follow the English grammar.
 
-Diego:
-I did my best to fix this.
+Authors: We checked our usage of the hyphens throughout the documentation. We believe it is correct now.
 
 Thomas: So the convention is now that sum-of-squares is hyphenated?
+Diego: "sums-of-squares problems" is correct with hyphens, because there "sums-of-squares" is being used as a single noun adjunct modifying "problems". 
 
 7) "The SemidefiniteProgramming package in Macaulay2 ships with the CSDP solver"
 
-Dan: Reveal the name of the package as a link to it
-    Replace "ships with" with "includes"
+Referee: Reveal the name of the package as a link to it
+Referee: Replace "ships with" with "includes"
 
-Diego: done
+Authors: Done.
 
-Dan: Spell out "CSDP" 
+Referee: Spell out "CSDP".
 
-Diego:
-I clarified that CSDP is a solver.
+Authors: We clarified that CSDP is a solver (software tool).
 
 8) "Check Solver for how to configure different solvers."
 
-Dan: Change "Check" to "See"
-    Remove "different"
+Referee: Change "Check" to "See".
+Referee: Remove "different".
 
-Diego: done
+Authors: Done.
 
-9) Dan: All sentences should end with punctuation. Don't end with colons.
+9) Referee: All sentences should end with punctuation. Don't end with colons.
 
-Diego: done
+Authors: Done.
 
 10) "contains in particular the SOS decomposition"
 
-Dan: Remove "in particular"
+Referee: Remove "in particular".
 
-Diego: done
+Authors: Done.
 
-11) Dan: change "found decomposition" to "decomposition found", and check similar constructions
+11) Referee: change "found decomposition" to "decomposition found", and check similar constructions
 
 Diego:
 I changed it, but I am not sure what he means by "similar constructions"
+Do you understand, Thomas?
 
-12) Dan: Spell out acronyms (SOS, SDP).
+12) Referee: Spell out acronyms (SOS, SDP).
 
-Diego:
-I spelled out most of the occurrences.
+Authors: We spelled out most of the occurrences.
 
-13) Dan: The word "summands" is unclear.
+13) Referee: The word "summands" is unclear.
 
-Diego:
-I fixed it. The word "summand" no longer appears.
+Authors: We replaced the word "summand" throughout the documentation.
 
 14) "This method tests if various functions work properly using a specified solver. "
 
-Dan: change "if" to "whether"
+Referee: change "if" to "whether"
 
-Diego: done
+Authors: Done.
 
-15) Dan: What is a "solver"?
+15) Referee: What is a "solver"?
 
-Diego:
-I explain in the documentation that it is tool.
+Authors: We now explain in the documentation that it is software tool.
 
 16) "The most basic invocation is using only the name of the solver. "
 
-Dan: Change "is using "to "uses"
+Referee: Change "is using "to "uses"
 
-Diego: done
+Authors: Done.
 
-17) Dan: The output from checkSolver looks bad:
+17) Referee: The output from checkSolver looks bad.
 
-Diego: fixed
+Authors: We fixed this issue by using "netList(---, Boxes=>false)".
 
-18) Dan: The documentation for chooseMons is incomplete.
+18) Referee: The documentation for chooseMons is incomplete.
 
-Diego:
-This was supposed to be hidden. So I deleted it.
+Authors: We do not want the method chooseMons to be available to the user. Hence, we removed its documentation.
 
 19) "Given an SOSPoly with coefficients in the reals"
     
-Dan: You are using the identifier SOSPoly as though it were an English word.  Stick
-to words.  Check for other similar things.
+Referee: You are using the identifier SOSPoly as though it were an English word.  Stick to words.  Check for other similar things.
 
-Diego:
-I fixed it in the places where I noticed it.
+Authors: We fixed this issue throughout the documentation.
 
-20) Dan: Change documentation node "coefficients field" to "coefficient field".
+20) Referee: Change documentation node "coefficients field" to "coefficient field".
 
-Diego: done
+Authors: Done.
 
 21) "Once the rational world has been left, there is usually now way back."
 
-Dan: Change "now" to "no".
+Referee: Change "now" to "no".
 
-Diego: done
+Authors: Done.
 
-Dan: Leaving the rational world is ambiguous. The paragraph goes on to discuss "clean", but that doesn't get you back to the rational world.
+Referee: Leaving the rational world is ambiguous. 
+Referee: The paragraph goes on to discuss "clean", but that doesn't get you back to the rational world.
 
-Diego:
-I rewrote the paragraph.
+Authors: We rewrote the paragraph to clarify both points.
 
 =============================================================================
 
@@ -177,96 +163,55 @@ I rewrote the paragraph.
 *  PDF Article  *
 *****************
 
-22) Dan: Peyrl is listed as an author of the package, but this authorship is not
+22) Referee: Peyrl is listed as an author of the package, but this authorship is not
 acknowledged in the article.  Perhaps it should be. Or not?
 
-Diego:
-We discussed about this before, and we agreed to leave him out of the
+Diego: We discussed about this before, and we agreed to leave him out of the
 article. But we need to justify it.
 
 Thomas: Maybe just add a sentence to the PDF somewhere that
 acknowledges that we started the package with a proof-of-concept
 implementation by Parillo and Peyrl?
 
-23) Dan: Bibliography should include an item for Macaulay2 and for the SemidefiniteProgramming package
+23) Referee: Bibliography should include an item for Macaulay2 and for the SemidefiniteProgramming package
 
-Diego:
-Done. But I am not so sure how to cite SemidefiniteProgramming
-properly.
+Authors: Done. 
 
-Here is a fun way to do this:
+24) Referee: Make sure that the hyphens follow the English grammar.
 
-i1 : loadPackage "PackageCitations"
-
-o1 = PackageCitations
-
-o1 : Package
-
-i2 : cite SemidefiniteProgramming
-stdio:2:1:(3): error: no method found for applying iCite to:
-     argument   :  SemidefiniteProgramming (of class Symbol)
-
-i3 : cite "SemidefiniteProgramming"
---warning: symbol "Jacobian" in ReesAlgebra.Dictionary is shadowed by a symbol in NAGtypes.Dictionary
---  use the synonym ReesAlgebra$Jacobian
---loading configuration for package "NumericalAlgebraicGeometry" from file /Users/tom/Library/Application Support/Macaulay2/init-NumericalAlgebraicGeometry.m2
---loading configuration for package "PHCpack" from file /Users/tom/Library/Application Support/Macaulay2/init-PHCpack.m2
---loading configuration for package "Bertini" from file /Users/tom/Library/Application Support/Macaulay2/init-Bertini.m2
---loading configuration for package "SemidefiniteProgramming" from file /Users/tom/Library/Application Support/Macaulay2/init-SemidefiniteProgramming.m2
---warning: symbol "SemidefiniteProgramming" in PackageDictionary is shadowed by a symbol in User#"private dictionary"
---  use the synonym Package$SemidefiniteProgramming
-
-o3 = @misc{SemidefiniteProgrammingSource,
-       title = {{SemidefiniteProgramming: A \emph{Macaulay2} package. Version~0.2}},
-       author = {Diego Cifuentes and Thomas Kahle and Pablo A. Parrilo and Helfried Peyrl},
-       howpublished = {A \emph{Macaulay2} package available at \url{https://github.com/Macaulay2/M2/tree/master/M2/Macaulay2/packages}}
-     }
-
-
-24) Dan: Fix hyphens
-
-Diego:
-I did my best.
+Authors: We corrected this issue.
 
 25) "The SOS package allows to perform computations ..."
     "... and allows to select the SDP solver. "
 
-Dan: Allows whom to perform computations?  Check all other uses of "allow".
+Referee: Allows whom to perform computations?  Check all other uses of "allow".
 
-Diego:
-What is the problem with the word "allow"?
+Authors: We checked our uses of "allow" in the paper, reformulating most of them.
 
-Thomas: I guess the noun and the verb don't fit.  How can a package or
-method allow something.  The most direct meaning is "to give
-permission" which is too colloquial for the technical language here.
-I reformulated all "allows" except one (which I thought was OK).
+26) Referee: Change "In the above computation" to "In the computation above"
 
-26) Dan: Change "In the above computation" to "In the computation above"
-
-Diego: done
+Authors: Done.
 
 27) "Given a bound 2d ∈ N, "
 
-Dan: The reader will wonder whether d ∈ N is required!
+Referee: The reader will wonder whether d ∈ N is required!
 
-Diego: Fixed.
+Authors: We now clarify that 2d is an even integer.
 
-28) Dan: What's the definition of "real radical"?
+28) Referee: What's the definition of "real radical"?
 
-Diego:
-It is explained now.
+Authors: The real radical of an ideal I is the vanishing ideal of the real zeros of I. This is now explained in the paper.
 
 29) "i1 : R = QQ[x,y,z][s,t]; -- s,t are treated as parameters"
 
-Dan: Move comments about the code to the surrounding prose
+Referee: Move comments about the code to the surrounding prose
 
-Diego: done
+Authors: Done.
 
-30) Dan: Don't overuse acronyms such as SOS and SDP.  
+30) Referee: Don't overuse acronyms such as SOS and SDP.  
 
-Diego:
-I spelled out most of them.
+Authors: We spelled out most of them.
 
-31) Dan: What is a solver?  
+31) Referee: What is a solver?  
 
-Diego: fixed
+Authors: We explain that it is a software tool. 
