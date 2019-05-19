@@ -62,14 +62,14 @@ LowPrecision = 1e-4
 SOSPoly = new Type of HashTable
 
 sosPoly = method()
-sosPoly (Ring, List, List) := SOS => (R, polys, coeffs) -> (
+sosPoly (Ring, List, List) := (R, polys, coeffs) -> (
     new SOSPoly from {
         ring => R,
         gens => polys,
         coefficients => coeffs
         }
     )
-sosPoly (List, List) := SOS => (polys, coeffs) -> sosPoly(ring polys#0,polys,coeffs)
+sosPoly (List, List) := (polys, coeffs) -> sosPoly(ring polys#0,polys,coeffs)
 
 ring SOSPoly := S -> S#ring
 
@@ -539,7 +539,7 @@ chooseMons(RingElement) := o -> (f) -> (
     F := parameterVector(f);
     mon := chooseMons(F);
     if mon===null then return;
-    sub(mon,ring f);
+    sub(mon,ring f)
     )
 chooseMons(Matrix) := o -> (F) -> (
     R := ring F;
@@ -855,7 +855,7 @@ checkSolver(String,String) := (solver,fun) -> (
         );
     print "################################";
     print("SUMMARY");
-    print("=======");
+    print "################################";
     print netList(T,Boxes=>false);
     )
 checkSolver(String,Function) := (solver,fun) -> checkSolver(solver,toString fun)
@@ -1156,7 +1156,7 @@ TEST /// --sosPoly and sumSOS
 
 --1
 TEST /// --SOSmult
-    debug needsPackage "SOS"
+    debug needsPackage "SumsOfSquares"
     R = QQ[x,y,z,w]
     p1=sosPoly(R,{x^2-x*y,y^2+1,x},{1,2,3})
     p2=sosPoly(R,{y^3,x*w*z,y*z^2},{3,1/2,1/4})
@@ -1197,7 +1197,7 @@ TEST ///--substitute SOSPoly
 
 --4
 TEST ///--toRing
-    debug needsPackage "SOS"
+    debug needsPackage "SumsOfSquares"
     R = QQ[x,y];
     s = sosPoly(R, {x+1,y}, {2,3});
     S = RR[x,y];
@@ -1228,7 +1228,7 @@ TEST /// --sosdec
 
 --6
 TEST /// --chooseMons
-    debug needsPackage "SOS"
+    debug needsPackage "SumsOfSquares"
     R = QQ[x,y];
     f = x^4+2*x*y-x+y^4
     lmsos = chooseMons(f)
@@ -1257,7 +1257,7 @@ TEST /// --chooseMons
 
 --7
 TEST /// --createSOSModel
-    debug needsPackage "SOS"
+    debug needsPackage "SumsOfSquares"
     eval = (Q,v) -> (transpose v * Q * v)_(0,0)
     
     R = QQ[x][t];
@@ -1284,7 +1284,7 @@ TEST /// --createSOSModel
 
 --8
 TEST ///--makeMultiples
-    debug needsPackage "SOS"
+    debug needsPackage "SumsOfSquares"
     R = QQ[x,y,z]
     f1 = x + y
     f2 = x^2 + z^2
@@ -1309,28 +1309,28 @@ TEST ///--recoverSolution
 
 --10
 TEST /// --solveSOS
-    debug needsPackage "SOS"
+    debug needsPackage "SumsOfSquares"
     results := checkSolveSOS("CSDP")
     assert all(results,t->t=!=false);
 ///
 
 --11
 TEST /// --lowerBound
-    debug needsPackage "SOS"
+    debug needsPackage "SumsOfSquares"
     results := checkLowerBound("CSDP")
     assert all(results,t->t=!=false);
 ///
 
 --12
 TEST /// --sosInIdeal
-    debug needsPackage "SOS"
+    debug needsPackage "SumsOfSquares"
     results := checkSosInIdeal("CSDP")
     assert all(results,t->t=!=false);
 ///
 
 --13
 TEST /// --sosdecTernary
-    debug needsPackage "SOS"
+    debug needsPackage "SumsOfSquares"
     results := checkSosdecTernary("CSDP")
     assert all(results,t->t=!=false);
 ///
