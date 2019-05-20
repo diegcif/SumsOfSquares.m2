@@ -19,7 +19,6 @@ newPackage(
     },
     Headline => "sums of squares",
     AuxiliaryFiles => true,
-    DebuggingMode => true,
     PackageImports => {"FourierMotzkin"},
     PackageExports => {"SemidefiniteProgramming"}
 )
@@ -549,7 +548,7 @@ chooseMons(Matrix) := o -> (F) -> (
     monsPoly := g -> set first entries monomials g;
     monsList := G -> if #G>0 then sum(monsPoly\G) else {};
     filterVerts := (verts) -> (
-        -- only consider those without parameters (this is a hack!)
+        -- only consider those without parameters
         lmpars := monsList drop(flatten entries F,1);
         return select(verts, v -> not member(R_v,lmpars));
         );
