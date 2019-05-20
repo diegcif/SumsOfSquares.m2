@@ -62,8 +62,7 @@ makeGlobalPath = (fname) -> (
     if r>0 then return;
     fname = replace("\n","",get tmp);
     if first fname != "/" then fname = currentDirectory() | fname;
-    return "'" | fname | "'";
-    )
+    "'" | fname | "'")
 
 -- Choose default solver
 chooseDefaultSolver = execs -> (
@@ -77,8 +76,7 @@ chooseDefaultSolver = execs -> (
     if not member(defaultSolver,found) then
         defaultSolver = first found;
     print("Default solver: " | defaultSolver);
-    return defaultSolver;
-    )
+    defaultSolver)
 
 -- Change a solver path
 changeSolver = (solver, execpath) -> (
@@ -127,8 +125,7 @@ sdp (Matrix, Sequence, Matrix) := (C, A, b) -> (
     C = checkMat_{n,n} C;
     A = checkMat_{n,n} \ A;
     b = checkMat_{#A,1} b;
-    return sdp0(C,A,b);
-    )
+    sdp0(C,A,b))
 sdp (Matrix, Matrix, Matrix) := (C, A, b) -> sdp(C,sequence A,b)
 -- internal constructor that runs no checks:
 sdp0 = (C,A,b) -> new SDP from { "C" => C, "A" => A, "b" => b }
@@ -146,8 +143,7 @@ sdp(List,Matrix,RingElement) := (X,M,objFun) -> (
     A := for x in {e}|X list 
         matrix for i to n-1 list for j to n-1 list -coeff(x,M_(i,j));
     b := matrix for x in X list {-coeff(x,objFun)};
-    return sdp(-A#0,toSequence drop(A,1),b);
-    )
+    sdp(-A#0,toSequence drop(A,1),b))
 
 ring SDP := P -> ring P#"C";
 
@@ -170,8 +166,7 @@ verbose2(String,OptionTable) := (s,o) -> if o.Verbosity>=2 then print s
 isExactField = kk -> (
     try (kk = ring kk);
     kk = ultimate(coefficientRing,kk);
-    return precision 1_kk == infinity;
-    )
+    precision 1_kk == infinity)
 
 -- rounds real number to rational
 roundQQ = method()
@@ -192,8 +187,7 @@ smat2vec(List) := o -> A -> (
     v := for i to n-1 list
         for j from i to n-1 list 
             if i==j then A#i#j else o.Scaling*A#i#j;
-    return flatten v;
-    )
+    flatten v)
 smat2vec(Matrix) := o -> A -> matrix(ring A, apply(smat2vec(entries A,o), a->{a}))
 
 -- Reverse of the above
@@ -208,8 +202,7 @@ vec2smat(List) := o -> v -> (
         if i==j then v_(L#i#j) 
         else if i<j then v_(L#i#j)/(o.Scaling)
         else v_(L#j#i)/(o.Scaling) );
-    return A;
-    )
+    A)
 vec2smat(Matrix) := o -> v -> matrix(ring v, vec2smat(flatten entries v,o))
 
 PSDdecomposition = A -> (
@@ -226,8 +219,7 @@ PSDdecomposition = A -> (
     e = max_0 \ e;
     D := diagonalMatrix e;
     P := id_(kk^(numRows A));
-    return (V,D,P);
-    )
+    (V,D,P))
 
 LDLdecomposition = (A) -> (
     -- This implements Algorithm 4.2.2 from [Golub-VanLoan-2012]
@@ -273,8 +265,7 @@ LDLdecomposition = (A) -> (
     D := map(kk^n,kk^n,(i,j)->if i==j then Ah#(i,j) else 0_kk);
     P := submatrix(id_(kk^n),toList piv);
 
-    return (L,D,P);
-)
+    (L,D,P))
 
 --###################################
 -- Rational Rounding
@@ -333,15 +324,13 @@ rawCriticalIdeal = (P,Rank,Square) -> (
     if r=!=null then
         I = I + minors(r+1,Z) + minors(n-r+1,X);
     y = matrix transpose {y};
-    return (I,X,y,Z);
-    )
+    (I,X,y,Z))
 
 mat2ring = (R,C,A,b) -> (
     C = promote(C,R);
     A = apply(A, Ai -> promote(Ai,R));
     b = promote(b,R);
-    return (C,A,b);
-    )
+    (C,A,b))
 
 refine(SDP,Sequence) := o -> (P,X0y0) -> (
     (X0,y0) := X0y0;
@@ -355,8 +344,7 @@ refine(SDP,Sequence) := o -> (P,X0y0) -> (
     m := numColumns y0;
     X1 := matrix vec2smat drop(L,-m);
     y1 := matrix transpose {take(L,-m)};
-    return (X1,y1);
-    )
+    (X1,y1))
 
 --###################################
 -- SOLVE SDP
@@ -387,8 +375,7 @@ optimize(SDP) := o -> P -> (
         error "unknown SDP solver";
     ntries := 6;
     (y,Z) = findNonZeroSolution(C,A,b,o,y,Z,ntries,o.Verbosity);
-    return (X,y,Z);
-    )
+    (X,y,Z))
 
 findNonZeroSolution = (C,A,b,o,y,Z,ntries,Verbosity) -> (
     -- Heuristic to trick the solver into returning a nonzero solution of an SDP
@@ -408,8 +395,7 @@ findNonZeroSolution = (C,A,b,o,y,Z,ntries,Verbosity) -> (
         if X'===null and y'=!=null and (transpose(-b') * y')_(0,0) < -.1 then
             badCoords = badCoords + set select(0..m-1, j -> not iszero y'_(j,0));
         );
-    return (y,Z);
-    )
+    (y,Z))
 
 optimize(SDP, Matrix) := o -> (P,y0) -> (
     (C,A,b) := (P#"C",P#"A",P#"b");
@@ -422,8 +408,7 @@ optimize(SDP, Matrix) := o -> (P,y0) -> (
     (ok,X,y,Z) = trivialSDP(C,A,b,o.Verbosity);
     if ok then return (X,y,Z);
     (y,Z) = simpleSDP2(C,A,b,y0,false,Verbosity=>o.Verbosity);
-    return (,y,Z);
-    )
+    (,y,Z))
 
 chooseSolver = o -> if o.Solver=!=null then o.Solver else defaultSolver
 
@@ -441,8 +426,7 @@ sdpNoConstraints = (C,A,Verbosity) -> (
             return (true,,,);
             );
         );
-    return (false,,,);
-    )
+    (false,,,))
 
 -- check trivial cases and solve them directly
 trivialSDP = (C,A,b,Verbosity) -> (
@@ -457,8 +441,7 @@ trivialSDP = (C,A,b,Verbosity) -> (
             return (true,,,);
             );
         );
-    return (false,,,);
-    )
+    (false,,,))
 
 
 -- Implementation of SDP in Macaulay2
@@ -487,8 +470,7 @@ simpleSDP = {Verbosity => 1} >> o -> (C,A,b) -> (
     verbose2("Computing an optimal solution...", o);
     (y,Z) = simpleSDP2(C, A, b, y, false, o);
     verbose1(if y=!=null then StatusDFeas else StatusFailed, o);
-    return (y,Z);
-    )
+    (y,Z))
 
 
 -- This second part solves given an interior starting point.
@@ -540,8 +522,7 @@ simpleSDP2 = {Verbosity => 1} >> o -> (C,A,mb,y,UntilObjNegative) -> (
             ); 
         );
     Z := C - sum(for i to #A-1 list y_(i,0) * A_i);
-    return (y,Z);
-    )     
+    (y,Z))
 
 backtrack = (S0, dS, Verbosity) -> (
      R := ring S0;
@@ -558,8 +539,7 @@ backtrack = (S0, dS, Verbosity) -> (
           verbose1("line search did not converge.", Verbosity);
           return null );
       );
-     return alpha;
-     )
+     alpha)
 
 --###################################
 -- Interface to CSDP
@@ -584,8 +564,7 @@ solveCSDP(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     verbose1("Output file: " | fout, o);
     (X,y,Z) := readCSDP(fout,fout2,n,o.Verbosity);
     y = checkDualSol(C,A,y,Z,o.Verbosity);
-    return (X,y,Z);
-    )
+    (X,y,Z))
 
 runcmd = (cmd,Verbosity) -> (
     tmp := getFileName ".err";
@@ -601,17 +580,15 @@ runcmd = (cmd,Verbosity) -> (
     )
 
 getFileName = (ext) -> (
-     filename := temporaryFileName() | ext;
-     while fileExists(filename) do filename = temporaryFileName();
-     return filename
-    )
+    filename := temporaryFileName() | ext;
+    while fileExists(filename) do filename = temporaryFileName();
+    filename)
 
 splitFileName = (fname) -> (
     s := separate("/",fname);
     dir := demark("/",drop(s,-1))|"/";
     file := last s;
-    return (dir,file);
-    )
+    (dir,file))
 
 -- SDPA file format is a shared input format of SDPA and CSDP
 writeSDPA = (fin,C,A,b) -> (
@@ -667,8 +644,7 @@ readCSDP = (fout,fout2,n,Verbosity) -> (
     sdpa2matrix := s -> (
         e := for i in s list (i_2-1,i_3-1) => i_4;
         e' := for i in s list (i_3-1,i_2-1) => i_4;
-        return map(RR^n, RR^n, e|e');
-        );
+        map(RR^n, RR^n, e|e'));
     readLine := l -> for s in separate(" ",l) list if s=="" then continue else value s;
     --READ SOLUTIONS
     text := get fout;
@@ -696,8 +672,7 @@ readCSDP = (fout,fout2,n,Verbosity) -> (
         y=null;Z=null; )
     else 
         verbose1("Warning: Solver returns unknown message!!! " |s,Verbosity);
-    return (X,y,Z);
-)
+    (X,y,Z))
 
 -- A heuristic to postprocess output of CSDP
 checkDualSol = (C,A,y,Z,Verbosity) -> (
@@ -708,8 +683,7 @@ checkDualSol = (C,A,y,Z,Verbosity) -> (
     AA := transpose matrix(RR, smat2vec \ entries \ toList A);
     bb := transpose matrix(RR, {smat2vec entries(C-Z)});
     y = solve(AA,bb,ClosestFit=>true);
-    return y;
-    )
+    y)
 
 --###################################
 -- Interface to SDPA
@@ -727,8 +701,7 @@ solveSDPA(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     runcmd(sdpaexec | " " | fin | " " | fout | "> /dev/null", Verbosity);
     verbose1("Output file: " | fout, o);
     (X,y,Z) := readSDPA(fout,n,o.Verbosity);
-    return (X,y,Z);
-    )
+    (X,y,Z))
 
 readSDPA = (fout,n,Verbosity) -> (
     readVec := l -> (
@@ -770,8 +743,7 @@ readSDPA = (fout,n,Verbosity) -> (
         X=null;y=null;Z=null; )
     else
         verbose1("Warning: Solver returns unknown message!!! " |s, Verbosity);
-    return (X,y,Z);
-    )
+    (X,y,Z))
 
 --###################################
 -- Interface to MOSEK
@@ -790,8 +762,7 @@ solveMOSEK(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     runcmd(mosekexec | " " | fin | ">" | fout2, Verbosity);
     verbose1("Output file: " | fout, o);
     (X,y,Z) := readMOSEK(fout,fout2,n,o.Verbosity);
-    return (X,y,Z);
-    )
+    (X,y,Z))
 
 -- write mosek input file (CBF format)
 writeMOSEK = (fin,C,A,b) -> (
@@ -883,8 +854,7 @@ readMOSEK = (fout,fout2,n,Verbosity) -> (
         y=null;Z=null; )
     else 
         verbose1("Warning: Solver returns unknown message!!! " |s, Verbosity);
-    return (X,y,Z);
-    )
+    (X,y,Z))
 
 
 --###################################
@@ -959,8 +929,7 @@ checkOptimize = (solver) -> (
         checkZ(C,A,y,Z)
         );
 
-    return {t0,t1,t2,t3,t4};
-    )
+    {t0,t1,t2,t3,t4})
 
 --##########################################################################--
 -- Documentation and Tests
