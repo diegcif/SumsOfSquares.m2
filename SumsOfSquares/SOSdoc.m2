@@ -2,8 +2,7 @@
 document {
     Key => SumsOfSquares,
     Headline => "A package for sums-of-squares problems",
-    TT "SumsOfSquares", " is a package to solve sums-of-squares (SOS) problems. ",
-    "The main tool behind this package is ",
+    TT "SumsOfSquares", " is a package to solve sums-of-squares (SOS) problems via ",
     TO2{"SemidefiniteProgramming", "semidefinite programming"}, " (SDP). ",
 
     HEADER4 "Introduction",
@@ -97,7 +96,7 @@ doc /// --coefficient field
         sosPoly sol
       Text
         Given a sum-of-squares decomposition with real coefficients, it is often useful to ignore the squares with very small coefficients.
-        The function @TO (clean,RR,SOSPoly)@ removes the squares whose coefficients are below than a given tolerance.
+        The function @TO (clean,RR,SOSPoly)@ removes the squares whose coefficients are smaller than a given tolerance.
       Example
         clean (0.001, sosPoly sol)
     SeeAlso
