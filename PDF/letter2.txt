@@ -46,14 +46,7 @@ Authors: We adopted the name suggested by the referee.
 
 Referee: The 5 lines of trace output are noise
 
-Diego:
-I changed the optional argument Verbose to Verbosity. Nothing is printed when it is set to 0.
-
-Thomas: I think this is not so good.  "Verbose" is a symbol that is
-globally defined and used by many packages.  Maybe it is better to
-stick to the Boolean Verbose and just omit the above lines if not
-Verbose?  Currently the package is also broken because "Verbosity" is
-not exported.
+Authors: We now have an optional argument "Verbosity", as in the "IntegralClosure" package. If Verbosity==0 then no information is printed. If Verbosity==1 a very minimal output is printed. And if Verbosity==2 then we provide a more detailed description.
 
 5) Referee: Don't use "return" so much
 
@@ -66,9 +59,6 @@ Authors: We removed all appearances of "return" in the last line.
 6) Referee: Make sure that the hyphens follow the English grammar.
 
 Authors: We checked our usage of the hyphens throughout the documentation. We believe it is correct now.
-
-Thomas: So the convention is now that sum-of-squares is hyphenated?
-Diego: "sums-of-squares problems" is correct with hyphens, because there "sums-of-squares" is being used as a single noun adjunct modifying "problems". 
 
 7) "The SemidefiniteProgramming package in Macaulay2 ships with the CSDP solver"
 
