@@ -166,12 +166,9 @@ Authors: We rewrote the paragraph to clarify both points.
 22) Referee: Peyrl is listed as an author of the package, but this authorship is not
 acknowledged in the article.  Perhaps it should be. Or not?
 
-Diego: We discussed about this before, and we agreed to leave him out of the
-article. But we need to justify it.
+Authors: The code for this package did not start from scratch but from a proof-of-concept implementation due to Parrilo and Peyrl.
+It seemed fair to acknowledge the authorship of Peyrl in the package, but his contributions are all from before 2010.
 
-Thomas: Maybe just add a sentence to the PDF somewhere that
-acknowledges that we started the package with a proof-of-concept
-implementation by Parillo and Peyrl?
 
 23) Referee: Bibliography should include an item for Macaulay2 and for the SemidefiniteProgramming package
 
