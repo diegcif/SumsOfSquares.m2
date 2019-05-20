@@ -2,8 +2,7 @@
 document {
     Key => SumsOfSquares,
     Headline => "A package for sums-of-squares problems",
-    TT "SumsOfSquares", " is a package to solve sums-of-squares (SOS) problems. ",
-    "The main tool behind this package is ",
+    TT "SumsOfSquares", " is a package to solve sums-of-squares (SOS) problems via ",
     TO2{"SemidefiniteProgramming", "semidefinite programming"}, " (SDP). ",
 
     HEADER4 "Introduction",
@@ -97,7 +96,7 @@ doc /// --coefficient field
         sosPoly sol
       Text
         Given a sum-of-squares decomposition with real coefficients, it is often useful to ignore the squares with very small coefficients.
-        The function @TO (clean,RR,SOSPoly)@ removes the squares whose coefficients are below than a given tolerance.
+        The function @TO (clean,RR,SOSPoly)@ removes the squares whose coefficients are smaller than a given tolerance.
       Example
         clean (0.001, sosPoly sol)
     SeeAlso
@@ -133,7 +132,7 @@ doc /// --SOSPoly
         A polynomial $f\in K[x]$ is a sum of squares (SOS) if it can be written as
         $$f = \sum_i d_i g_i^2,$$
         where the $g_i$ are polynomials in $K[x]$ and the $d_i$ are positive weights in $K$.
-        This data type stores sum-of-squares polynomials.
+        This data type stores polynomials as sums of squares.
         The type is a hash table consisting of the polynomials to be
         squared and summed (the 'generators'), corresponding coefficients,
         and the base ring.  
@@ -520,7 +519,7 @@ doc /// --sosdecTernary
         This implementation only works with the @TO2 {Solver,"solvers"}@ "CSDP" and "MOSEK".
 
         $\bullet$
-        Due to the iterative nature of the algorithm, it could happen that some of the the output sum-of-squares polynomials are rational while some are real.
+        Due to the iterative nature of the algorithm, it could happen that some of the the output sums of squares are rational while some are real.
 ///
 
 doc /// --sosInIdeal
@@ -550,7 +549,7 @@ doc /// --sosInIdeal
         This methods finds sums-of-squares polynomials in ideals.
         It accepts two types of inputs that are useful for different purposes.
         The first invocation is to give a one row matrix with polynomial entries and a degree bound.
-        The method then tries to find a sum-of-squares polynomial in the generated ideal.
+        The method then tries to find a sum of squares in the generated ideal.
         More precisely, given equations $h_1(x),...,h_m(x)$, the method looks for polynomial multipliers $h_i(x)$ such that $\sum_i l_i(x) h_i(x)$ is a sum of squares.
      Example
         R = QQ[x,y,z];
