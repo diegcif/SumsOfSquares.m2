@@ -90,7 +90,7 @@ Authors: Done.
 
 11) Referee: change "found decomposition" to "decomposition found", and check similar constructions
 
-Authors: We changed this. However, it is not so clear for us what the referee means by "similar constructions". Our guess is that the referee would like us to place past participles before the nouns. But we read that this might not be appropriate in some cases ( https://english.stackexchange.com/questions/63972 ).
+Authors: We changed this. However, it is not so clear for us what the referee means by "similar constructions". Our guess is that the referee would like us to place past participles after the nouns. But we read that this might not be appropriate in some cases ( https://english.stackexchange.com/questions/63972 ).
 Neither of us is a native speaker, so we would appreciate if the referee could be more precise about what he/she means.
 
 12) Referee: Spell out acronyms (SOS, SDP).
