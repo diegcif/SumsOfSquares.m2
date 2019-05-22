@@ -25,14 +25,8 @@ Authors: We understand that this is the policy of the journal. The newly uploade
     +-- keeps failing overnight under Ubuntu 16.04, host habanero
     +-- TEST /// --sosdecTernary
 
-Diego: The M2 repository omits two tests (above). Each of them has multiple subtests. For instance, lowerBound has six subtests, as can be seen when running the command: 
-    checkSolver ("CSDP",lowerBound)
-I would like to know which subtests are failing.
-
-Thomas: I remeber discussing this issue with Referee last fall.  I don't
-understand why these tests fail for him.  Ideally they should not
-fail?  I think Mike Stillman built it under some sort of Linux and all
-tests passed.
+Authors: We have run all test under various configurations including a recent Ubuntu 18.04.  This failure might indicate some problem with the test setup.
+Since each of the functions runs several tests, would it be possible to know which subtests are failing and disable only those?
 
 3) Referee: What about changing the name of the package to SumsOfSquares?
 
