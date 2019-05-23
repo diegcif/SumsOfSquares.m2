@@ -21,12 +21,20 @@ Authors: We understand that this is the policy of the journal. The newly uploade
      --11
     +-- fails every night under Ubuntu 16.04
     +-- TEST /// --lowerBound
+    +--     results := checkLowerBound("CSDP")
+    +--     assert all(results,t->t=!=false);
+    +-- ///
      --13
     +-- keeps failing overnight under Ubuntu 16.04, host habanero
     +-- TEST /// --sosdecTernary
+    +--     results := checkSosdecTernary("CSDP")
+    +--     assert all(results,t->t=!=false);
+    +-- ///
 
-Authors: We have run all test under various configurations including a recent Ubuntu 18.04.  This failure might indicate some problem with the test setup.
-Since each of the functions runs several tests, would it be possible to know which subtests are failing and disable only those?
+Authors:
+We are surprised to see that two tests are failing, since we have run all tests under various configurations including a recent Ubuntu 18.04. The failure indicated in the github trace might indicate some problem with the test setup. Please let us know if we can help in any way to resolve it.
+
+Both tests 11 and 13 consist of several subtests. The output of these subtests are saved in the variable "results". Would it be possible to know which subtests are failing and disable only those?
 
 3) Referee: What about changing the name of the package to SumsOfSquares?
 
