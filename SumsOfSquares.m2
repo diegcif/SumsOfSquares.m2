@@ -372,7 +372,7 @@ rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
     if not isMonomial then error("Vector must consist of monomials.");
          
     -- build SOS model --
-    (C,Ai,p0,V,A,B,b) := createSOSModel(F,mon,Verbosity=>o.Verbosity);
+    (C,Ai,p0,V,A,B,b) := createSOSModel(F,mon,Verbosity=>o.Verbosity,RoundTol=>o.RoundTol);
     if C===null then return sdpResult(mon,,,);
 
     ndim := numRows C;
@@ -442,9 +442,8 @@ solveSOS(RingElement,ZZ) := o -> (f,D) ->
     solveSOS(f,0_(ring f),D,o)
 
 -- Main method to setup an SOS problem as an SDP problem
--- It is not exported, but there is (hidden) documentation for it.
 createSOSModel = method(
-    Options => {Verbosity => 1} )
+    Options => {Verbosity => 1, RoundTol => 3 } )
 createSOSModel(RingElement,Matrix) := o -> (f,v) -> (
     F := parameterVector(f);
     createSOSModel(F,v)
@@ -453,6 +452,7 @@ createSOSModel(Matrix,Matrix) := o -> (F,v) -> (
     kk := coefficientRing ring F;
     np := numRows F - 1;
     n := numRows v;
+    n2 := n*(n+1)//2;
     
     -- monomials in vvT
     vvT := entries(v* transpose v);
@@ -468,12 +468,35 @@ createSOSModel(Matrix,Matrix) := o -> (F,v) -> (
     b := map(kk^#K, kk^1, (i,j) -> coefficient(K#i,F_(0,0)) );
     
     -- Linear constraints: A, B
-    coeffMat := (x,A) -> applyTable(A, a -> coefficient(x,a));
-    A := matrix(kk, for i to #K1-1 list smat2vec(coeffMat(K1_i, vvT),Scaling=>2) );
-    A = A || zeros(kk,#K2,n*(n+1)//2);
+    constructA := (K1,vvT,k2) -> (
+        vvT' := smat2vec(vvT, Scaling=>2);
+        k1 := #K1;
+        idx := hashTable for i to k1-1 list K1_i => i;
+        a := new MutableList;
+        for j to n2-1 do (
+            (M,C) := coefficients(vvT'#j);
+            C = sub(C,kk);
+            for l to numRows(C)-1 list(
+                i := idx#(M_(0,l));
+                a#(#a) = (i,j)=>C_(l,0);
+                )
+            );
+        a = toList a;
+        return map(kk^(k1+k2), kk^n2, a);
+        );
+    constructAold := (K1,vvT,k2) -> (   --old construction is slow
+        coeffMat := (x,A) -> applyTable(A, a -> coefficient(x,a));
+        A := matrix(kk, for i to #K1-1 list smat2vec(coeffMat(K1_i, vvT),Scaling=>2) );
+        return A || zeros(kk,k2,n2);
+        );
+    A := constructA(K1,vvT,#K2);
     
     -- Consider search-parameters:
     B := map(kk^#K, kk^np, (i,j) -> -coefficient(K#i, F_(j+1,0)) );
+
+    if isExactField(A) and o.RoundTol==infinity then(
+        A = sub(A,RR); B = sub(B,RR); b = sub(b,RR);
+        );
     
     (C,Ai,p0,V) := getImageModel(A,B,b,o);
     
