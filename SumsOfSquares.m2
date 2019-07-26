@@ -481,18 +481,27 @@ createSOSModel(Matrix,Matrix) := o -> (F,v) -> (
                 a#(#a) = (i,j)=>C_(l,0);
                 )
             );
-        a = toList a;
-        return map(kk^(k1+k2), kk^n2, a);
+        map(kk^(k1+k2), kk^n2, toList a)
         );
     constructAold := (K1,vvT,k2) -> (   --old construction is slow
         coeffMat := (x,A) -> applyTable(A, a -> coefficient(x,a));
         A := matrix(kk, for i to #K1-1 list smat2vec(coeffMat(K1_i, vvT),Scaling=>2) );
-        return A || zeros(kk,k2,n2);
+        A || zeros(kk,k2,n2)
         );
     A := constructA(K1,vvT,#K2);
     
     -- Consider search-parameters:
-    B := map(kk^#K, kk^np, (i,j) -> -coefficient(K#i, F_(j+1,0)) );
+    constructB := (K,F) -> (
+        F0 := F^(toList(1..np));
+        (M,C) := coefficients transpose F0;
+        C0 := map(kk^1,kk^(numcols C),{}) || sub(C,kk);
+        idx := hashTable for j to numcols(M)-1 list M_(0,j) => j+1;
+        rows := for i to #K-1 list if idx#?(K#i) then idx#(K#i) else 0;
+        -(C0^rows)
+        );
+    constructBold := (K,F) ->   --old construction is slow
+        map(kk^#K, kk^np, (i,j) -> -coefficient(K#i, F_(j+1,0)) );
+    B := constructB(K,F);
 
     if isExactField(A) and o.RoundTol==infinity then(
         A = sub(A,RR); B = sub(B,RR); b = sub(b,RR);
