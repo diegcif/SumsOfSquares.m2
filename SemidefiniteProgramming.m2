@@ -559,7 +559,7 @@ solveCSDP(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     writeCSDPparam(fparam);
     verbose1("Executing CSDP", o);
     verbose1("Input file: " | fin, o);
-    runcmd("cd " | dir | " && " | csdpexec | " " | fin1 | " " | fout | ">" | fout2, Verbosity);
+    runcmd("cd " | dir | " && " | csdpexec | " " | fin1 | " " | fout | ">" | fout2, o.Verbosity);
     verbose1("Output file: " | fout, o);
     (X,y,Z) := readCSDP(fout,fout2,n,o.Verbosity);
     y = checkDualSol(C,A,y,Z,o.Verbosity);
