@@ -65,7 +65,7 @@ document {
 	},
 
     HEADER4 "On the role of the coefficient field",
-    "The ", TT "SOS", " package interfaces tries to hide
+    "The ", TT "SumsOfSquares", " package interfaces tries to hide
     some of the difficulties that arise from using these numerical procedures. ", 
     "See ", TO "coefficient field", " for more information.",
 
@@ -192,7 +192,7 @@ doc /// -- SDPResult
        result of a semidefinite programming computation
     Description
       Text
-        This type encapsulates the result of an semidefinite programming computation.
+        This type encapsulates the result of a semidefinite programming computation.
       Example
         R = QQ[x][t];
         f = x^2 - 3*x - t;
@@ -702,7 +702,7 @@ doc /// --checkSolver
         solver:String
           either "M2" or "CSDP" or "SDPA" or "MOSEK"
         fun:Function
-          optional, one of "solveSDP", "solveSOS", "sosdecTernary", "sosInIdeal", or "lowerBound"
+          optional, one of @TO optimize@, @TO solveSOS@, @TO sosdecTernary@, @TO sosInIdeal@, or @TO lowerBound@
     Consequences
     Description
       Text
@@ -841,7 +841,7 @@ doc /// -- RoundTol
       Text
         The optional argument {\tt RoundTol} specifies the minimal rounding precision in $d$ binary digits.
 
-        Sums-of-squares problems are solved numerically using an semidefinite programming solver, and afterwards the package attempts to round the floating point solution to rational numbers.
+        Sums-of-squares problems are solved numerically using a semidefinite programming solver, and afterwards the package attempts to round the floating point solution to rational numbers.
         The rounding strategy is guaranteed to work whenever the space of Gram matrices is full dimensional.
         For optimization problems the rounding may cause a loss in optimality.
         The argument {\tt RoundTol} allows to control the trade-off between optimality and simplicity.
