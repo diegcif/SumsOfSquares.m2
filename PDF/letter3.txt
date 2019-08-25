@@ -1,0 +1,143 @@
+Dear Professor Christine Berkesch,
+
+Thanks again for looking at our package. Please find below a point by point explanation of our latest changes.
+
+Sincerely,
+
+Diego Cifuentes, Thomas Kahle, Pablo Parrilo
+
+*****************
+*  Source code  *
+*****************
+
+1) Referee: Please install 1.14 and make sure the package works.
+
+Authors: 
+
+2) Referee: I mention the possibility of using formal expressions to display the answer and to check it.
+
+Authors:
+
+3) Referee: It would be a good idea to totally suppress the SDP solver trace.
+
+Authors: 
+
+*******************
+*  Documentation  *
+*******************
+
+4) Referee: Switch to the new name
+		"The ", TT "SOS", " package interfaces tries to hide
+
+Authors: Done.
+
+5) Make the members of this list link to the corresponding documentation nodes
+          optional, one of "solveSDP", "solveSOS", "sosdecTernary", "sosInIdeal", or "lowerBound"<Paste>
+
+Authors: Done.
+
+Referee: solveSDP doesn't seem to exist!
+
+Authors: The method "solveSDP" was renamed "optimize" a few months ago. We fixed the name.
+
+6) Fix "an" in "an semidefinite"
+
+Authors: Done.
+
+*****************
+*  PDF Article  *
+*****************
+
+7) Replace
+        "The package SumsOfSquares implements sums-of-squares decompositions in Macaulay2"
+    with
+        "The Macaulay2 package SumsOfSquares decomposes polynomials as sums of squares"
+
+Authors: Done.
+
+8) Referee: Bibliography should include an item for Macaulay2 and for the SemidefiniteProgramming package
+
+Authors: Done. 
+
+9) Referee: Put "Macaulay2" in italic uniformly.
+
+Authors: Done.
+
+10) Referee: Fix "an" in "an sum of squares"
+
+Authors: Done.
+
+11) Referee: Replace
+        "Classically, Hilbert characterized in which cases sums of squares coincide
+         with nonnegative polynomials as univariate polynomials, quadratic
+         polynomials and bivariate quartics"
+    with
+        "Hilbert showed that the nonnegative polynomials of degree d in n variables
+		 are sums of squares if and only if: n=1; or d=2; or n=2 and d=4."
+
+Authors: Done.
+
+12) Referee: Replace "deciding whether" with "deciding if"
+
+Authors: Done.
+
+13) Referee: Replace "a vector with all the" with "a vector whose entries are the"
+
+Authors: Done.
+
+14) Give a reference for the result that a polynomial is SOS if and only if there is semidefinite matrix Q such that ...
+
+Referee: We now reference the book by Blekherman, Parrilo, and Thomas.
+
+Authors: We now clarify that 2d is an even integer.
+
+15) Referee: Replace
+		"called an external semidefinite programming solver (or software) in the background"
+	with
+		"called an external program to serve as semidefinite programming solver"
+
+Authors: Done.
+
+16) Referee: It seems that the package did not call an external program.
+	Rather, it used the package SemidefiniteProgramming, and that package called
+	the external program.  Would the authors like the editors to regard the article
+	as about both packages?  
+
+Authors: Yes!!!
+
+17) Referee: The meaning of "round" could be clarified:
+		"Although the result of the semidefinite programming solver is in floating point, 
+		Macaulay2 attempts to round it to obtain a rational Gram matrix."
+
+Authors: 
+
+18) Referee: Replace
+		"The last output is an object of type SOSPoly. 
+		This type stores the coefficients ..."
+	with
+		"The last output is an object of type SOSPoly.  
+		In an object of this type are stored the coefficients ..."
+
+Authors: Done.
+
+19) Referee: Replace
+		"For such a computation, an (even) degree bound 2d must be given by the user...
+		In this case we set 2d = 2."
+	with 
+		"For such a computation, an even degree bound must be given by the user...
+		In the following example we use 2d = 2 as the degree bound."
+
+Authors: Done.
+
+Referee: Does it need to be said twice?
+			"A degree bound 2d must be given by the user."
+
+Authors:
+
+20) Referee: This confuses me:
+		"Smaller values of RoundTol lead to simpler bounds (smaller denominators), 
+		at the expense of a loss in optimality."
+	Do you mean you might write a rational polynomial as a sum of squares of
+    rational polynomials in two different ways?
+
+Authors: 
