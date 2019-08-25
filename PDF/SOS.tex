@@ -29,7 +29,7 @@
 \newtheorem*{note}{Note}
 \newtheorem{case}{Case}
 
-\newcommand{\Mac}{Macaulay2\xspace}
+\newcommand{\Mac}{\emph{Macaulay2}\xspace}
 \newcommand{\SOS}{\textsc{SumsOfSquares}\xspace}
 \newcommand{\SDP}{\textsc{SemidefiniteProgramming}\xspace}
 
@@ -56,8 +56,7 @@
 
 
 \begin{abstract}
-  The package \SOS implements sums-of-squares decompositions in
-  \Mac.
+  The \Mac package \SOS decomposes polynomials as sums of squares.
   It is based on methods to rationalize sum-of-squares decompositions due to Parrilo and Peyrl.
   The package features a data type for sums-of-squares polynomials, support for external semidefinite programming solvers, and optimization over varieties.
 \end{abstract}
@@ -71,23 +70,23 @@ Let $\kk \!=\! \QQ$ or $\kk \!=\! \RR$ be the rational or real numbers and $R = 
 An element $f\!\in\! R$ is \emph{nonnegative} if $f(x) \!\ge\! 0$ for all $x \!\in\! \RR^{n}$,
 and $f$ is a \emph{sum of squares} (SOS) if there are polynomials $f_{1},\dots,f_{m} \!\in\! R$ and positive scalars $\lambda_{1},\dots,\lambda_{m} \!\in\! \kk$ such that $f=\sum_{i}\lambda_i f_{i}^{2}$.
 The scalars are not necessary when the field is $\kk\!=\!\RR$.
-Clearly, an sum of squares is nonnegative, but not every nonnegative polynomial is a sum of squares.
-Classically, Hilbert characterized in which cases sums of squares coincide with nonnegative polynomials as univariate polynomials, quadratic polynomials and bivariate quartics.  
+Clearly, a sum of squares is nonnegative, but not every nonnegative polynomial is a sum of squares.
+Hilbert showed that the nonnegative polynomials of degree $d$ in $n$ variables are sums of squares if and only if: $n=1$; or $d=2$; or $n=2$ and $d=4$.
 For an introduction to the area we recommend~\cite{scheiderer2009positivity,blekherman2012semidefinite}.
 
 The \SOS package contains methods to compute sums-of-squares in \Mac~\cite{macaulay2}.
 A particular focus is on trying to find rational sums-of-squares decompositions of polynomials with rational coefficients (whenever they exist).
 
-Consider the basic problem of deciding if a polynomial is a sum of squares.
+Consider the basic problem of deciding whether a polynomial is a sum of squares.
 Let $f \!\in\! R$ of degree~$2d$,
-and $v \!\in\! R^N$ a vector with all the $N \!=\! \binom{n+d}{d}$ monomials of degree $\leq\!d$.
+and $v \!\in\! R^N$ a vector whose entries are the $N \!=\! \binom{n+d}{d}$ monomials of degree $\leq\!d$.
 The following fundamental result holds:
 \begin{align*}
   f \text{ is SOS } 
   \qquad\iff\qquad
   \exists\, Q\in \mathbb{S}_+^N \text{ such that } f = v^T Q v,
 \end{align*}
-where $\mathbb{S}_+^N$ is the cone of $N{\times} N$ symmetric positive semidefinite matrices.
+where $\mathbb{S}_+^N$ is the cone of $N{\times} N$ symmetric positive semidefinite matrices; see~\cite[\S3.1]{blekherman2012semidefinite}.
 % This reduces the problem to finding a matrix $Q$ as above. 
 This reduces the problem to finding a \emph{Gram matrix} $Q$ as above, which can be done efficiently with \emph{semidefinite programming} (SDP).
 
@@ -104,7 +103,7 @@ Status: SDP solved, primal-dual feasible
 }
 \noindent
 The ``Status'' line indicates that a Gram matrix was found, so $f$ is indeed a sum of squares.
-In the example above the package called an external semidefinite programming solver (or software) in the background.
+In the example above the package called an external program to serve as semidefinite programming solver.
 The default solver is the open source program CSDP~\cite{borchers1999csdp}, which is included in \Mac.
 % In the example above the package called the semidefinite programming solver CSDP~\cite{borchers1999csdp} in the background.
 % This solver comes with \Mac and is the default.
@@ -119,7 +118,7 @@ o4 = ( | 2      1     -83/40 |,   | x2 | )
 \end{verbatim}
 }
 \noindent
-Although the result of the semidefinite programming solver is in floating point, Macaulay2 attempts to round it to obtain a rational Gram matrix~\cite{peyrl2008computing}.
+Although the result of the semidefinite programming solver is in floating point, the \SOS package attempts to round it to obtain a rational Gram matrix~\cite{peyrl2008computing}.
 If the rounding procedure fails, the method returns the floating point solution.
 The procedure is guaranteed to work when the floating point Gram matrix lies in the interior of~$\mathbb{S}_+^N$.
 See Appendix~\ref{sec:rounding} for more details about rational rounding.
@@ -140,15 +139,16 @@ o5 = coeffs: {5, 43/20, 231773/344000}
 }
 \noindent
 The last output is an object of type \verb|SOSPoly|.
-This type stores the coefficients $\lambda_{i}$ (under \verb|coeffs|) and polynomials $f_{i}$ (under \verb|gens|) such that $f = \sum_{i}\lambda_{i}f_{i}^{2}$.
+In an object of this type are stored the coefficients $\lambda_{i}$ (under \verb|coeffs|) and polynomials $f_{i}$ (under \verb|gens|) such that $f = \sum_{i}\lambda_{i}f_{i}^{2}$.
 
 The method \verb|solveSOS| can also compute sums-of-squares decompositions in quotient rings.
 This can be useful to prove nonnegativity of a polynomial on a variety.
 We take an example from~\cite{parrilo2005exploiting}.
 Consider proving that $f = 10{-}x^2{-}y$ is nonnegative on the circle defined by $g = x^2 {+} y^2 {-} 1$.
 To do this, we check if $f$ is a sum of squares in the quotient ring $\QQ[x,y]/\langle g\rangle$.
-For such a computation, an (even) degree bound~$2d$ must be given by the user, as otherwise it is not obvious how to choose the monomial vector~$v$.
-In this case we set $2d=2$.
+For such a computation, an even degree bound must be given by the user, 
+as otherwise it is not obvious how to choose the monomial vector~$v$.
+In the following example we use $2d=2$ as the degree bound.
 {\small
 \begin{verbatim}
 i1 : R = QQ[x,y]/ideal(x^2 + y^2 - 1);
@@ -377,7 +377,7 @@ o7 = {x => 1.77345e-9, y => 1}
 
 \subsection*{SDP Solver}
 The optional argument \verb|Solver| is available for many package methods and a particular semidefinite programming solver can be picked by setting it.
-These solvers are interfaced via the auxiliary Macaulay2 package \SDP~\cite{sdpM2}.
+These solvers are interfaced via the auxiliary \Mac package \SDP~\cite{sdpM2}.
 The package provides interfaces to the open source solvers CSDP~\cite{borchers1999csdp} and SDPA~\cite{yamashita2003implementation}, and the commercial solver MOSEK~\cite{mosek}.
 There is also a built-in solver in the \Mac language.
 In our experience CSDP and MOSEK give the best results.
