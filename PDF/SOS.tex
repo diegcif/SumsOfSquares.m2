@@ -118,8 +118,9 @@ o4 = ( | 2      1     -83/40 |,   | x2 | )
 \end{verbatim}
 }
 \noindent
-Although the result of the semidefinite programming solver is in floating point, the \SOS package attempts to round it to obtain a rational Gram matrix~\cite{peyrl2008computing}.
-If the rounding procedure fails, the method returns the floating point solution.
+The result of the semidefinite programming solver is a floating point approximation of an optimal point.
+The \SOS package attempts to find a close enough rational Gram matrix~\cite{peyrl2008computing}.
+If this rounding procedure fails to find a feasible rational matrix, the method returns the floating point solution.
 The procedure is guaranteed to work when the floating point Gram matrix lies in the interior of~$\mathbb{S}_+^N$.
 See Appendix~\ref{sec:rounding} for more details about rational rounding.
 

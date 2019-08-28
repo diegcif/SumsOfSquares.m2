@@ -113,7 +113,7 @@ Authors: Yes!!!
 		"Although the result of the semidefinite programming solver is in floating point, 
 		Macaulay2 attempts to round it to obtain a rational Gram matrix."
 
-Authors: 
+Authors: This paragraph was reformulated.
 
 19) Referee: Replace
 		"The last output is an object of type SOSPoly. 
