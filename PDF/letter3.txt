@@ -12,19 +12,22 @@ Diego Cifuentes, Thomas Kahle, Pablo Parrilo
 
 1) Referee: Perhaps it is time to update the version number and date
 
-Authors: 
+Authors: Thomas: I don't care.  I thought that 2.0 would be the
+published version, but we can do 2.1.
 
 2) Referee: Please install 1.14 and make sure the package works.
 
-Authors: 
+Authors: Looks all good to me.  I tried uninstall install check and
+	 checkSolver with CSDP (but only on MacOS!).
 
 3) Referee: I mention the possibility of using formal expressions to display the answer and to check it.
 
-Authors:
+Authors: Thomas: I don't understand this comment.
 
 4) Referee: It would be a good idea to totally suppress the SDP solver trace.
 
-Authors: 
+Authors: Thomas This would be OK for me.  Maybe it is not so
+	 interesting for users.
 
 *******************
 *  Documentation  *
