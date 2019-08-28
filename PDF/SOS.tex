@@ -387,7 +387,8 @@ CSDP is provided as part of \Mac and configured as the default.
 
 \subsection*{Rounding tolerance}
 The method \verb|lowerBound| has the optional argument \verb|RoundTol|, which specifies the precision of the rational rounding.
-Smaller values of \verb|RoundTol| lead to simpler bounds (smaller denominators), at the expense of a loss in optimality.
+Smaller values of \verb|RoundTol| lead to rational matrices with smaller denominators but farther from the numerical solution.
+% , at the expense of a loss in optimality.
 The rational rounding may be skipped by setting it to infinity.
 
 \subsection*{Trace objective}

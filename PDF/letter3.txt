@@ -136,7 +136,9 @@ Authors: Done.
 Referee: Does it need to be said twice?
 			"A degree bound 2d must be given by the user."
 
-Authors:
+Authors: That the degree bound should be even is pointed out whenever
+	 it seems relevant.  It is not clear to us what is meant by
+	 "said twice". We made no changes.
 
 21) Referee: This confuses me:
 		"Smaller values of RoundTol lead to simpler bounds (smaller denominators), 
@@ -144,4 +146,9 @@ Authors:
 	Do you mean you might write a rational polynomial as a sum of squares of
     rational polynomials in two different ways?
 
-Authors: 
+Authors: The sentence now reads as: "Smaller values of \verb|RoundTol|
+	 lead to rational matrices with smaller denominators but
+	 farther from the numerical solution."  There are often many
+	 ways to write a rational polynomial as a sum of squares of
+	 rational polynomials (all rational points in a
+	 spectrahedron).
