@@ -12,8 +12,7 @@ Diego Cifuentes, Thomas Kahle, Pablo Parrilo
 
 1) Referee: Perhaps it is time to update the version number and date
 
-Authors: Thomas: I don't care.  I thought that 2.0 would be the
-published version, but we can do 2.1.
+Authors: Done.
 
 2) Referee: Please install 1.14 and make sure the package works.
 
@@ -22,7 +21,15 @@ Authors: Looks all good to me.  I tried uninstall install check and
 
 3) Referee: I mention the possibility of using formal expressions to display the answer and to check it.
 
-Authors: Thomas: I don't understand this comment.
+Authors: 
+Thomas: I don't understand this comment.
+Diego: The referee suggests displaying a sum of squares object as a formal expression, as shown below. It looks nice for the example below, but I am not sure it it would look well for big polynomials.
+
+	i6 :  new Sum from apply (p#coefficients,p#generators,(c,g) -> hold c * (hold g)^2)
+
+                83 2    2 2    43  20 2       2    231773   2 2
+	o6 = (5)(- ---x  + y )  + (--)(--x  + x*y)  + (------)(x )
+               200             20  43              344000
 
 4) Referee: It would be a good idea to totally suppress the SDP solver trace.
 
@@ -94,9 +101,7 @@ Authors: Done.
 
 15) Give a reference for the result that a polynomial is SOS if and only if there is semidefinite matrix Q such that ...
 
-Referee: We now reference the book by Blekherman, Parrilo, and Thomas.
-
-Authors: We now clarify that 2d is an even integer.
+Authors: We now reference the book by Blekherman, Parrilo, and Thomas.
 
 16) Referee: Replace
 		"called an external semidefinite programming solver (or software) in the background"
@@ -109,8 +114,9 @@ Authors: Done.
 	Rather, it used the package SemidefiniteProgramming, and that package called
 	the external program.  Would the authors like the editors to regard the article
 	as about both packages?  
+semidefinite
 
-Authors: Yes!!!
+Authors: Yes, we would like both packages to be considered for publication. Originally there was a single package. But after CSDP was included in Macaulay2, Mike Stillman suggested to have a separate package only for semidefinite programming. We followed his advice, and moved some of the methods to the new SemidefiniteProgramming package. The SumsOfSquares package heavily relies on the SemidefiniteProgramming package, and the differentiation among both of them is quite subtle.
 
 18) Referee: The meaning of "round" could be clarified:
 		"Although the result of the semidefinite programming solver is in floating point, 
@@ -149,9 +155,9 @@ Authors: That the degree bound should be even is pointed out whenever
 	Do you mean you might write a rational polynomial as a sum of squares of
     rational polynomials in two different ways?
 
-Authors: The sentence now reads as: "Smaller values of \verb|RoundTol|
-	 lead to rational matrices with smaller denominators but
-	 farther from the numerical solution."  There are often many
-	 ways to write a rational polynomial as a sum of squares of
-	 rational polynomials (all rational points in a
-	 spectrahedron).
+Authors: 
+The sentence now reads as: "Smaller values of \verb|RoundTol|
+lead to rational matrices with smaller denominators but
+farther from the numerical solution."  There are often many
+ways to write a rational polynomial as a sum of squares of
+rational polynomials (all rational points in a spectrahedron).
