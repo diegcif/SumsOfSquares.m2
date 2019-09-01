@@ -1112,9 +1112,9 @@ checkLowerBound = (solver) -> (
 
     t1:= (
         R = RR[x,y];
-        f = (x-pi*y)^2 + x^2 + (y-4)^2;
+        f = (x-exp(1)*y)^2 + x^2 + (y-4)^2;
         (bound,sol) = lowerBound(f, Solver=>solver);
-        equal(bound,16*pi^2/(2+pi^2))
+        equal(bound,16*exp(2)/(2+exp(2)))
         );
 
     t2:= (
