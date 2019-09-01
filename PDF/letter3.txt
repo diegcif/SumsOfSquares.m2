@@ -16,8 +16,9 @@ Authors: Done.
 
 2) Referee: Please install 1.14 and make sure the package works.
 
-Authors: Looks all good to me.  I tried uninstall install check and
-	 checkSolver with CSDP (but only on MacOS!).
+Authors: 
+Thomas: Looks all good to me.  I tried uninstall install check and checkSolver with CSDP (but only on MacOS!).
+Diego: A test failed in Ubuntu 18.04. I changed the test so that it passed. Can you check if it still works on MacOS?
 
 3) Referee: I mention the possibility of using formal expressions to display the answer and to check it.
 
@@ -31,10 +32,36 @@ Diego: The referee suggests displaying a sum of squares object as a formal expre
 	o6 = (5)(- ---x  + y )  + (--)(--x  + x*y)  + (------)(x )
                200             20  43              344000
 
-4) Referee: It would be a good idea to totally suppress the SDP solver trace.
+4) Referee: It would be a good idea to totally suppress this display, unless the user
+requests it or an error occurs:
 
-Authors: Thomas This would be OK for me.  Maybe it is not so
-	 interesting for users.
+	Executing CSDP
+	Input file: /var/folders/hq/7lqcg89j1pq8m9vq_333xfwh0000gn/T/M2-5557-0/4.dat-s
+	Output file: /var/folders/hq/7lqcg89j1pq8m9vq_333xfwh0000gn/T/M2-5557-0/5
+	CSDP 6.2.0
+	This is a pure dual feasibility problem.
+	Iter:  0 Ap: 0.00e+00 Pobj: -9.4392846e+01 Ad: 0.00e+00 Dobj:  0.0000000e+00 
+	Iter:  1 Ap: 1.00e+00 Pobj: -7.7645324e+01 Ad: 9.00e-01 Dobj:  0.0000000e+00 
+	Iter:  2 Ap: 6.46e-02 Pobj: -5.0909878e+01 Ad: 7.29e-01 Dobj:  0.0000000e+00 
+	Iter:  3 Ap: 6.56e-01 Pobj: -2.9301683e+01 Ad: 1.00e+00 Dobj:  0.0000000e+00 
+	Success: SDP solved
+	Primal objective value: -3.5000000e-10 
+	Dual objective value: 0.0000000e+00 
+	Relative primal infeasibility: 5.00e-11 
+	Relative dual infeasibility: 0.00e+00 
+	Real Relative Gap: 3.50e-10 
+	XZ Relative Gap: 4.58e-10 
+	DIMACS error measures: 5.00e-11 0.00e+00 0.00e+00 0.00e+00 3.50e-10 4.58e-10
+	Elements time: 0.000034 
+	Factor time: 0.000002 
+	Other time: 0.002204 
+	Total time: 0.002240 
+
+	Status: SDP solved, primal-dual feasible
+	Start rational rounding
+
+
+Authors: The printed information is controlled with the option Verbosity, which as three levels. Level 0 prints nothing. Level 1 prints very minimal information, such as the SDP solver status. Level 2 shows the description from above. The default is level 1, so the above information should not be displayed.
 
 *******************
 *  Documentation  *
@@ -46,7 +73,7 @@ Authors: Thomas This would be OK for me.  Maybe it is not so
 Authors: Done.
 
 6) Make the members of this list link to the corresponding documentation nodes
-          optional, one of "solveSDP", "solveSOS", "sosdecTernary", "sosInIdeal", or "lowerBound"<Paste>
+          optional, one of "solveSDP", "solveSOS", "sosdecTernary", "sosInIdeal", or "lowerBound"
 
 Authors: Done.
 
@@ -145,9 +172,7 @@ Authors: Done.
 Referee: Does it need to be said twice?
 			"A degree bound 2d must be given by the user."
 
-Authors: That the degree bound should be even is pointed out whenever
-	 it seems relevant.  It is not clear to us what is meant by
-	 "said twice". We made no changes.
+Authors: That the degree bound should be even is pointed out whenever it seems relevant.
 
 21) Referee: This confuses me:
 		"Smaller values of RoundTol lead to simpler bounds (smaller denominators), 
@@ -156,8 +181,7 @@ Authors: That the degree bound should be even is pointed out whenever
     rational polynomials in two different ways?
 
 Authors: 
-The sentence now reads as: "Smaller values of \verb|RoundTol|
-lead to rational matrices with smaller denominators but
-farther from the numerical solution."  There are often many
-ways to write a rational polynomial as a sum of squares of
-rational polynomials (all rational points in a spectrahedron).
+It is true that a rational polynomial might admit several rational SOS decompositions. But this is not what this remark is explaining. What we meant to say is that for the rounding procedure we are modifying the coefficients of the (numerical) polynomial slightly, so that the new polynomial admits a rational SOS decomposition. The more we modify the coefficients (smaller RoundTol) the easier it is find a "nice" SOS decomposition, with smaller denominators. 
+The sentence now reads as:
+    "Smaller values of \verb|RoundTol| lead to rational matrices 
+    with smaller denominators but farther from the numerical solution."  
