@@ -61,7 +61,7 @@ requests it or an error occurs:
 	Start rational rounding
 
 
-Authors: The printed information is controlled with the option Verbosity, which as three levels. Level 0 prints nothing. Level 1 prints very minimal information, such as the SDP solver status. Level 2 shows the description from above. The default is level 1, so the above information should not be displayed.
+Authors: The printed information is controlled with the option Verbosity, which has three levels. Level 0 prints nothing. Level 1 prints very minimal information, such as the SDP solver status. Level 2 shows the description from above. The default is level 1, so the above information should not be displayed.
 
 *******************
 *  Documentation  *
