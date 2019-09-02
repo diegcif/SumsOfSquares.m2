@@ -34,9 +34,9 @@ document {
     EXAMPLE lines ///
       s = sosPoly sol
     ///,
-    "The command ", TO "sumSOS", " can be used to check that the decomposition found matches the original polynomial.",
+    "The command ", TO "value(SOSPoly)", " can be used to check that the decomposition found matches the original polynomial.",
     EXAMPLE lines ///
-      sumSOS(s)
+      value(s)
     ///,
 
     HEADER4 "Sums of squares modulo equality constraints",
@@ -168,9 +168,9 @@ doc /// --SOSPoly
         s * s
         s == s
       Text
-        The actual polynomial can be recovered using @TO sumSOS@.
+        The actual polynomial can be recovered using @TO(value,SOSPoly)@.
       Example
-        sumSOS s
+        value s
       Text
         We can also produce a formal @TO Expression@.
       Example
@@ -247,37 +247,27 @@ doc /// --cleanSOS
         SOSPoly
 ///
 
-doc /// --sumSOS
+doc /// --value
     Key
-        sumSOS
-        (sumSOS,SOSPoly)
-        (sumSOS, List, List)
+        (value,SOSPoly)
     Headline
         expansion of a weighted SOS decomposition
     Usage
-        sumSOS(s)
-        sumSOS(g,d)
+        value(s)
     Inputs
         s:SOSPoly
-        g:List
-          a list of polynomials
-        d:List
-          a list of coefficients
     Outputs
         :RingElement
           a polynomial
     Consequences
     Description
       Text
-        Given polynomials $g_i$ and coefficients $d_i$,
-        this method computes $f = \sum_i d_i g_i^2$.
-	The polynomials and coefficients can be given as lists or
-	encapsulated in an object of type @TO SOSPoly@.
+        Given an object of type @TO SOSPoly@,
+        this method expands the polynomial and computes $f = \sum_i d_i g_i^2$.
       Example
         R = QQ[x,y];
-	sumSOS( {x+1,y}, {2,3}  )
         s = sosPoly(R, {x+1,y}, {2,3} )
-        sumSOS( s )
+        value( s )
       Code
       Pre
     SeeAlso
@@ -515,7 +505,7 @@ doc /// --sosdecTernary
         The result, in this case, is a quotient of two sums of squares.
       Example
         (#p, #q)
-        clean(1e-4, f * sumSOS q#0 - sumSOS p#0)
+        clean(1e-4, f * value q#0 - value p#0)
       Text
         {\bf References:}
         {\it Products of positive forms, linear matrix inequalities, and Hilbert 17th problem for ternary forms}, E. de Klerk, and D.V. Pasechnik, European J. Oper. Res. (2004), pp. 39-45.

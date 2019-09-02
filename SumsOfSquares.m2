@@ -31,7 +31,6 @@ export {
     "sosPoly",
     "solveSOS",
     "sosdecTernary",
-    "sumSOS",
     "sosInIdeal",
     "lowerBound",
     "checkSolver",
@@ -113,19 +112,19 @@ SOSPoly * SOSPoly := (g1,g2)-> (
 SOSPoly ^ ZZ := (p1,D)->(
     if D<=0 then error "power should be a positive integer.";
     if odd D then error "power should be an even integer.";
-    p2 := (sumSOS p1)^(D//2);
+    p2 := (value p1)^(D//2);
     sosPoly(ring p1,{p2},{1})
     )
 
 SOSPoly == RingElement := (S, f) -> (
     if ring S=!=ring f then
         error "Cannot compare elements of different rings. Try to use 'sub'.";
-    sumSOS S == f
+    value S == f
     )
 
 RingElement == SOSPoly := (f, S) -> S == f
 
-SOSPoly == SOSPoly := (S, S') -> S == sumSOS S'
+SOSPoly == SOSPoly := (S, S') -> S == value S'
 
 SOSPoly == Matrix := (S, F) -> (
     if numRows F!=1 or numColumns F!=1 then
@@ -135,11 +134,7 @@ SOSPoly == Matrix := (S, F) -> (
 
 Matrix == SOSPoly := (F, S) -> S == F
 
-sumSOS = method()
-
-sumSOS (List, List) := (g,d) -> sum for i to #g-1 list g_i^2 * d_i
-
-sumSOS SOSPoly := a -> sum for i to #(a#gens)-1 list a#gens_i^2 * a#coefficients_i
+value SOSPoly := a -> sum for i to #(a#gens)-1 list a#gens_i^2 * a#coefficients_i
 
 clean(RR,SOSPoly) := (tol,s) -> (
     if s===null then return (,);
@@ -989,7 +984,7 @@ checkSosdecTernary = (solver) -> (
 
     cmp := (f,p,q) -> (
         if p===null then return false;
-        d := product(sumSOS\p) - f*product(sumSOS\q);
+        d := product(value\p) - f*product(value\q);
         isZero(LowPrecision, d)
         );
 
@@ -1027,7 +1022,7 @@ checkSosInIdeal = (solver) -> (
     cmp := (h,s,mult) -> (
         if s===null then return false;
         h = sub(h,ring s);
-        d := (h*mult)_(0,0) - sumSOS s;
+        d := (h*mult)_(0,0) - value s;
         isZero(MedPrecision, d)
         );
 
@@ -1177,7 +1172,7 @@ beginDocumentation()
 load "./SumsOfSquares/SOSdoc.m2"
 
 --0
-TEST /// --sosPoly and sumSOS
+TEST /// --sosPoly and value
     R = QQ[x,y,z]
     coeff1={3,1,1,1/4,1}
     pol1={-(1/2)*x^3*y-(1/2)*x*y^3+x*y*z^2, x^2*y^2-z^4, x^2*y*z-y*z^3,
@@ -1185,7 +1180,7 @@ TEST /// --sosPoly and sumSOS
     p1=sosPoly(R,pol1,coeff1)
     p2=x^6*y^2 + 2*x^4*y^4 + x^2*y^6 - 2*x^4*y^2*z^2 - 2*x^2*y^4*z^2 - 
     3*x^2*y^2*z^4 + x^2*z^6 + y^2*z^6 + z^8
-    assert(sumSOS(p1)===p2)
+    assert(value(p1)===p2)
 ///
 
 --1
@@ -1194,15 +1189,15 @@ TEST /// --SOSmult
     R = QQ[x,y,z,w]
     p1=sosPoly(R,{x^2-x*y,y^2+1,x},{1,2,3})
     p2=sosPoly(R,{y^3,x*w*z,y*z^2},{3,1/2,1/4})
-    assert(sumSOS(p1*p2)==sumSOS(p1)*sumSOS(p2))
-    assert(sumSOS(p1^4)==sumSOS(p1)^4)
+    assert(value(p1*p2)==value(p1)*value(p2))
+    assert(value(p1^4)==value(p1)^4)
 
     equal = (f1,f2) -> norm(f1-f2) < HighPrecision;
     R = RR[x,y,z,w]
     p1=sosPoly(R,{x^2-x*y,y^2+1,x},{1.32,1.47,12./7})
     p2=sosPoly(R,{y^3,x*w*z,y*z^2},{3.1,1.31,2.0})
-    assert( equal(sumSOS(p1*p2),sumSOS(p1)*sumSOS(p2)) )
-    assert( equal(sumSOS(p1^4),sumSOS(p1)^4) )
+    assert( equal(value(p1*p2),value(p1)*value(p2)) )
+    assert( equal(value(p1^4),value(p1)^4) )
 ///
 
 --2
@@ -1257,7 +1252,7 @@ TEST /// --sosdec
     Q=promote(Q,QQ)
     mon=matrix{{x^3},{x^2*z},{y*z^2}}
     f=sosPoly(mon,Q)
-    assert(f=!=null and sumSOS f==transpose mon * Q *mon)
+    assert(f=!=null and value f==transpose mon * Q *mon)
 ///
 
 --6
