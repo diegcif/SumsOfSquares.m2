@@ -16,15 +16,13 @@ Authors: Done.
 
 2) Referee: Please install 1.14 and make sure the package works.
 
-Authors: 
-Thomas: Looks all good to me.  I tried uninstall install check and checkSolver with CSDP (but only on MacOS!).
-Diego: A test failed in Ubuntu 18.04. I changed the test so that it passed. Can you check if it still works on MacOS?
+Authors: A test failed in Ubuntu 18.04 due to a bug in CSDP.  The test
+	 was changed the test so that it passes.  All tests and
+	 checkSolver now pass on Ubuntu 18.04 and MacOS with M2-1.14.
 
 3) Referee: I mention the possibility of using formal expressions to display the answer and to check it.
 
-Authors: 
-Thomas: I don't understand this comment.
-Diego: The referee suggests displaying a sum of squares object as a formal expression, as shown below. It looks nice for the example below, but I am not sure it it would look well for big polynomials.
+Authors: The referee suggests displaying a sum of squares object as a formal expression, as shown below. It looks nice for the example below, but I am not sure it it would look well for big polynomials.
 
 	i6 :  new Sum from apply (p#coefficients,p#generators,(c,g) -> hold c * (hold g)^2)
 
@@ -141,7 +139,6 @@ Authors: Done.
 	Rather, it used the package SemidefiniteProgramming, and that package called
 	the external program.  Would the authors like the editors to regard the article
 	as about both packages?  
-semidefinite
 
 Authors: Yes, we would like both packages to be considered for publication. Originally there was a single package. But after CSDP was included in Macaulay2, Mike Stillman suggested to have a separate package only for semidefinite programming. We followed his advice, and moved some of the methods to the new SemidefiniteProgramming package. The SumsOfSquares package heavily relies on the SemidefiniteProgramming package, and the differentiation among both of them is quite subtle.
 
