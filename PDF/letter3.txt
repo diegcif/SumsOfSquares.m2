@@ -24,7 +24,7 @@ Authors: We installed M2-1.14 as suggested. A test failed in Ubuntu 18.04 due to
 	o6 = (5)(- ---x  + y )  + (--)(--x  + x*y)  + (------)(x )
                200             20  43              344000
 
-Authors: We adopted the suggestion by the referee. We implemented a method "expression SOSPoly" to produce a formal expression form a sum of squares, and we use it for the method "net SOSPoly".
+Authors: We adopted the suggestion by the referee. We implemented a method "expression SOSPoly" to produce a formal expression form a sum of squares, and we use it for the method "net SOSPoly".  "sumSOS" was then renamed to "value" because the user might expect that something that displays as an expression supports "value".
 
 4) Referee: It would be a good idea to totally suppress this display, unless the user
 requests it or an error occurs:
