@@ -19,14 +19,12 @@ Authors: Done.
 Authors: We installed M2-1.14 as suggested. A test failed in Ubuntu 18.04 due to a bug in CSDP.  The test was changed so that it passes.  All tests and checkSolver now pass on Ubuntu 18.04 and MacOS with M2-1.14.
 
 3) Referee: I mention the possibility of using formal expressions to display the answer and to check it.
-
-Authors: The referee suggests displaying a sum of squares object as a formal expression, as shown below. It looks nice for the example below, but I am not sure it it would look well for big polynomials.
-
 	i6 :  new Sum from apply (p#coefficients,p#generators,(c,g) -> hold c * (hold g)^2)
-
                 83 2    2 2    43  20 2       2    231773   2 2
 	o6 = (5)(- ---x  + y )  + (--)(--x  + x*y)  + (------)(x )
                200             20  43              344000
+
+Authors: We adopted the suggestion by the referee. We implemented a method "expression SOSPoly" to produce a formal expression form a sum of squares, and we use it for the method "net SOSPoly".
 
 4) Referee: It would be a good idea to totally suppress this display, unless the user
 requests it or an error occurs:

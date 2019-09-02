@@ -116,6 +116,7 @@ doc /// --SOSPoly
         (length, SOSPoly)
         (net, SOSPoly)
         (substitute, SOSPoly, Ring)
+        (expression, SOSPoly)
         (symbol +, SOSPoly, SOSPoly)
         (symbol *, SOSPoly, SOSPoly)
         (symbol *, Number, SOSPoly)
@@ -170,6 +171,10 @@ doc /// --SOSPoly
         The actual polynomial can be recovered using @TO sumSOS@.
       Example
         sumSOS s
+      Text
+        We can also produce a formal @TO Expression@.
+      Example
+        expression s
       Text
         Objects of type @TO SOSPoly@ support the @TO substitute@ command.  
         This cannot be used to change the coefficient field, though.  

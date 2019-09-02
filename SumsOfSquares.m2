@@ -81,9 +81,12 @@ length SOSPoly := S -> #(S#gens)
 substitute (SOSPoly,Ring) := (S,R) ->
     sosPoly(for g in S#gens list sub(g,R), S#coefficients)
 
+expression SOSPoly := S ->
+    new Sum from apply (S#coefficients,S#generators,(c,g) -> hold c * (hold g)^2)
+
 net SOSPoly := S -> (
     if #gens S == 0 then "0"
-    else "coeffs:"||net coefficients S||"gens:"||net gens S
+    else net expression S
     )
 
 Number * SOSPoly := (a,S) -> (

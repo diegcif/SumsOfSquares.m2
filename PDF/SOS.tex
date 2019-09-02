@@ -127,20 +127,26 @@ See Appendix~\ref{sec:rounding} for more details about rational rounding.
 The method \verb|sosPoly| extracts the sum-of-squares decomposition from the returned \verb|SDPResult|.
 This is done via an LDL factorization (a variant of Cholesky factorization) of the Gram matrix.
 For the function $f$ from above we get three squares:
-\[
-  f = 5(-\tfrac{83}{200} x^{2}+y^{2})^{2} + \tfrac{43}{20}
-  (\tfrac{20}{43}x^{2} + xy)^{2} + \tfrac{231773}{344000} (x^{2})^{2}.
-\]
 {\small
 \begin{verbatim}
-i5 : sosPoly sol
-o5 = coeffs: {5, 43/20, 231773/344000}
-     gens: {- 83/200 x^2  + y^2 , 20/43 x^2  + x*y, x^2 }
+i5 : s = sosPoly sol
+            83 2    2 2    43  20 2       2    231773   2 2
+o5 = (5)(- ---x  + y )  + (--)(--x  + x*y)  + (------)(x )
+           200             20  43              344000
 \end{verbatim}
 }
 \noindent
 The last output is an object of type \verb|SOSPoly|.
-In an object of this type are stored the coefficients $\lambda_{i}$ (under \verb|coeffs|) and polynomials $f_{i}$ (under \verb|gens|) such that $f = \sum_{i}\lambda_{i}f_{i}^{2}$.
+In an object of this type are stored the coefficients $\lambda_{i}$ and polynomials (or generators) $f_{i}$  such that $f = \sum_{i}\lambda_{i}f_{i}^{2}$.
+We can extract the coefficients and generators as follows:
+{\small
+\begin{verbatim}
+i5 : coefficients s
+o5 = {5, 43/20, 231773/344000}
+i6 : gens s
+o6 = {-83/200*x^2 + y^2, 20/43*x^2 + x*y, x^2}
+\end{verbatim}
+}
 
 The method \verb|solveSOS| can also compute sums-of-squares decompositions in quotient rings.
 This can be useful to prove nonnegativity of a polynomial on a variety.
@@ -157,8 +163,9 @@ i2 : f = 10-x^2-y;  d = 1;
 i3 : sosPoly solveSOS (f, 2*d, TraceObj=>true)
 Executing CSDP
 Status: SDP solved, primal-dual feasible
-o3 = coeffs: {9, 35/36}
-     gens: {- 1/18 y + 1, y}
+            1       2    35    2
+o3 = (9)(- -- y + 1)  + (--)(y)
+           18            36
 \end{verbatim}
 }
 \noindent
@@ -192,8 +199,9 @@ i1 : R = QQ[x,y,z];  d = 1;
 i2 : h = matrix {{x^2-4*x+2*y^2, 2*z^2-y^2+2}};
 i3 : (sol,mult) = sosInIdeal (h, 2*d);
 i4 : sosPoly sol
-o4 = coeffs: {327/2, 327/2}
-     gens: {- 1/2 x + 1, z}
+      395    1       2    395    2
+o4 = (---)(- - x + 1)  + (---)(z)
+       2     2             2
 i5 : h * mult == sosPoly sol
 o5 = true
 \end{verbatim}
@@ -205,8 +213,9 @@ In this case the input to \verb|sosInIdeal| is simply the quotient ring~$S$.
 \begin{verbatim}
 i6 : S = R/ideal h;
 i7 : sosPoly sosInIdeal (S, 2*d);
-o7 = coeffs: {23/4, 23/4}
-     gens: {- 1/2 x + 1, z}
+      1031833    1       2    1031833    2
+o7 = (-------)(- - x + 1)  + (-------)(z)
+        2048     2              2048
 \end{verbatim}
 }
 \noindent
@@ -241,20 +250,27 @@ o2 = x y  + x y  - 3x y z  + z
 We now apply the function \verb|sosdecTernary|, which implements the iterative algorithm from above.
 {\small
 \begin{verbatim}
-i3 : (nums,dens) = sosdecTernary f;
+i3 : (Nums,Dens) = sosdecTernary f;
 Executing CSDP
-i4 : first nums
-o4 = coeffs: {2059/64, 28, 3851/256, 3851/256, 2059/256}
-     gens: {x^2*y^2-z^4, -(1/2)*x^3*y-(1/2)*x*y^3+x*y*z^2, ... }
-i5 : first dens
-o5 = coeffs: {2059/64, 3851/256, 3851/256}
-     gens: {x, y, z}
+i4 : num = first Nums
+      2267   2 2    4 2    2003    1013 3     990   3        2 2    
+o4 = (----)(x y  - z )  + (----)(- ----x y - ----x*y  + x*y*z )  + ... 
+       64                   64     2003      2003                 
+i5 : den = first Dens
+      2267    2    1079    2    33    2
+o5 = (----)(z)  + (----)(x)  + (--)(y)
+       64           64           2
 \end{verbatim}
 }
 \noindent
 The result consists of two sums of squares, the second being the denominator.
-The computation above reveals that the product of the Motzkin polynomial and $(x^2{+}y^2{+}z^2)$ is a sum of squares.
-This can be checked independently with the command \verb|solveSOS (x^2+y^2+z^2)*f|.
+We can check the computation as follows.
+{\small
+\begin{verbatim}
+i6 : f*sumSOS(den) == sumSOS(num)
+o6 = true
+\end{verbatim}
+}
 
 \section{Parametric SOS problems}
 
