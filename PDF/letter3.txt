@@ -10,11 +10,11 @@ Diego Cifuentes, Thomas Kahle, Pablo Parrilo
 *  Source code  *
 *****************
 
-1) Referee: Perhaps it is time to update the version number and date
+1) Referee: Update the version number and date
 
 Authors: Done.
 
-2) Referee: Please install 1.14 and make sure the package works.
+2) Referee: Install 1.14 and make sure the package works.
 
 Authors: We installed M2-1.14 as suggested. A test failed in Ubuntu 18.04 due to a bug in CSDP.  The test was changed so that it passes.  All tests and checkSolver now pass on Ubuntu 18.04 and MacOS with M2-1.14.
 
