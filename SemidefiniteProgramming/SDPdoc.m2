@@ -374,6 +374,7 @@ doc /// --project2linspace
 --###################################
 document { --Verbosity
     Key => {
+	Verbosity,
         [optimize,Verbosity]
         },
     Headline => "control the level of information printed",
