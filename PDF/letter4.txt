@@ -60,8 +60,7 @@ Authors: all done.
 
 -----------------------------------------------------------------------------
 
-comments on the documentation
-
+Referee:
 
 I noticed this missing documentation:
 
@@ -70,16 +69,12 @@ I noticed this missing documentation:
 in the documenation for SDPResult.  Unfortunately, no warning message is
 displayed by "installPackage" when the documentation is generated.
 
-
-
-
-
-
-
-
+Authors: We intended to link the the general documention which does
+not work.  Thomas asks Mike about it.
 
 -----------------------------------------------------------------------------
 
+Referee:
 comments on the code
 
 Thank you for decreasing the verbosity, but why not make 0 the default value
@@ -121,10 +116,9 @@ important to the user.  But in that case, think of the author of a future
 package that calls "solveSOS" -- how is his code to obtain the information,
 which you display only to the human reader?
 
+Authors: TK: I'm OK with default verbosity zero.
 
-
-
-
+Referee:
 What is the point of the last line of this loop (in the SemidefiniteProgramming package)?
 
     for s to k-1 do(
@@ -142,6 +136,7 @@ What is the point of the last line of this loop (in the SemidefiniteProgramming 
 
 It has no effect, so could be deleted.
 
+Authors: The line was deleted. 
 
 
 What's the point of this function (in the SemidefiniteProgramming package)?

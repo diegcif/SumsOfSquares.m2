@@ -578,10 +578,7 @@ runcmd = (cmd,Verbosity) -> (
         );
     )
 
-getFileName = (ext) -> (
-    filename := temporaryFileName() | ext;
-    while fileExists(filename) do filename = temporaryFileName();
-    filename)
+getFileName = (ext) -> (temporaryFileName() | ext)
 
 splitFileName = (fname) -> (
     s := separate("/",fname);
@@ -827,9 +824,8 @@ readMOSEK = (fout,fout2,n,Verbosity) -> (
         Xh#(2*s) = (i,j)=>Xij;
         Xh#(2*s+1) = (j,i)=>Xij;
         Zh#(2*s) = (i,j)=>Zij;
-        Zh#(2*s+1) = (j,i)=>Zij;
-        (i,j,Xij,Zij)
-        );
+        Zh#(2*s+1) = (j,i)=>Zij
+	);
     X := map(RR^n,RR^n,toList Xh);
     Z := map(RR^n,RR^n,toList Zh);
     -- READ STATUS
