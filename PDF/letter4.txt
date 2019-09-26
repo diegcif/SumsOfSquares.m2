@@ -1,5 +1,3 @@
-technical referee report on 181213-Cifuentes-v4
-
 -----------------------------------------------------------------------------
 
 comments on the package
@@ -17,10 +15,16 @@ not mentioned anywhere, perhaps add a README or INSTALL file at top level in
 the zip file that provides the source code of the packages, so it can be stated
 in there.
 
+
+Referee:
+
 Change
 	to find sums-of-squares decompositions and this package makes 
 to
-	to find sums-of-squares decompositions, and this package makes 
+	to find sums-of-squares decompositions, and this package makes
+
+Authors: done
+
 
 Change
 	The package SemidefiniteProgramming allows to use some of these solvers

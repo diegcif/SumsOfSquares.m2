@@ -8,14 +8,14 @@ document {
     HEADER4 "Introduction",
     "Writing a polynomial as a sum of squares proves its nonnegativity for all arguments,
     but not all nonnegative polynomials are sum of squares.
-    While nonnegativity of a polynomial is hard to check, 
-    there are efficient methods to find sums-of-squares decompositions 
+    While nonnegativity of a polynomial is hard to check,
+    there are efficient methods to find sums-of-squares decompositions,
     and this package makes some of them available in Macaulay2.
     These methods rely on semidefinite programming, an area from mathematical optimization.
     Several solvers (or tools) for semidefinite programming are available.
     The package ",
     TO SemidefiniteProgramming,
-    " allows to use some of these solvers in Macaulay2. 
+    " allows us to use some of these solvers in Macaulay2.
     The solver ",
     HREF {"https://github.com/coin-or/csdp/wiki","CSDP"},
     " is included in Macaulay2 and can be used without any configuration.  See ",
@@ -30,7 +30,7 @@ document {
     ///,
     "The return value is an object of type ", TO "SDPResult", " which, in the case of success, contains the sum-of-squares decomposition.",
     " It can be extracted with ", TO "sosPoly", ".  This returns an object of type ", TO "SOSPoly", 
-    " which supports many operations that polynomials support.",
+    ", which supports many operations that polynomials support.",
     EXAMPLE lines ///
       s = sosPoly sol
     ///,
