@@ -1,6 +1,17 @@
------------------------------------------------------------------------------
+Dear Professor Christine Berkesch,
 
-comments on the package
+Please find below a point by point explanation of our latest changes.
+
+Sincerely,
+
+Diego Cifuentes, Thomas Kahle, Pablo Parrilo
+
+
+***********************************************************************
+*                       Comments on the package                       *
+***********************************************************************
+
+Referee:
 
 The package "SumsOfSquares" depends on an updated version of the package
 "SemidefiniteProgramming", which is provided.  The user, in order to install
@@ -15,6 +26,9 @@ not mentioned anywhere, perhaps add a README or INSTALL file at top level in
 the zip file that provides the source code of the packages, so it can be stated
 in there.
 
+Authors: all three done.
+
+-----------------------------------------------------------------------------
 
 Referee:
 
@@ -37,10 +51,12 @@ to
 
 Authors: all three done.
 
------------------------------------------------------------------------------
+
+***********************************************************************
+*                       Comments on the article                       *
+***********************************************************************
 
 Referee:
-comments on the article
 
 After "The last output" there is more output, rendering this output not the
 last one, so what you really mean here is "The previous output" or "The output
@@ -69,13 +85,15 @@ I noticed this missing documentation:
 in the documenation for SDPResult.  Unfortunately, no warning message is
 displayed by "installPackage" when the documentation is generated.
 
-Authors: We intended to link the the general documention which does
+Authors: We intended to link the general documentation which does
 not work.  Thomas asks Mike about it.
 
------------------------------------------------------------------------------
+
+***********************************************************************
+*                        Comments on the code                         *
+***********************************************************************
 
 Referee:
-comments on the code
 
 Thank you for decreasing the verbosity, but why not make 0 the default value
 for verbosity?  I think this:
@@ -150,9 +168,5 @@ The function temporaryFileName returns a new name every time, so it will not
 collide with an existing file.  It can be used directly.
 
 Authors: The function was removed.
-
-
-
-
 
 -----------------------------------------------------------------------------
