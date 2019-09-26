@@ -1,0 +1,155 @@
+technical referee report on 181213-Cifuentes-v4
+
+-----------------------------------------------------------------------------
+
+comments on the package
+
+The package "SumsOfSquares" depends on an updated version of the package
+"SemidefiniteProgramming", which is provided.  The user, in order to install
+both packages successfully, needs to type these commands:
+
+    installPackage "SemidefiniteProgramming"
+    installPackage ("SumsOfSquares", UserMode => true)
+
+Is this mentioned anywhere?  (After the two packages become part of M2 and a
+new release is issued, the user will not have to worry about this.)  If it's
+not mentioned anywhere, perhaps add a README or INSTALL file at top level in
+the zip file that provides the source code of the packages, so it can be stated
+in there.
+
+Change
+	to find sums-of-squares decompositions and this package makes 
+to
+	to find sums-of-squares decompositions, and this package makes 
+
+Change
+	The package SemidefiniteProgramming allows to use some of these solvers
+to something like
+	The package SemidefiniteProgramming allows us to use some of these solvers
+
+change
+	This returns an object of type SOSPoly which supports many operations that polynomials support.
+to
+	This returns an object of type SOSPoly, which supports many operations that polynomials support.
+
+-----------------------------------------------------------------------------
+
+comments on the article
+
+After "The last output" there is more output, rendering this output not the
+last one, so what you really mean here is "The previous output" or "The output
+above".
+
+In "This allows to find lower bounds", the verb "allows" is transitive, so
+needs an object.  Try something like "This allows us to find lower bounds" or
+"This allows our package to find lower bounds".
+
+"oftentimes" sounds old-fashioned, and "often" would be better
+
+The acronym in Max-Planck-Institute MiS is not informative enough, and it's
+hard to guess the location.  What about something like "Max-Planck-Institut für
+Mathematik in den Naturwissenschaften, in Leipzig"?
+
+-----------------------------------------------------------------------------
+
+comments on the documentation
+
+
+I noticed this missing documentation:
+
+  The fields can be extracted with the operator # (missing documentation).
+
+in the documenation for SDPResult.  Unfortunately, no warning message is
+displayed by "installPackage" when the documentation is generated.
+
+
+
+
+
+
+
+
+
+-----------------------------------------------------------------------------
+
+comments on the code
+
+Thank you for decreasing the verbosity, but why not make 0 the default value
+for verbosity?  I think this:
+
+    i13 : sol = solveSOS(f,Verbosity=>0)
+
+	  +--------------+-----------------------+
+    o13 = | MomentMatrix | 3x3 matrix over RR_53 |
+	  +--------------+-----------------------+
+	  |  GramMatrix  |   3x3 matrix over QQ  |
+	  +--------------+-----------------------+
+	  |   Monomials  |   3x1 matrix over R   |
+	  +--------------+-----------------------+
+
+    o13 : SDPResult
+
+looks a lot better than this:
+
+    i14 : sol = solveSOS(f)
+    Executing CSDP
+    Input file: /var/folders/46/9b86vqxj4hjcngvy7kd7sb140000gn/T/M2-25010-0/56.dat-s
+    Output file: /var/folders/46/9b86vqxj4hjcngvy7kd7sb140000gn/T/M2-25010-0/57
+    Status: SDP solved, primal-dual feasible
+    Start rational rounding
+
+	  +--------------+-----------------------+
+    o14 = | MomentMatrix | 3x3 matrix over RR_53 |
+	  +--------------+-----------------------+
+	  |  GramMatrix  |   3x3 matrix over QQ  |
+	  +--------------+-----------------------+
+	  |   Monomials  |   3x1 matrix over R   |
+	  +--------------+-----------------------+
+
+    o14 : SDPResult
+
+Perhaps you think that the verbose information displayed to the user is
+important to the user.  But in that case, think of the author of a future
+package that calls "solveSOS" -- how is his code to obtain the information,
+which you display only to the human reader?
+
+
+
+
+
+What is the point of the last line of this loop (in the SemidefiniteProgramming package)?
+
+    for s to k-1 do(
+        l := splitline(Lpsd#s);
+        i := value l#2;
+        j := value l#3;
+        Xij := value l#4;
+        Zij := value l#5;
+        Xh#(2*s) = (i,j)=>Xij;
+        Xh#(2*s+1) = (j,i)=>Xij;
+        Zh#(2*s) = (i,j)=>Zij;
+        Zh#(2*s+1) = (j,i)=>Zij;
+===>    (i,j,Xij,Zij)
+        );
+
+It has no effect, so could be deleted.
+
+
+
+What's the point of this function (in the SemidefiniteProgramming package)?
+
+    getFileName = (ext) -> (
+	filename := temporaryFileName() | ext;
+	while fileExists(filename) do filename = temporaryFileName();
+	filename)
+
+The function temporaryFileName returns a new name every time, so it will not
+collide with an existing file.  It can be used directly.
+
+
+
+
+
+
+
+-----------------------------------------------------------------------------
