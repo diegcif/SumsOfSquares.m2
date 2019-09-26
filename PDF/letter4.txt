@@ -138,7 +138,7 @@ It has no effect, so could be deleted.
 
 Authors: The line was deleted. 
 
-
+Referee:
 What's the point of this function (in the SemidefiniteProgramming package)?
 
     getFileName = (ext) -> (
@@ -149,7 +149,7 @@ What's the point of this function (in the SemidefiniteProgramming package)?
 The function temporaryFileName returns a new name every time, so it will not
 collide with an existing file.  It can be used directly.
 
-
+Authors: The function was removed.
 
 
 

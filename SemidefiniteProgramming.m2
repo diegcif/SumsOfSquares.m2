@@ -550,11 +550,11 @@ solveCSDP(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     -- That's why we need to change directory before executing csdp.
     if csdpexec===null then error "csdp executable not found";
     n := numColumns C;
-    fin := getFileName ".dat-s";
+    fin := temporaryFileName() | ".dat-s";
     (dir,fin1) := splitFileName(fin);
     fparam := dir | "param.csdp";
-    fout := getFileName "";
-    fout2 := getFileName "";
+    fout := temporaryFileName();
+    fout2 := temporaryFileName();
     writeSDPA(fin,C,A,b);
     writeCSDPparam(fparam);
     verbose1("Executing CSDP", o);
@@ -566,7 +566,7 @@ solveCSDP(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     (X,y,Z))
 
 runcmd = (cmd,Verbosity) -> (
-    tmp := getFileName ".err";
+    tmp := temporaryFileName() | ".err";
     r := run(cmd | " 2> " | tmp);
     if r == 32512 then error "Executable not found.";
     if r == 11 then error "Segmentation fault.";
@@ -577,8 +577,6 @@ runcmd = (cmd,Verbosity) -> (
             error "Command could not be executed." );
         );
     )
-
-getFileName = (ext) -> (temporaryFileName() | ext)
 
 splitFileName = (fname) -> (
     s := separate("/",fname);
@@ -689,8 +687,8 @@ solveSDPA = method( Options => {Verbosity => 1} )
 solveSDPA(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     if sdpaexec===null then error "sdpa executable not found";
     n := numColumns C;
-    fin := getFileName ".dat-s";
-    fout := getFileName "";
+    fin := temporaryFileName() | ".dat-s";
+    fout := temporaryFileName() ;
     writeSDPA(fin,C,A,b);
     verbose1("Executing SDPA", o);
     verbose1("Input file: " | fin, o);
@@ -749,9 +747,9 @@ solveMOSEK = method( Options => {Verbosity => 1} )
 solveMOSEK(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     if mosekexec===null then error "mosek executable not found";
     n := numColumns C;
-    fin := getFileName ".cbf";
+    fin := temporaryFileName() | ".cbf";
     fout := replace(".cbf",".sol",fin);
-    fout2 := getFileName "";
+    fout2 := temporaryFileName();
     writeMOSEK(fin,C,A,b);
     verbose1("Executing MOSEK", o);
     verbose1("Input file: " | fin, o);
