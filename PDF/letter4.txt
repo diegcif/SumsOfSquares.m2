@@ -85,9 +85,8 @@ I noticed this missing documentation:
 in the documenation for SDPResult.  Unfortunately, no warning message is
 displayed by "installPackage" when the documentation is generated.
 
-Authors: We intended to link the general documentation which does
-not work.  Thomas asks Mike about it.
-
+Authors: This is fixed by importing the Macaulay2Doc package.  This is
+necessary to link to the documentation of the # operator.
 
 ***********************************************************************
 *                        Comments on the code                         *

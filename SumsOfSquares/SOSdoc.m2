@@ -204,7 +204,7 @@ doc /// -- SDPResult
         sol = solveSOS (f, -t, RoundTol=>12)
         peek sol
       Text
-        The fields can be extracted with the operator @TO "#"@.
+        The fields can be extracted with the operator @TO symbol #@.
       Example
         sol#GramMatrix
       Text
