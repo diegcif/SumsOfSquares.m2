@@ -23,21 +23,23 @@ Change
 to
 	to find sums-of-squares decompositions, and this package makes
 
-Authors: done
-
-
 Change
 	The package SemidefiniteProgramming allows to use some of these solvers
 to something like
-	The package SemidefiniteProgramming allows us to use some of these solvers
+	The package SemidefiniteProgramming allows us to use some of
+	these solvers
 
 change
 	This returns an object of type SOSPoly which supports many operations that polynomials support.
 to
-	This returns an object of type SOSPoly, which supports many operations that polynomials support.
+	This returns an object of type SOSPoly, which supports many
+	operations that polynomials support.
+
+Authors: all three done.
 
 -----------------------------------------------------------------------------
 
+Referee:
 comments on the article
 
 After "The last output" there is more output, rendering this output not the
@@ -53,6 +55,8 @@ needs an object.  Try something like "This allows us to find lower bounds" or
 The acronym in Max-Planck-Institute MiS is not informative enough, and it's
 hard to guess the location.  What about something like "Max-Planck-Institut für
 Mathematik in den Naturwissenschaften, in Leipzig"?
+
+Authors: all done.
 
 -----------------------------------------------------------------------------
 

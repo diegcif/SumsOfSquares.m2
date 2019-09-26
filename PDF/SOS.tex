@@ -136,7 +136,7 @@ o5 = (5)(- ---x  + y )  + (--)(--x  + x*y)  + (------)(x )
 \end{verbatim}
 }
 \noindent
-The last output is an object of type \verb|SOSPoly|.
+The output above is an object of type \verb|SOSPoly|.
 An object of this type stores the coefficients $\lambda_{i}$ and polynomials (or generators) $f_{i}$  such that $f = \sum_{i}\lambda_{i}f_{i}^{2}$.
 We can extract the coefficients and generators as follows:
 {\small
@@ -296,7 +296,7 @@ In the code above, the ring construction (first line) indicates that $s,t$ shoul
 The values obtained were $s=t=34$.
 
 It is also possible find the values of the parameters that optimize a given linear function.
-This allows to find lower bounds for a polynomial function $f(x)$,
+This allows us to find lower bounds for a polynomial function $f(x)$,
 by finding the largest $t$ such that $f(x)-t$ is a sum of squares.
 Here we apply this method to the dehomogenized Motzkin polynomial.
 
@@ -330,7 +330,7 @@ o4 = - 729/4096
 
 \section{Polynomial optimization}
 
-In applications one oftentimes needs to find lower bounds for polynomials subject to some polynomial constraints.
+In applications one often needs to find lower bounds for polynomials subject to some polynomial constraints.
 More precisely, consider the problem
 \begin{align*}
   \min_{x\in \RR^n} \quad f(x)
@@ -436,7 +436,8 @@ Then setting the {rounding tolerance} $\textrm{dist}(Q_n,Q_r')$ smaller than $\s
 see \cite[Prop.~8]{peyrl2008computing}.
 \section*{Acknowledgment}
 \label{sec:acknowledgement}
-The authors would like to thank Bernd Sturmfels and the Max-Planck-Institute MiS for hosting the \Mac workshop in May 2018.
+The authors would like to thank Bernd Sturmfels and the Max-Planck-Institute für
+Mathematik in den Naturwissenschaften in Leipzig for hosting the \Mac workshop in May 2018.
 We thank Ilir Dema, Nidhi Kainsa and Anton Leykin, who contributed to the code.
 The package code contains parts of a proof-of-concept implementation of the methods in \cite{peyrl2008computing}, originally written by Pablo Parrilo and Helfried Peyrl.
 Parts of this work were done while Diego Cifuentes visited the Max-Planck-Institute MiS, and while the first two authors visited ICERM supported by NSF grant No. DMS-1439786.
