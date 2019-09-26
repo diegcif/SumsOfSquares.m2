@@ -26,7 +26,9 @@ not mentioned anywhere, perhaps add a README or INSTALL file at top level in
 the zip file that provides the source code of the packages, so it can be stated
 in there.
 
-Authors: all three done.
+Authors: 
+Diego: I don't understand this. Isn't installPackage "SumsOfSquares" enough?
+What is the UserMode option? I have never needed it.
 
 -----------------------------------------------------------------------------
 
@@ -134,6 +136,7 @@ package that calls "solveSOS" -- how is his code to obtain the information,
 which you display only to the human reader?
 
 Authors: TK: I'm OK with default verbosity zero.
+Diego: Sure we can make zero the default. But I think that the information is important, particularly the "Status". We should either return it as a part of the SDPResult, or create a global variable.
 
 Referee:
 What is the point of the last line of this loop (in the SemidefiniteProgramming package)?
