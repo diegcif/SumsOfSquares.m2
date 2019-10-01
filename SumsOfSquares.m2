@@ -178,7 +178,7 @@ net SDPResult := sol -> (
     if tval=!=null and numRows tval>0 then
         str = append(str,{"Parameters",mat2str tval});
     str = append(str,{"Status",sol#Status});
-    netList(str,HorizontalSpace=>1,Alignment=>Center)
+    netList(str,HorizontalSpace=>3,Alignment=>Left,Boxes=>false)
     )
 
 -- Shortcut to extract keys from SDPResult:
