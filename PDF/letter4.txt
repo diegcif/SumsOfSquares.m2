@@ -42,16 +42,15 @@ to
 Change
 	The package SemidefiniteProgramming allows to use some of these solvers
 to something like
-	The package SemidefiniteProgramming allows us to use some of
-	these solvers
+	The package SemidefiniteProgramming allows us to use some of these solvers
 
-change
+Change
 	This returns an object of type SOSPoly which supports many operations that polynomials support.
 to
 	This returns an object of type SOSPoly, which supports many
 	operations that polynomials support.
 
-Authors: all three done.
+Authors: All three done.
 
 
 ***********************************************************************
@@ -60,21 +59,27 @@ Authors: all three done.
 
 Referee:
 
-After "The last output" there is more output, rendering this output not the
-last one, so what you really mean here is "The previous output" or "The output
-above".
+Change
+    "The last output"
+to
+    "The output above"
 
-In "This allows to find lower bounds", the verb "allows" is transitive, so
-needs an object.  Try something like "This allows us to find lower bounds" or
-"This allows our package to find lower bounds".
+Change
+    "This allows to find lower bounds"
+to
+    "This allows us to find lower bounds"
 
-"oftentimes" sounds old-fashioned, and "often" would be better
+Change
+    "oftentimes"
+to
+    "often"
 
-The acronym in Max-Planck-Institute MiS is not informative enough, and it's
-hard to guess the location.  What about something like "Max-Planck-Institut für
-Mathematik in den Naturwissenschaften, in Leipzig"?
+Change
+    "Max-Planck-Institute MiS"
+to
+    "Max-Planck-Institut für Mathematik in den Naturwissenschaften, in Leipzig"
 
-Authors: all done.
+Authors: All done.
 
 -----------------------------------------------------------------------------
 
@@ -138,8 +143,10 @@ which you display only to the human reader?
 Authors: TK: I'm OK with default verbosity zero.
 Diego: Sure we can make zero the default. But I think that the information is important, particularly the "Status". We should either return it as a part of the SDPResult, or create a global variable.
 
+-----------------------------------------------------------------------------
+
 Referee:
-What is the point of the last line of this loop (in the SemidefiniteProgramming package)?
+The last line of this loop has no effect, so could be deleted.
 
     for s to k-1 do(
         l := splitline(Lpsd#s);
@@ -154,12 +161,12 @@ What is the point of the last line of this loop (in the SemidefiniteProgramming 
 ===>    (i,j,Xij,Zij)
         );
 
-It has no effect, so could be deleted.
-
 Authors: The line was deleted. 
 
+-----------------------------------------------------------------------------
+
 Referee:
-What's the point of this function (in the SemidefiniteProgramming package)?
+What's the point of this function?
 
     getFileName = (ext) -> (
 	filename := temporaryFileName() | ext;
