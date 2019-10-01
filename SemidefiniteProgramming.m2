@@ -352,7 +352,7 @@ refine(SDP,Sequence) := o -> (P,X0y0) -> (
 --###################################
 
 optimize = method(
-     Options => {Solver=>null, Verbosity => 1} )
+     Options => {Solver=>null, Verbosity => 0} )
 
 optimize(SDP) := o -> P -> (
     solver := chooseSolver o;
@@ -445,7 +445,7 @@ trivialSDP = (C,A,b,Verbosity) -> (
 -- Implementation of SDP in Macaulay2
 -- Algorithm: Dual interior point method
 -- see Boyd, Vandenberghe "Convex Optimization" pp. 618-619, pp. 463-466
-simpleSDP = {Verbosity => 1} >> o -> (C,A,b) -> (
+simpleSDP = {Verbosity => 0} >> o -> (C,A,b) -> (
     (ok,X,y,Z,sdpstatus) := trivialSDP(C,A,b,o.Verbosity);
     if ok then return (X,y,Z,sdpstatus);
 
@@ -473,7 +473,7 @@ simpleSDP = {Verbosity => 1} >> o -> (C,A,b) -> (
 
 
 -- This second part solves given an interior starting point.
-simpleSDP2 = {Verbosity => 1} >> o -> (C,A,mb,y,checktrivial,UntilObjNegative) -> (
+simpleSDP2 = {Verbosity => 0} >> o -> (C,A,mb,y,checktrivial,UntilObjNegative) -> (
     if checktrivial then (
         (ok,X',y',Z',sdpstatus') := trivialSDP(C,A,mb,o.Verbosity);
         if ok then return (X',y',Z',sdpstatus');
@@ -550,7 +550,7 @@ backtrack = (S0, dS, Verbosity) -> (
 -- Interface to CSDP
 --###################################
 
-solveCSDP = method( Options => {Verbosity => 1} )
+solveCSDP = method( Options => {Verbosity => 0} )
 solveCSDP(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     -- CSDP expects the file fparam to be in the working directory.
     -- That's why we need to change directory before executing csdp.
@@ -690,7 +690,7 @@ checkDualSol = (C,A,y,Z,Verbosity) -> (
 -- Interface to SDPA
 --###################################
 
-solveSDPA = method( Options => {Verbosity => 1} )
+solveSDPA = method( Options => {Verbosity => 0} )
 solveSDPA(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     if sdpaexec===null then error "sdpa executable not found";
     n := numColumns C;
@@ -751,7 +751,7 @@ readSDPA = (fout,n,Verbosity) -> (
 -- Interface to MOSEK
 --###################################
 
-solveMOSEK = method( Options => {Verbosity => 1} )
+solveMOSEK = method( Options => {Verbosity => 0} )
 solveMOSEK(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     if mosekexec===null then error "mosek executable not found";
     n := numColumns C;

@@ -357,7 +357,7 @@ sosPoly(SDPResult) := sol -> if sol#GramMatrix=!=null then sosPoly(sol#Monomials
 
 -- internal way to call solveSOS
 rawSolveSOS = method(
-     Options => {RoundTol => 3, Solver=>null, Verbosity => 1, TraceObj => false} )
+     Options => {RoundTol => 3, Solver=>null, Verbosity => 0, TraceObj => false} )
  
 rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
     -- Consider a parametric problem f = f_0 + f_1 p_1 + ... + f_s p_s
@@ -418,7 +418,7 @@ rawSolveSOS(Matrix) := o -> (F) ->
     rawSolveSOS(F,zeros(QQ,numRows F-1,1),o)
 
 solveSOS = method(
-     Options => {RoundTol => 3, Solver=>null, Verbosity => 1, TraceObj => false} )
+     Options => {RoundTol => 3, Solver=>null, Verbosity => 0, TraceObj => false} )
 
 solveSOS(RingElement,RingElement,Matrix) := o -> (f,objFcn,mon) -> (
     (F,objP) := parameterVector(f,objFcn);
@@ -446,7 +446,7 @@ solveSOS(RingElement,ZZ) := o -> (f,D) ->
 
 -- Main method to setup an SOS problem as an SDP problem
 createSOSModel = method(
-    Options => {Verbosity => 1, RoundTol => 3 } )
+    Options => {Verbosity => 0, RoundTol => 3 } )
 createSOSModel(RingElement,Matrix) := o -> (f,v) -> (
     F := parameterVector(f);
     createSOSModel(F,v)
@@ -568,7 +568,7 @@ parameterVector(RingElement) := (f) -> first parameterVector(f,0_(ring f))
 
 -- Choose monomial basis based on Newton polytope
 chooseMons = method(
-    Options => {Verbosity => 1} )
+    Options => {Verbosity => 0} )
 chooseMons(RingElement) := o -> (f) -> (
     F := parameterVector(f);
     mon := chooseMons(F);
@@ -709,7 +709,7 @@ makeMultiples = (h, D, homog) -> (
     )
 
 sosInIdeal = method(
-     Options => {RoundTol => 3, Solver=>"CSDP", Verbosity => 1} )
+     Options => {RoundTol => 3, Solver=>"CSDP", Verbosity => 0} )
 sosInIdeal (Ring, ZZ) := o -> (R,D) -> (
     -- find sos polynomial in a quotient ring
     if odd D then error "D must be even";
@@ -757,7 +757,7 @@ getMultipliers = (mon,tval,S) -> (
     )
 
 sosdecTernary = method(
-     Options => {RoundTol => 3, Solver=>"CSDP", Verbosity => 1} )
+     Options => {RoundTol => 3, Solver=>"CSDP", Verbosity => 0} )
 sosdecTernary(RingElement) := o -> (f) -> (
     -- Implements Hilbert's algorithm to write a non-negative ternary
     -- form as sos of rational functions.
@@ -812,7 +812,7 @@ recoverSolution(SDPResult) := sol -> recoverSolution(sol#Monomials,sol#MomentMat
 -- Unconstrained minimization 
 -- sos lower bound for the polynomial f
 lowerBound = method(
-     Options => {RoundTol => 3, Solver=>null, Verbosity => 1} )
+     Options => {RoundTol => 3, Solver=>null, Verbosity => 0} )
 lowerBound(RingElement) := o -> (f) -> lowerBound(f,-1,o)
 lowerBound(RingElement,ZZ) := o -> (f,D) -> drop(lowerBound(f,zeros(ring f,1,0),D,o),-1)
 
