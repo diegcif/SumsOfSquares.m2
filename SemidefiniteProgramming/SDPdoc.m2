@@ -22,7 +22,7 @@ doc /// --SemidefiniteProgramming
       Text
         The semidefinite program can be solved numerically using the method @TO optimize@.
       Example
-        (X,y,Z) = optimize P;
+        (X,y,Z,stat) = optimize P;
         (X,y)
       Text
         See @TO Solver@ for a discussion of the available SDP solvers.
@@ -225,8 +225,8 @@ doc /// --optimize
     Headline
         solve a semidefinite program
     Usage
-        (X,y,Z) = optimize P
-        (X,y,Z) = optimize(P,y0)
+        (X,y,Z,stat) = optimize P
+        (X,y,Z,stat) = optimize(P,y0)
     Inputs
         P:SDP
           a semidefinite programming problem
@@ -239,6 +239,8 @@ doc /// --optimize
           an $m\times 1$ matrix, dual variable
         Z:
           an $n\times n$ matrix, dual variable
+        stat:String
+          the status of the SDP solver
     Consequences
     Description
       Text
@@ -248,7 +250,7 @@ doc /// --optimize
         Alternatively, there is rudimentary dual interior point method implemented entirely in Macaulay2 language.
       Example
         P = sdp(matrix{{1,0},{0,2}}, matrix{{0,1},{1,0}}, matrix{{-1}});
-        (X,y,Z) = optimize P;
+        (X,y,Z,stat) = optimize P;
         y
       Text
         {\bf References:}

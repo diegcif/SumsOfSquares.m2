@@ -39,6 +39,7 @@ export {
 --Method options
     "GramMatrix",
     "MomentMatrix",
+    "Status",
     "RoundTol",
     "TraceObj"
 }
@@ -152,14 +153,17 @@ clean(RR,SOSPoly) := (tol,s) -> (
 
 SDPResult = new Type of HashTable
 
-sdpResult = (mon,Q,X,tval) -> (
+sdpResult = (mon,Q,X,tval,sdpstatus) -> (
     new SDPResult from {
         Monomials => mon,
         GramMatrix => Q,
         MomentMatrix => X,
         Parameters => tval,
+        Status => sdpstatus
         }
     )
+
+status SDPResult := o -> sol -> sol#Status
 
 net SDPResult := sol -> (
     mat2str := M -> 
@@ -173,11 +177,12 @@ net SDPResult := sol -> (
     tval := sol#Parameters;
     if tval=!=null and numRows tval>0 then
         str = append(str,{"Parameters",mat2str tval});
+    str = append(str,{"Status",sol#Status});
     netList(str,HorizontalSpace=>1,Alignment=>Center)
     )
 
 -- Shortcut to extract keys from SDPResult:
-readSdpResult = sol -> (sol#Monomials, sol#GramMatrix, sol#MomentMatrix, sol#Parameters)
+readSdpResult = sol -> (sol#Monomials, sol#GramMatrix, sol#MomentMatrix, sol#Parameters, sol#Status)
 
 
 --##########################################################################--
@@ -371,7 +376,7 @@ rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
          
     -- build SOS model --
     (C,Ai,p0,V,A,B,b) := createSOSModel(F,mon,Verbosity=>o.Verbosity,RoundTol=>o.RoundTol);
-    if C===null then return sdpResult(mon,,,);
+    if C===null then return sdpResult(mon,,,,);
 
     ndim := numRows C;
     np := numRows objP;
@@ -384,23 +389,23 @@ rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
     if obj==0 then verbose2( "Solving SOS feasibility problem...", o)
     else verbose2("Solving SOS optimization problem...", o);
 
-    (X,my,Q) := optimize(sdp(C,Ai,obj), Solver=>o.Solver, Verbosity=>o.Verbosity);
-    if Q===null then return sdpResult(mon,Q,X,);
+    (X,my,Q,sdpstatus) := optimize(sdp(C,Ai,obj), Solver=>o.Solver, Verbosity=>o.Verbosity);
+    if Q===null then return sdpResult(mon,Q,X,,sdpstatus);
     y := -my;
     pVec0 := (p0 + V*y);
 
-    if not isExactField kk then return sdpResult(mon,Q,X,pVec0);
+    if not isExactField kk then return sdpResult(mon,Q,X,pVec0,sdpstatus);
     if o.RoundTol > MaxRoundTol then(
         if o.RoundTol < infinity then
             verbose1("Warning: RoundTol is too high. Rounding will be skipped.", o);
-        return sdpResult(changeMatrixField(RR,mon),Q,X,pVec0);
+        return sdpResult(changeMatrixField(RR,mon),Q,X,pVec0,sdpstatus);
         );
 
     -- rational rounding --
     (ok,Qp,pVec) := roundSolution(pVec0,Q,A,B,b,RoundTol=>o.RoundTol,Verbosity=>o.Verbosity);
-    if ok then return sdpResult(mon,Qp,X,pVec);
+    if ok then return sdpResult(mon,Qp,X,pVec,sdpstatus);
     verbose1("rounding failed, returning real solution", o);
-    sdpResult(changeMatrixField(RR,mon),Q,X,pVec0)
+    sdpResult(changeMatrixField(RR,mon),Q,X,pVec0,sdpstatus)
     )
 
 -- Choose monomials internally:
@@ -710,10 +715,10 @@ sosInIdeal (Ring, ZZ) := o -> (R,D) -> (
     if odd D then error "D must be even";
     mon := chooseMons(matrix{{0_R}}, D);
     sol := solveSOS (0_R, mon, o);
-    (mon',Q,X,tval) := readSdpResult sol;
+    (mon',Q,X,tval,sdpstatus) := readSdpResult sol;
     if Q===null or isZero(MedPrecision,Q) then (
         verbose1("no sos polynomial in degree "|D, o);
-        return sdpResult(mon,,X,);
+        return sdpResult(mon,,X,,sdpstatus);
         );
     sol
     )
@@ -732,10 +737,10 @@ sosInIdeal (Matrix,ZZ) := o -> (h,D) -> (
     (H,m) := makeMultiples(first entries h, D, homog);
     F := matrix transpose {{0}|H};
     sol := rawSolveSOS (F, o);
-    (mon,Q,X,tval) := readSdpResult sol;
+    (mon,Q,X,tval,sdpstatus) := readSdpResult sol;
     if Q===null or isZero(MedPrecision,Q) then (
         verbose1("no sos polynomial in degree "|D, o);
-        return (sdpResult(mon,,X,),null);
+        return (sdpResult(mon,,X,,sdpstatus),null);
         );
     tval = flatten entries tval;
     mult := getMultipliers(m,tval,ring mon);
@@ -771,7 +776,7 @@ sosdecTernary(RingElement) := o -> (f) -> (
         di = first degree fi;
         S = append(S,Si);
         );
-    (mon,Q,X,tval) := readSdpResult rawSolveSOS matrix{{fi}};
+    (mon,Q,X,tval,sdpstatus) := readSdpResult rawSolveSOS matrix{{fi}};
     if Q===null or isZero(MedPrecision,Q) then return (,);
     Si = sosPoly(mon,Q);
     if Si===null then return (,);
@@ -844,9 +849,9 @@ lowerBound(RingElement,Matrix,ZZ) := o -> (f,h,D) -> (
         {RoundTol=>o.RoundTol, Solver=>o.Solver, Verbosity=>o.Verbosity};
     mon := if isQuotientRing R then chooseMons(F,D)
         else chooseMons (F,Verbosity=>o.Verbosity);
-    if mon===null then return (,sdpResult(,,,),);
+    if mon===null then return (,sdpResult(,,,,),);
     sol := rawSolveSOS(F,objP,mon,o');
-    (mon',Q,X,tval) := readSdpResult sol;
+    (mon',Q,X,tval,sdpstatus) := readSdpResult sol;
     (bound,mult) := (,);
     if tval=!=null then(
         tval = flatten entries tval;
@@ -919,27 +924,27 @@ checkSolveSOS = (solver) -> (
     t0:= (
         R := QQ[x,y];
         f := 4*x^4+y^4;
-        (mon,Q,X,tval) := readSdpResult solveSOS(f,Solver=>solver);
+        (mon,Q,X,tval,sdpstatus) := readSdpResult solveSOS(f,Solver=>solver);
         isGram(f,mon,Q)
         );
 
     t1:= (
         f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;
-        (mon,Q,X,tval) = readSdpResult solveSOS(f,Solver=>solver);
+        (mon,Q,X,tval,sdpstatus) = readSdpResult solveSOS(f,Solver=>solver);
         isGram(f,mon,Q)
         );
 
     t2:= (
         R = QQ[x,y,z];
         f = x^4+y^4+z^4-4*x*y*z+x+y+z+3;
-        (mon,Q,X,tval) = readSdpResult solveSOS(f,Solver=>solver);
+        (mon,Q,X,tval,sdpstatus) = readSdpResult solveSOS(f,Solver=>solver);
         isGram(f,mon,Q)
         );
     
     t3:= (
         R = QQ[x,y,z,w];
         f = 2*x^4 + x^2*y^2 + y^4 - 4*x^2*z - 4*x*y*z - 2*y^2*w + y^2 - 2*y*z + 8*z^2 - 2*z*w + 2*w^2;
-        (mon,Q,X,tval) = readSdpResult solveSOS(f,Solver=>solver);
+        (mon,Q,X,tval,sdpstatus) = readSdpResult solveSOS(f,Solver=>solver);
         isGram(f,mon,Q)
         );
 
@@ -947,7 +952,7 @@ checkSolveSOS = (solver) -> (
     t4:= (
         R = QQ[x][t];
         f = (t-1)*x^4+1/2*t*x+1;
-        (mon,Q,X,tval) = readSdpResult solveSOS (f,Solver=>solver);
+        (mon,Q,X,tval,sdpstatus) = readSdpResult solveSOS (f,Solver=>solver);
         isGramParam(f,mon,Q,tval)
         );
 
@@ -956,7 +961,7 @@ checkSolveSOS = (solver) -> (
         R = QQ[x,y];
         S := R/ideal(x^2 + y^2 - 1);
         f = sub(10-x^2-y,S);
-        (mon,Q,X,tval) = readSdpResult solveSOS (f, 2, TraceObj=>true, Solver=>solver);
+        (mon,Q,X,tval,sdpstatus) = readSdpResult solveSOS (f, 2, TraceObj=>true, Solver=>solver);
         isGram(f,mon,Q) and rank Q == 2
         );
 
@@ -964,12 +969,12 @@ checkSolveSOS = (solver) -> (
     t6:= (
         R = QQ[x,y][t];
         f = x^4*y^2 + x^2*y^4 - 3*x^2*y^2 + 1; --Motzkin
-        (mon,Q,X,tval) = readSdpResult solveSOS(f,Solver=>solver); 
+        (mon,Q,X,tval,sdpstatus) = readSdpResult solveSOS(f,Solver=>solver); 
         ( Q === null )
         );
 
     t7:= (
-        (mon,Q,X,tval) = readSdpResult solveSOS(f-t,-t, Solver=>solver); 
+        (mon,Q,X,tval,sdpstatus) = readSdpResult solveSOS(f-t,-t, Solver=>solver); 
         ( Q === null )
         );
 
@@ -1135,7 +1140,7 @@ checkLowerBound = (solver) -> (
         f = y;
         h := matrix {{y-pi*x^2}};
         (bound,sol,mult) = lowerBound (f, h, 2, Solver=>solver);
-        (mon,Q,X,tval) := readSdpResult sol;
+        (mon,Q,X,tval,sdpstatus) := readSdpResult sol;
         equal(bound,0) and cmp(f,h,bound,mon,Q,mult)
         );
 
@@ -1144,7 +1149,7 @@ checkLowerBound = (solver) -> (
         f = z;
         h = matrix {{x^2 + y^2 + z^2 - 1}};
         (bound,sol,mult) = lowerBound (f, h, 4, Solver=>solver);
-        (mon,Q,X,tval) = readSdpResult sol;
+        (mon,Q,X,tval,sdpstatus) = readSdpResult sol;
         equal(bound,-1) and cmp(f,h,bound,mon,Q,mult)
         );
 
@@ -1156,7 +1161,7 @@ checkLowerBound = (solver) -> (
         f = sub(x-y,S);
         h = matrix {{sub(y^2 - y,S)}};
         (bound,sol,mult) = lowerBound(f, h, 2, Solver=>solver);
-        (mon,Q,X,tval) = readSdpResult sol;
+        (mon,Q,X,tval,sdpstatus) = readSdpResult sol;
         equal(bound,-1) and cmp(f,h,bound,mon,Q,mult)
         );
     

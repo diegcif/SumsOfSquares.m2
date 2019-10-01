@@ -16,6 +16,7 @@ newPackage(
       Email => "peyrl@control.ee.ethz.ch",
       HomePage => "https://scholar.google.com/citations?user=cFOV7nYAAAAJ&hl=de"}
     },
+    DebuggingMode => true,
     Headline => "Semidefinite Programming Package",
     Configuration => {"CSDPexec"=>"","MOSEKexec"=>"mosek","SDPAexec"=>"sdpa","DefaultSolver"=>null},
     AuxiliaryFiles => true,
@@ -96,12 +97,13 @@ sdpaexec = makeGlobalPath ((options SemidefiniteProgramming).Configuration)#"SDP
 defaultSolver = chooseDefaultSolver(csdpexec,mosekexec,sdpaexec)
 
 -- SDP status
-StatusFeas = "Status: SDP solved, primal-dual feasible"
-StatusPFeas = "Status: SDP solved, primal feasible"
-StatusDFeas = "Status: SDP solved, dual feasible"
-StatusPInfeas = "Status: SDP solved, primal infeasible"
-StatusDInfeas = "Status: SDP solved, dual infeasible"
-StatusFailed = "Status: SDP failed"
+StatusFeas = "SDP solved, primal-dual feasible"
+StatusPFeas = "SDP solved, primal feasible"
+StatusDFeas = "SDP solved, dual feasible"
+StatusPInfeas = "SDP solved, primal infeasible"
+StatusDInfeas = "SDP solved, dual infeasible"
+StatusFailed = "SDP failed"
+StatusUnknown = "Solver returns unknown message\n"
 
 -- Constants
 HighPrecision = 1e-10 --e.g. for numerical linear algebra
@@ -151,12 +153,12 @@ ring SDP := P -> ring P#"C";
 --##########################################################################--
 
 verbose1 = method()
-verbose1(String,Number) := (s,Verbosity) -> if Verbosity>=1 then print s
-verbose1(String,OptionTable) := (s,o) -> if o.Verbosity>=1 then print s
+verbose1(Net,Number) := (s,Verbosity) -> if Verbosity>=1 then print s
+verbose1(Net,OptionTable) := (s,o) -> if o.Verbosity>=1 then print s
 
 verbose2 = method()
-verbose2(String,Number) := (s,Verbosity) -> if Verbosity>=2 then print s
-verbose2(String,OptionTable) := (s,o) -> if o.Verbosity>=2 then print s
+verbose2(Net,Number) := (s,Verbosity) -> if Verbosity>=2 then print s
+verbose2(Net,OptionTable) := (s,o) -> if o.Verbosity>=2 then print s
 
 --###################################
 -- Transition QQ <=> RR
@@ -353,28 +355,25 @@ optimize = method(
      Options => {Solver=>null, Verbosity => 1} )
 
 optimize(SDP) := o -> P -> (
+    solver := chooseSolver o;
     (C,A,b) := (P#"C",P#"A",P#"b");
     (C,A,b) = mat2ring(RR,C,A,b);
-    (ok,X,y,Z) := (,,,);
-    (ok,X,y,Z) = sdpNoConstraints(C,A,o.Verbosity);
-    if ok then return (X,y,Z);
-    solver := chooseSolver o;
-    if solver == "M2" then(
-        (ok,X,y,Z) = trivialSDP(C,A,b,o.Verbosity);
-        if ok then return (X,y,Z)
-        else (y,Z) = simpleSDP(C,A,b,Verbosity=>o.Verbosity)
-        )
+    (ok,X,y,Z,sdpstatus) := sdpNoConstraints(C,A,o.Verbosity);
+    if ok then null
+    else if solver == "M2" then
+        (X,y,Z,sdpstatus) = simpleSDP(C,A,b,Verbosity=>o.Verbosity)
     else if solver == "CSDP" then
-        (X,y,Z) = solveCSDP(C,A,b,Verbosity=>o.Verbosity)
+        (X,y,Z,sdpstatus) = solveCSDP(C,A,b,Verbosity=>o.Verbosity)
     else if solver == "SDPA" then
-        (X,y,Z) = solveSDPA(C,A,b,Verbosity=>o.Verbosity)
+        (X,y,Z,sdpstatus) = solveSDPA(C,A,b,Verbosity=>o.Verbosity)
     else if solver == "MOSEK" then
-        (X,y,Z) = solveMOSEK(C,A,b,Verbosity=>o.Verbosity)
+        (X,y,Z,sdpstatus) = solveMOSEK(C,A,b,Verbosity=>o.Verbosity)
     else
         error "unknown SDP solver";
+    verbose1("Status: "|sdpstatus, o);
     ntries := 6;
     (y,Z) = findNonZeroSolution(C,A,b,o,y,Z,ntries,o.Verbosity);
-    (X,y,Z))
+    (X,y,Z,sdpstatus))
 
 findNonZeroSolution = (C,A,b,o,y,Z,ntries,Verbosity) -> (
     -- Heuristic to trick the solver into returning a nonzero solution of an SDP
@@ -389,7 +388,7 @@ findNonZeroSolution = (C,A,b,o,y,Z,ntries,Verbosity) -> (
         if #badCoords==m then break;
         b' := map(RR^m,RR^1, (j,l) -> 
             if member(j,badCoords) then 0 else random(RR)-.5 );
-        (X',y',Z') := optimize(sdp0(C,A,b'),o);
+        (X',y',Z',sdpstatus') := optimize(sdp0(C,A,b'),o);
         if Z'=!=null and not iszero Z' then return (y',Z');
         if X'===null and y'=!=null and (transpose(-b') * y')_(0,0) < -.1 then
             badCoords = badCoords + set select(0..m-1, j -> not iszero y'_(j,0));
@@ -397,17 +396,19 @@ findNonZeroSolution = (C,A,b,o,y,Z,ntries,Verbosity) -> (
     (y,Z))
 
 optimize(SDP, Matrix) := o -> (P,y0) -> (
+    solver := chooseSolver o;
     (C,A,b) := (P#"C",P#"A",P#"b");
     (C,A,b) = mat2ring(RR,C,A,b);
     y0 = promote(y0,RR);
-    (ok,X,y,Z) := (,,,);
-    (ok,X,y,Z) = sdpNoConstraints(C,A,o.Verbosity);
-    if ok then return (X,y,Z);
-    if chooseSolver o != "M2" then return optimize(P,o);
-    (ok,X,y,Z) = trivialSDP(C,A,b,o.Verbosity);
-    if ok then return (X,y,Z);
-    (y,Z) = simpleSDP2(C,A,b,y0,false,Verbosity=>o.Verbosity);
-    (,y,Z))
+    (ok,X,y,Z,sdpstatus) := sdpNoConstraints(C,A,o.Verbosity);
+    if ok then null
+    else if solver != "M2" then (
+        verbose1("Warning: Initial point will not be used",o);
+        return optimize(P,o) )
+    else
+        (X,y,Z,sdpstatus) = simpleSDP2(C,A,b,y0,true,false,Verbosity=>o.Verbosity);
+    verbose1("Status: "|sdpstatus, o);
+    (X,y,Z,sdpstatus) )
 
 chooseSolver = o -> if o.Solver=!=null then o.Solver else defaultSolver
 
@@ -419,13 +420,12 @@ sdpNoConstraints = (C,A,Verbosity) -> (
         if lambda>=-tol then(
             verbose1("SDP solved in preprocessing",Verbosity);
             y0 := zeros(RR,#A,1);
-            return (true, 0*C, y0, C);
+            return (true, 0*C, y0, C, StatusFeas);
         )else(
-            verbose1("dual infeasible",Verbosity);
-            return (true,,,);
+            return (true,,,,StatusDInfeas);
             );
         );
-    (false,,,))
+    (false,,,,))
 
 -- check trivial cases and solve them directly
 trivialSDP = (C,A,b,Verbosity) -> (
@@ -434,24 +434,27 @@ trivialSDP = (C,A,b,Verbosity) -> (
         if lambda>=0 then(
             verbose1("SDP solved in preprocessing",Verbosity);
             y0 := zeros(RR,#A,1);
-            return (true, 0*C, y0, C);
+            return (true, 0*C, y0, C, StatusFeas);
         )else if #A==0 then(
-            verbose1("dual infeasible",Verbosity);
-            return (true,,,);
+            return (true,,,,StatusDInfeas);
             );
         );
-    (false,,,))
+    (false,,,,))
 
 
 -- Implementation of SDP in Macaulay2
 -- Algorithm: Dual interior point method
 -- see Boyd, Vandenberghe "Convex Optimization" pp. 618-619, pp. 463-466
 simpleSDP = {Verbosity => 1} >> o -> (C,A,b) -> (
+    (ok,X,y,Z,sdpstatus) := trivialSDP(C,A,b,o.Verbosity);
+    if ok then return (X,y,Z,sdpstatus);
+
     verbose1("Running M2 Solver", o);
     R := RR;
     n := numRows C;
 
     -- try to find strictly feasible starting point --
+    local Xnull; local sdpstatus;
     local y; local Z;
     lambda := min eigenvalues (C, Hermitian=>true);
     if lambda > 0 then
@@ -460,20 +463,23 @@ simpleSDP = {Verbosity => 1} >> o -> (C,A,b) -> (
         verbose2("Computing strictly feasible solution...", o);
         y =  zeros(R,#A,1) || matrix{{lambda*1.1}};
         obj :=  zeros(R,#A,1) || matrix{{1_R}};
-        (y,Z) = simpleSDP2(C,append(A,id_(R^n)), obj, y, true, Verbosity=>o.Verbosity);
-        if y===null then (
-            verbose1(StatusFailed, o);
-            return (,) );
+        (Xnull,y,Z,sdpstatus) = simpleSDP2(C,append(A,id_(R^n)), obj, y, false, true, Verbosity=>o.Verbosity);
+        if y===null then 
+            return (Xnull,,,StatusFailed);
         y = transpose matrix {take (flatten entries y,numRows y - 1)};
         );
     verbose2("Computing an optimal solution...", o);
-    (y,Z) = simpleSDP2(C, A, b, y, false, o);
-    verbose1(if y=!=null then StatusDFeas else StatusFailed, o);
-    (y,Z))
+    simpleSDP2(C, A, b, y, false, false, o) )
 
 
 -- This second part solves given an interior starting point.
-simpleSDP2 = {Verbosity => 1} >> o -> (C,A,mb,y,UntilObjNegative) -> (
+simpleSDP2 = {Verbosity => 1} >> o -> (C,A,mb,y,checktrivial,UntilObjNegative) -> (
+    if checktrivial then (
+        (ok,X',y',Z',sdpstatus') := trivialSDP(C,A,mb,o.Verbosity);
+        if ok then return (X',y',Z',sdpstatus');
+        );
+
+    Xnull := null;
     R := RR;
     n := numgens target C;
     b := -mb;
@@ -492,19 +498,19 @@ simpleSDP2 = {Verbosity => 1} >> o -> (C,A,mb,y,UntilObjNegative) -> (
             S := C - sum toList apply(0..m-1, i-> y_(i,0) * A_i);
             try Sinv := solve(S, id_(target S)) else (
                 verbose1("Slack matrix is singular", o);
-                return (,) );
+                return (Xnull,,,StatusFailed) );
             -- compute Hessian:
             H := map(R^m,R^m,(i,j) -> trace(Sinv*A_i*Sinv*A_j));
             if H==0 then (
                 verbose1("Hessian is zero", o);
-                return (,) );
+                return (Xnull,,,StatusFailed) );
             -- compute gradient:
             g := map(R^m,R^1,(i,j) -> b_(i,0)/mu + trace(Sinv*A_i));
             
             -- compute damped Newton step:
             dy := -solve(H,g,ClosestFit=>true);
             alpha := backtrack(S, -sum for i to m-1 list matrix(dy_(i,0) * entries A_i), o.Verbosity);
-            if alpha===null then return (,);
+            if alpha===null then return (Xnull,,,StatusFailed);
             y = y + transpose matrix {alpha* (flatten entries dy)};
             lambda := (transpose dy*H*dy)_(0,0);
             obj := transpose b * y;
@@ -521,7 +527,7 @@ simpleSDP2 = {Verbosity => 1} >> o -> (C,A,mb,y,UntilObjNegative) -> (
             ); 
         );
     Z := C - sum(for i to #A-1 list y_(i,0) * A_i);
-    (y,Z))
+    (Xnull,y,Z,StatusDFeas))
 
 backtrack = (S0, dS, Verbosity) -> (
      R := ring S0;
@@ -561,9 +567,9 @@ solveCSDP(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     verbose1("Input file: " | fin, o);
     runcmd("cd " | dir | " && " | csdpexec | " " | fin1 | " " | fout | ">" | fout2, o.Verbosity);
     verbose1("Output file: " | fout, o);
-    (X,y,Z) := readCSDP(fout,fout2,n,o.Verbosity);
+    (X,y,Z,sdpstatus) := readCSDP(fout,fout2,n,o.Verbosity);
     y = checkDualSol(C,A,y,Z,o.Verbosity);
-    (X,y,Z))
+    (X,y,Z,sdpstatus))
 
 runcmd = (cmd,Verbosity) -> (
     tmp := temporaryFileName() | ".err";
@@ -641,6 +647,7 @@ readCSDP = (fout,fout2,n,Verbosity) -> (
         map(RR^n, RR^n, e|e'));
     readLine := l -> for s in separate(" ",l) list if s=="" then continue else value s;
     --READ SOLUTIONS
+    local sdpstatus;
     text := get fout;
     text = replace("\\+","",text);
     L := lines text;
@@ -653,20 +660,20 @@ readCSDP = (fout,fout2,n,Verbosity) -> (
     -- READ STATUS
     text = get fout2;
     s := select(lines text, l -> match("Success",l));
-    if #s==0 then( verbose1(StatusFailed,Verbosity); return (,,) );
+    if #s==0 then( return (,,,StatusFailed) );
     s = first s;
     verbose2(text,Verbosity);
     if match("SDP solved",s) then 
-        verbose1(StatusFeas,Verbosity)
+        sdpstatus = StatusFeas
     else if match("primal infeasible",s) then(
-        verbose1(StatusPInfeas,Verbosity);
+        sdpstatus = StatusPInfeas;
         X=null; )
     else if match("dual infeasible",s) then (
-        verbose1(StatusDInfeas,Verbosity);
+        sdpstatus = StatusDInfeas;
         y=null;Z=null; )
     else 
-        verbose1("Warning: Solver returns unknown message!!! " |s,Verbosity);
-    (X,y,Z))
+        sdpstatus = StatusUnknown | s;
+    (X,y,Z,sdpstatus))
 
 -- A heuristic to postprocess output of CSDP
 checkDualSol = (C,A,y,Z,Verbosity) -> (
@@ -694,8 +701,8 @@ solveSDPA(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     verbose1("Input file: " | fin, o);
     runcmd(sdpaexec | " " | fin | " " | fout | "> /dev/null", Verbosity);
     verbose1("Output file: " | fout, o);
-    (X,y,Z) := readSDPA(fout,n,o.Verbosity);
-    (X,y,Z))
+    (X,y,Z,sdpstatus) := readSDPA(fout,n,o.Verbosity);
+    (X,y,Z,sdpstatus))
 
 readSDPA = (fout,n,Verbosity) -> (
     readVec := l -> (
@@ -707,6 +714,7 @@ readSDPA = (fout,n,Verbosity) -> (
     text := get fout;
     L := lines text;
     --READ SOLUTIONS
+    local sdpstatus;
     y := null; X := null; Z := null;
     i := position(L, l -> match("xVec =",l));
     if i=!=null then 
@@ -721,23 +729,23 @@ readSDPA = (fout,n,Verbosity) -> (
     verbose2(text,Verbosity);
     s := first select(L, l -> match("phase.value",l));
     if match("pdOPT|pdFEAS",s) then 
-        verbose1(StatusFeas, Verbosity)
+        sdpstatus = StatusFeas
     else if match("dFEAS",s) then 
-        verbose1(StatusPFeas, Verbosity)
+        sdpstatus = StatusPFeas
     else if match("pFEAS",s) then 
-        verbose1(StatusDFeas, Verbosity)
+        sdpstatus = StatusDFeas
     else if match("dUNBD|pINF_dFEAS",s)  then(
-        verbose1(StatusDInfeas, Verbosity);
+        sdpstatus = StatusDInfeas;
         y=null;Z=null; )
     else if match("pUNBD|pFEAS_dINF",s) then(
-        verbose1(StatusPInfeas, Verbosity);
+        sdpstatus = StatusPInfeas;
         X=null; )
     else if match("noINFO|pdINF",s) then(
-        verbose1(StatusFailed, Verbosity);
+        sdpstatus = StatusFailed;
         X=null;y=null;Z=null; )
     else
-        verbose1("Warning: Solver returns unknown message!!! " |s, Verbosity);
-    (X,y,Z))
+        sdpstatus = StatusUnknown | s;
+    (X,y,Z,sdpstatus))
 
 --###################################
 -- Interface to MOSEK
@@ -755,8 +763,8 @@ solveMOSEK(Matrix,Sequence,Matrix) := o -> (C,A,b) -> (
     verbose1("Input file: " | fin, o);
     runcmd(mosekexec | " " | fin | ">" | fout2, Verbosity);
     verbose1("Output file: " | fout, o);
-    (X,y,Z) := readMOSEK(fout,fout2,n,o.Verbosity);
-    (X,y,Z))
+    (X,y,Z,sdpstatus) := readMOSEK(fout,fout2,n,o.Verbosity);
+    (X,y,Z,sdpstatus))
 
 -- write mosek input file (CBF format)
 writeMOSEK = (fin,C,A,b) -> (
@@ -827,27 +835,28 @@ readMOSEK = (fout,fout2,n,Verbosity) -> (
     X := map(RR^n,RR^n,toList Xh);
     Z := map(RR^n,RR^n,toList Zh);
     -- READ STATUS
+    local sdpstatus;
     s := select(L, l -> match("PROBLEM STATUS",l));
-    if #s==0 then( verbose1(StatusFailed,Verbosity); return (,,) );
+    if #s==0 then return (,,,StatusFailed);
     s = first s;
     if match("PRIMAL_AND_DUAL_FEASIBLE",s) then 
-        verbose1(StatusFeas,Verbosity)
+        sdpstatus = StatusFeas
     else if match("PRIMAL_FEASIBLE",s) then
-        verbose1(StatusPFeas,Verbosity)
+        sdpstatus = StatusPFeas
     else if match("DUAL_FEASIBLE",s) then
-        verbose1(StatusDFeas,Verbosity)
+        sdpstatus = StatusDFeas
     else if match("UNKNOWN|ILL_POSED",s) then(
-        verbose1(StatusFailed,Verbosity);
+        sdpstatus = StatusFailed;
         X=null; y=null;Z=null; )
     else if match("PRIMAL_INFEASIBLE",s) then(
-        verbose1(StatusPInfeas,Verbosity);
+        sdpstatus = StatusPInfeas;
         X=null; )
     else if match("DUAL_INFEASIBLE",s) then (
-        verbose1(StatusDInfeas,Verbosity);
+        sdpstatus = StatusDInfeas;
         y=null;Z=null; )
     else 
-        verbose1("Warning: Solver returns unknown message!!! " |s, Verbosity);
-    (X,y,Z))
+        sdpstatus = StatusUnknown | s;
+    (X,y,Z,sdpstatus))
 
 
 --###################################
@@ -861,7 +870,7 @@ checkOptimize = (solver) -> (
     checkZ := (C,A,y,Z) -> if y===null then false
         else ( yA := sum for i to #A-1 list y_(i,0)*A_i; norm(Z-C+yA)<MedPrecision );
     local C; local b; local A; local A1; local A2; local A3; 
-    local y0; local y; local X; local Z; local yopt;
+    local y0; local y; local X; local Z; local yopt; local sdpstatus;
 
     t0:= (
         C = matrix{{0,2,0,0,0,0},{2,0,0,0,0,0},
@@ -873,7 +882,7 @@ checkOptimize = (solver) -> (
         A = (A1,A2);
         y0 = matrix{{7},{9}};
         b = matrix{{-1},{-1}};
-        (X,y,Z) = optimize(sdp0(C,A,b),y0,Solver=>solver);
+        (X,y,Z,sdpstatus) = optimize(sdp0(C,A,b),y0,Solver=>solver);
         yopt = matrix{{2.},{2.}};
         equal(yopt,y)
         );
@@ -885,7 +894,7 @@ checkOptimize = (solver) -> (
         A = (A1,A2);
         b = matrix {{0},{1}};
         y0 = matrix {{0},{-.486952}};
-        (X,y,Z) = optimize(sdp0(C,A,b),y0,Solver=>solver);
+        (X,y,Z,sdpstatus) = optimize(sdp0(C,A,b),y0,Solver=>solver);
         yopt = matrix{{1.97619},{.466049}};
         equal(yopt,y)
         );
@@ -896,7 +905,7 @@ checkOptimize = (solver) -> (
         A2 = matrix{{0,0,0,1/2},{0,-1,0,0},{0,0,0,0},{1/2,0,0,0}};
         A = (A1,A2);
         b = matrix{{-1},{0}};
-        (X,y,Z) = optimize(sdp0(C,A,b),Solver=>solver);
+        (X,y,Z,sdpstatus) = optimize(sdp0(C,A,b),Solver=>solver);
         yopt = matrix{{0.},{4.}};
         equal(yopt,y)
         );
@@ -906,7 +915,7 @@ checkOptimize = (solver) -> (
         A1 = matrix {{0,0,0,1/2},{0,-1,0,0},{0,0,0,0},{1/2,0,0,0}};
         A = sequence A1;
         b = matrix {{-1}};
-        (X,y,Z) = optimize(sdp0(C,A,b),Solver=>solver);
+        (X,y,Z,sdpstatus) = optimize(sdp0(C,A,b),Solver=>solver);
         yopt = 4.;
         equal(yopt,y)
         );
@@ -918,7 +927,7 @@ checkOptimize = (solver) -> (
         A3 = matrix(RR, {{0, 0, 1/2}, {0, -1, 0}, {1/2, 0, 0}});
         A = (A1,A2,A3);
         b = matrix(RR, {{0}, {0}, {0}});
-        (X,y,Z) = optimize(sdp0(C,A,b), Solver=>solver);
+        (X,y,Z,sdpstatus) = optimize(sdp0(C,A,b), Solver=>solver);
         checkZ(C,A,y,Z)
         );
 
@@ -1011,10 +1020,10 @@ TEST /// --optimize
 
     -- trivial cases (solved in preprocessing)
     P = sdp0(matrix{{1,0},{0,-1}},(),zeros(QQ,0,1));
-    (X,y,Z) = optimize(P,Solver=>"M2");
+    (X,y,Z,sdpstatus) = optimize(P,Solver=>"M2");
     assert(y===null and X===null);
     P = sdp0(matrix{{1,0},{0,1}},(),zeros(QQ,0,1));
-    (X,y,Z) = optimize(P,Solver=>"M2");
+    (X,y,Z,sdpstatus) = optimize(P,Solver=>"M2");
     assert(y==0);
 
     results := checkOptimize("CSDP")
