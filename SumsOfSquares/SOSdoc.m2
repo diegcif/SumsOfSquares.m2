@@ -191,6 +191,8 @@ doc /// -- SDPResult
     Key
        SDPResult
        (net, SDPResult)
+       (status, SDPResult)
+       Status
        GramMatrix
        MomentMatrix
     Headline
