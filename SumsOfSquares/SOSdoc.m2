@@ -872,8 +872,8 @@ document { --Verbosity
     Headline => "control the level of information printed",
     "This optional argument indicates how much information should be given to the user.  The possible values are:",
     UL{
-      {"0", " -- no information is printed."},
-      {"1 (default)", " -- minimal information (solver used, input/output files, status of the solver)."},
+      {"0 (default)", " -- no information is printed."},
+      {"1", " -- minimal information (solver used, input/output files, status of the solver)."},
       {"2", " -- more detailed information (e.g., progress of the solver)."},
       },
     BR{},
