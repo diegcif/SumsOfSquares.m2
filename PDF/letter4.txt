@@ -102,8 +102,8 @@ which you display only to the human reader?
 
 Authors: The referee was guessing correctly. The reason why we the default 
 was 1 is that the "Status" value is very important for the user. 
-We now provide the "Status" as part of the SDPResult. We also removed the 
-boxes from the displayed output. We believe it now looks much cleaner.
+We changed the verbosity default to 0, and the "Status" is now part of the SDPResult.
+We also removed the boxes from the displayed output. We believe it now looks much cleaner.
 
 -----------------------------------------------------------------------------
 
@@ -126,8 +126,7 @@ Authors: The line was deleted.
 
 -----------------------------------------------------------------------------
 
-Referee:
-What's the point of this function?
+Referee: What's the point of this function?
 
     getFileName = (ext) -> (
 	filename := temporaryFileName() | ext;
