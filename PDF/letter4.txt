@@ -26,9 +26,8 @@ not mentioned anywhere, perhaps add a README or INSTALL file at top level in
 the zip file that provides the source code of the packages, so it can be stated
 in there.
 
-Authors: 
-Diego: I don't understand this. Isn't installPackage "SumsOfSquares" enough?
-What is the UserMode option? I have never needed it.
+Authors: An INSTALL file is included now.  According to our experiments
+UserMode=>true is not necessary, or is it?
 
 -----------------------------------------------------------------------------
 
