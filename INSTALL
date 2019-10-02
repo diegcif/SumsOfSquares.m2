@@ -1,0 +1,17 @@
+Macaulay2-1.15 and later ship up-to-date versions of these packages.
+To install the latest version of these packages in older versions of
+M2 proceed as follows.
+
+1) Make sure that no previous version of the packages is installed
+
+uninstallPackage ("SemidefiniteProgramming")
+uninstallPackage ("SumsOfSquares")
+uninstallPackage ("SOS")  -- That was the name in fall 2018.
+
+2) Install an SDP Solver or M2 version 1.14 or later (which includes CSDP)
+
+3) Run M2 from a directory that contains up-to-date package sources and then
+
+installPackage "SemidefiniteProgramming"
+installPackage ("SumsOfSquares", UserMode => true)
+
