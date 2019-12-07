@@ -13,5 +13,4 @@ uninstallPackage ("SOS")  -- That was the name in fall 2018.
 3) Run M2 from a directory that contains up-to-date package sources and then
 
 installPackage "SemidefiniteProgramming"
-installPackage ("SumsOfSquares", UserMode => true)
-
+installPackage ("SumsOfSquares")
