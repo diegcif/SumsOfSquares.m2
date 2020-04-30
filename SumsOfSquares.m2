@@ -646,8 +646,17 @@ chooseMons(Matrix) := o -> (F) -> (
 chooseMons(Matrix,ZZ) := o -> (F,D) -> (
     if D<=0 or odd D then error "Expected even positive integer";
     R := ring F;
-    mon := if isHomogeneous R and isHomogeneous F then basis(D//2,R)
-        else basis(0,D//2,R);
+    var := support F;
+    if isQuotientRing R then(
+        zerodeg := toList(degreeLength R:0);
+        var' := for x in support ideal R list
+            (x=sub(x,R); if degree x!=zerodeg then x else continue);
+        var = unique(var | var');
+        );
+    if #var==0 then return matrix(R,{{1}});
+    mon := if isHomogeneous R and isHomogeneous F then
+        basis(D//2,R,Variables=>var)
+        else basis(0,D//2,R,Variables=>var);
     verbose2("#monomials: " | numColumns mon, o);
     transpose mon
     )
