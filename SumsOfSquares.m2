@@ -411,7 +411,7 @@ rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
 -- Choose monomials internally:
 rawSolveSOS(Matrix,Matrix) := o -> (F,objP) -> (
     mon := chooseMons (F,Verbosity=>o.Verbosity);
-    if mon===null then return (,,,);
+    if mon===null then return sdpResult(mon,,,,);
     rawSolveSOS(F,objP,mon,o)
     )
 rawSolveSOS(Matrix) := o -> (F) -> 
@@ -430,7 +430,7 @@ solveSOS(RingElement,Matrix) := o -> (f,mon) ->
 solveSOS(RingElement,RingElement) := o -> (f,objFcn) -> (
     (F,objP) := parameterVector(f,objFcn);
     mon := chooseMons (F,Verbosity=>o.Verbosity);
-    if mon===null then return (,mon,,);
+    if mon===null then return sdpResult(mon,,,,);
     rawSolveSOS(F,objP,mon,o)
     )
 solveSOS(RingElement) := o -> (f) -> 
@@ -439,6 +439,7 @@ solveSOS(RingElement) := o -> (f) ->
 solveSOS(RingElement,RingElement,ZZ) := o -> (f,objFcn,D) -> (
     (F,objP) := parameterVector(f,objFcn);
     mon := chooseMons(F,D);
+    if mon===null then return sdpResult(mon,,,,);
     solveSOS(f,objFcn,mon,o)
     )
 solveSOS(RingElement,ZZ) := o -> (f,D) -> 
@@ -866,7 +867,7 @@ lowerBound(RingElement,Matrix,ZZ) := o -> (f,h,D) -> (
         {RoundTol=>o.RoundTol, Solver=>o.Solver, Verbosity=>o.Verbosity};
     mon := if isQuotientRing R then chooseMons(F,D)
         else chooseMons (F,Verbosity=>o.Verbosity);
-    if mon===null then return (,sdpResult(,,,,),);
+    if mon===null then return (,sdpResult(mon,,,,),);
     sol := rawSolveSOS(F,objP,mon,o');
     (mon',Q,X,tval,sdpstatus) := readSdpResult sol;
     (bound,mult) := (,);
