@@ -571,7 +571,7 @@ chooseMons = method(
     Options => {Verbosity => 0} )
 chooseMons(RingElement) := o -> (f) -> (
     F := parameterVector(f);
-    mon := chooseMons(F);
+    mon := chooseMons(F,o);
     if mon===null then return;
     sub(mon,ring f)
     )
@@ -592,13 +592,21 @@ chooseMons(Matrix) := o -> (F) -> (
     
     -- Get exponent-points for Newton polytope:
     points := substitute(matrix (transpose exponents falt),QQ);
+    numpoints := numColumns points;
+    if numpoints==1 then(
+        points = flatten entries sub(points,ZZ);
+        if any(points,odd) then(
+            verbose1("Newton polytope has odd vertices. Terminate.", o);
+            return;
+            );
+        return matrix{{R_(points//2)}};
+        );
     maxdeg := first degree falt;
     mindeg := floor first min entries (transpose points*matrix map(ZZ^n,ZZ^1,i->1));
     maxdegs := apply(entries points, i-> max i);
     mindegs := apply(entries points, i-> min i);
     
     -- Regard exponent-points in a possible subspace
-    numpoints := numColumns points;
     shift := first entries transpose points;
     V := matrix transpose apply(entries transpose points, i -> i - shift);
     basV := mingens image V;
