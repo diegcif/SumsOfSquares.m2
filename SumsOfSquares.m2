@@ -45,7 +45,7 @@ export {
 }
 
 --##########################################################################--
--- GLOBAL VARIABLES 
+-- GLOBAL VARIABLES
 --##########################################################################--
 
 -- Constants
@@ -166,8 +166,8 @@ sdpResult = (mon,Q,X,tval,sdpstatus) -> (
 status SDPResult := o -> sol -> sol#Status
 
 net SDPResult := sol -> (
-    mat2str := M -> 
-        if M===null then "null" 
+    mat2str := M ->
+        if M===null then "null"
         else numRows M | "x" | numColumns M | " matrix over " | toString ring M;
     str := {
         {"MomentMatrix", mat2str sol#MomentMatrix},
@@ -202,15 +202,15 @@ library(String,List) := (name,X) -> (
     if name=="Robinson" then
         return x^6 + y^6 + z^6 - (x^4*y^2 + x^2*y^4 + x^4*z^2 + x^2*z^4 + y^4*z^2 + y^2*z^4) + 3*x^2*y^2*z^2;
     if name=="Schmuedgen" then
-        return 200*(x^3 - 4*x*z^2)^2 + 200*(y^3 - 4*y*z^2)^2 + 
+        return 200*(x^3 - 4*x*z^2)^2 + 200*(y^3 - 4*y*z^2)^2 +
            (y^2 - x^2)*x*(x + 2*z)*(x^2 - 2*x*z + 2*y^2 - 8*z^2);
     if name=="Scheiderer" then
         return x^4 + x*y^3 + y^4 - 3*x^2*y*z - 4*x*y^2*z + 2*x^2*z^2 + x*z^3 + y*z^3 + z^4;
     if name=="Harris" then(
         (a,b,c,d,e) := (16,-36,20,57,-38);
-        return a*( x^10 + y^10 + z^10)+ 
+        return a*( x^10 + y^10 + z^10)+
             b*( x^8* y^2 + x^2* y^8 + x^8* z^2 + x^2* z^8 + y^8* z^2 + y^2* z^8 ) +
-            c*( x^6* y^4 + x^4* y^6 + x^6* z^4 + x^4* z^6 + y^6* z^4 + y^4* z^6 ) + 
+            c*( x^6* y^4 + x^4* y^6 + x^6* z^4 + x^4* z^6 + y^6* z^4 + y^4* z^6 ) +
             d*( x^6* y^2* z^2 + x^2* y^6* z^2 + x^2* y^2* z^6) +
             e*( x^4* y^4* z^2 + x^4* y^2* z^4 + x^2* y^4* z^4);
         );
@@ -239,7 +239,7 @@ isZero = (tol,x) -> if isExactField x then x==0 else norm x<tol
 -- rounds real number to rational
 roundQQ = method()
 roundQQ(ZZ,RR) := (d,x) -> round(x*2^d)/2^d
-roundQQ(ZZ,Matrix) := (d,X) -> 
+roundQQ(ZZ,Matrix) := (d,X) ->
      matrix(QQ, applyTable (entries X, roundQQ_d ));
 
 changeRingField = (kk,R) -> kk(monoid[gens R])
@@ -273,11 +273,11 @@ toRing (Ring, SOSPoly) := (S, s) -> (
     R := ring s;
     kk := coefficientRing R;
     -- QQ => RR
-    if kk===QQ then 
+    if kk===QQ then
         return sosPoly (S, (x -> sub (x, S)) \ gens s,
             (q -> sub (q, kk)) \ coefficients s);
     -- RR => QQ
-    if not (instance (kk, RealField) and coefficientRing S===QQ) then 
+    if not (instance (kk, RealField) and coefficientRing S===QQ) then
         error "Error: only conversion between real and rational coefficient fields is implemented.";
     g' := toRing_S \ gens s;
     prec := precision kk;
@@ -343,7 +343,7 @@ sosPoly(Matrix,Matrix) := (mon,Q) -> (
     (L,D,P) := PSDdecomposition(Q);
     if L===null then (
         print "Gram Matrix is not positive semidefinite";
-        return 
+        return
         );
     n := numRows Q;
     g := toList flatten entries (transpose mon * P * L);
@@ -358,7 +358,7 @@ sosPoly(SDPResult) := sol -> if sol#GramMatrix=!=null then sosPoly(sol#Monomials
 -- internal way to call solveSOS
 rawSolveSOS = method(
      Options => {RoundTol => 3, Solver=>null, Verbosity => 0, TraceObj => false} )
- 
+
 rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
     -- Consider a parametric problem f = f_0 + f_1 p_1 + ... + f_s p_s
     -- This minimizes a function over the p_i
@@ -373,7 +373,7 @@ rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
     if numColumns mon > 1 then error("Monomial vector should be a column.");
     isMonomial := max(length \ terms \ flatten entries mon)==1;
     if not isMonomial then error("Vector must consist of monomials.");
-         
+
     -- build SOS model --
     (C,Ai,p0,V,A,B,b) := createSOSModel(F,mon,Verbosity=>o.Verbosity,RoundTol=>o.RoundTol);
     if C===null then return sdpResult(mon,,,,);
@@ -381,11 +381,11 @@ rawSolveSOS(Matrix,Matrix,Matrix) := o -> (F,objP,mon) -> (
     ndim := numRows C;
     np := numRows objP;
 
-    obj := 
+    obj :=
         if o.TraceObj then
             map(kk^(#Ai),kk^1,(i,j)-> trace Ai#i)
         else
-            (transpose V * objP); 
+            (transpose V * objP);
     if obj==0 then verbose2( "Solving SOS feasibility problem...", o)
     else verbose2("Solving SOS optimization problem...", o);
 
@@ -414,7 +414,7 @@ rawSolveSOS(Matrix,Matrix) := o -> (F,objP) -> (
     if mon===null then return sdpResult(mon,,,,);
     rawSolveSOS(F,objP,mon,o)
     )
-rawSolveSOS(Matrix) := o -> (F) -> 
+rawSolveSOS(Matrix) := o -> (F) ->
     rawSolveSOS(F,zeros(QQ,numRows F-1,1),o)
 
 solveSOS = method(
@@ -424,7 +424,7 @@ solveSOS(RingElement,RingElement,Matrix) := o -> (f,objFcn,mon) -> (
     (F,objP) := parameterVector(f,objFcn);
     rawSolveSOS(F,objP,mon,o)
     )
-solveSOS(RingElement,Matrix) := o -> (f,mon) -> 
+solveSOS(RingElement,Matrix) := o -> (f,mon) ->
     solveSOS(f,0_(ring f),mon,o)
 
 solveSOS(RingElement,RingElement) := o -> (f,objFcn) -> (
@@ -433,7 +433,7 @@ solveSOS(RingElement,RingElement) := o -> (f,objFcn) -> (
     if mon===null then return sdpResult(mon,,,,);
     rawSolveSOS(F,objP,mon,o)
     )
-solveSOS(RingElement) := o -> (f) -> 
+solveSOS(RingElement) := o -> (f) ->
     solveSOS(f,0_(ring f),o)
 
 solveSOS(RingElement,RingElement,ZZ) := o -> (f,objFcn,D) -> (
@@ -442,7 +442,7 @@ solveSOS(RingElement,RingElement,ZZ) := o -> (f,objFcn,D) -> (
     if mon===null then return sdpResult(mon,,,,);
     solveSOS(f,objFcn,mon,o)
     )
-solveSOS(RingElement,ZZ) := o -> (f,D) -> 
+solveSOS(RingElement,ZZ) := o -> (f,D) ->
     solveSOS(f,0_(ring f),D,o)
 
 -- Main method to setup an SOS problem as an SDP problem
@@ -457,7 +457,7 @@ createSOSModel(Matrix,Matrix) := o -> (F,v) -> (
     np := numRows F - 1;
     n := numRows v;
     n2 := n*(n+1)//2;
-    
+
     -- monomials in vvT
     vvT := entries(v* transpose v);
     mons := g -> set first entries monomials g;
@@ -467,10 +467,10 @@ createSOSModel(Matrix,Matrix) := o -> (F,v) -> (
     lmf := sum \\ mons \ flatten entries F;
     K2 := toList(lmf - K1);
     K := K1 | K2;
-    
+
     -- Linear constraints: b
     b := map(kk^#K, kk^1, (i,j) -> coefficient(K#i,F_(0,0)) );
-    
+
     -- Linear constraints: A, B
     constructA := (K1,vvT,k2) -> (
         vvT' := smat2vec(vvT, Scaling=>2);
@@ -493,7 +493,7 @@ createSOSModel(Matrix,Matrix) := o -> (F,v) -> (
         A || zeros(kk,k2,n2)
         );
     A := constructA(K1,vvT,#K2);
-    
+
     -- Consider search-parameters:
     constructB := (K,F) -> (
         F0 := F^(toList(1..np));
@@ -510,9 +510,9 @@ createSOSModel(Matrix,Matrix) := o -> (F,v) -> (
     if isExactField(A) and o.RoundTol==infinity then(
         A = sub(A,RR); B = sub(B,RR); b = sub(b,RR);
         );
-    
+
     (C,Ai,p0,V) := getImageModel(A,B,b,o);
-    
+
     (C,Ai,p0,V,A,B,b)
     )
 
@@ -533,8 +533,8 @@ getImageModel = (A,B,b,o) -> (
     c := x^{0..n1-1};
     p0 := x^{n1..n1+n2-1};
     C := vec2smat(c);
-    
-    -- compute the A_i matrices     
+
+    -- compute the A_i matrices
     W := - kernelGens AB;
     r := numColumns W;
     U := W^{0..n1-1};
@@ -551,15 +551,15 @@ parameterVector(RingElement,RingElement) := (f,objFcn) -> (
     R := ring f;
     kk := coefficientRing R;
     if isField kk then (
-        if objFcn!=0 then 
+        if objFcn!=0 then
             error "Objective must be zero if there are no parameters.";
         return (matrix{{f}},zeros(kk,0,1));
         );
-    if first degree f > 1 then 
+    if first degree f > 1 then
         error("Polynomial should depend affinely on the parameters.");
     p := gens R;
     F := matrix for t in {1_R}|p list {coefficient(t,f)};
-    if degree objFcn > {1,0} then 
+    if degree objFcn > {1,0} then
         error("Objective should be a linear function of the parameters.");
     kk = coefficientRing kk;
     objP := matrix for t in p list {sub(coefficient(t,objFcn),kk)};
@@ -590,7 +590,7 @@ chooseMons(Matrix) := o -> (F) -> (
         );
     lmf := monsList flatten entries F;
     falt := sum lmf;
-    
+
     -- Get exponent-points for Newton polytope:
     points := substitute(matrix (transpose exponents falt),QQ);
     numpoints := numColumns points;
@@ -606,7 +606,7 @@ chooseMons(Matrix) := o -> (F) -> (
     mindeg := floor first min entries (transpose points*matrix map(ZZ^n,ZZ^1,i->1));
     maxdegs := apply(entries points, i-> max i);
     mindegs := apply(entries points, i-> min i);
-    
+
     -- Regard exponent-points in a possible subspace
     shift := first entries transpose points;
     V := matrix transpose apply(entries transpose points, i -> i - shift);
@@ -614,7 +614,7 @@ chooseMons(Matrix) := o -> (F) -> (
     basVdim := numgens image basV;
     if basVdim != n then T := id_(QQ^n)//basV else T = id_(QQ^n);
     basVtrans := kernelGens transpose basV;
-    
+
     -- Compute Newton polytope:
     liftedpts := T*V || map (QQ^1,QQ^(size falt),i->1);
     dualpolytope := transpose substitute(first fourierMotzkin(liftedpts),QQ);
@@ -632,14 +632,14 @@ chooseMons(Matrix) := o -> (F) -> (
     cp := pointsInBox(mindeg,maxdeg,mindegs,maxdegs);
     verbose2("#candidate points: " | #cp, o);
     -- Only the even ones
-    cpf := select(cp,i-> all(i,even)); 
+    cpf := select(cp,i-> all(i,even));
     verbose2("#even points: " | #cpf, o);
-    -- Drop points that do not live on the subspace: 
+    -- Drop points that do not live on the subspace:
     cpf2 := select(cpf,i-> matrix{i-shift}*basVtrans==0);
     verbose2("#points in subspace of exponent-points: " | #cpf2, o);
-    
+
     -- Find points within the polytope:
-    lexponents := select(cpf2, i-> 
+    lexponents := select(cpf2, i->
           max flatten entries (dualpolytope * ((T * transpose matrix {i-shift})||1)) <=0)/2;
     isInteger := l -> denominator l == 1;
     assert all(flatten lexponents, isInteger );
@@ -691,14 +691,14 @@ roundSolution = {RoundTol=>3,Verbosity=>1} >> o -> (pVec0,Q,A,B,b) -> (
     d := o.RoundTol;
     np := numColumns B;
     pVec := null;
-    
+
     verbose1("Start rational rounding", o);
     while (d < MaxRoundTol) do (
         verbose2("rounding step #" | d, o);
         if np!=0 then (
             pVec = roundQQ(d,pVec0);
             bPar := b - B*pVec;
-            ) 
+            )
         else bPar= b;
 
         (ok,Qp) := roundPSDmatrix(Q,A,bPar,d);
@@ -748,7 +748,7 @@ sosInIdeal (Matrix,ZZ) := o -> (h,D) -> (
     -- The output is an SDPResult and the multipliers that
     -- express the SOS in terms of the generators.
     -- We have them independent of Gröbner bases.
-    
+
     if numRows h > 1 then error "h must be a row vector";
     if odd D then error "D must be even";
     homog := isHomogeneous h;
@@ -812,12 +812,12 @@ recoverSolution = method()
 recoverSolution(Matrix,Matrix) := (mon,X) -> (
     if X===null then return {};
     e := eigenvalues(X,Hermitian=>true);
-    if e#(-1)<=0 or e#0/e#(-1) < -HighPrecision then 
+    if e#(-1)<=0 or e#0/e#(-1) < -HighPrecision then
         error "Moment matrix is not positive semidefinite";
     i0 := position(flatten entries mon, i -> i==1);
     if i0===null then
         error "The monomial vector must contain 1";
-    if e#(-2) > LowPrecision then 
+    if e#(-2) > LowPrecision then
         print "Moment matrix is not rank one, solution might not be correct.";
     sol := for i to numRows mon-1 list (
         y := mon_(i,i0);
@@ -827,7 +827,7 @@ recoverSolution(Matrix,Matrix) := (mon,X) -> (
     )
 recoverSolution(SDPResult) := sol -> recoverSolution(sol#Monomials,sol#MomentMatrix)
 
--- Unconstrained minimization 
+-- Unconstrained minimization
 -- sos lower bound for the polynomial f
 lowerBound = method(
      Options => {RoundTol => 3, Solver=>null, Verbosity => 0} )
@@ -854,7 +854,7 @@ lowerBound(RingElement,Matrix,ZZ) := o -> (f,h,D) -> (
             if odd D then error "degree bound must be even";
             );
         );
-    
+
     (R,num,den) := numdens(f);
     checkInputs(D,num,den,h,R);
     -- prepare input
@@ -893,7 +893,7 @@ checkSolver(String,String) := o -> (solver,fun) -> (
         "sosInIdeal" => checkSosInIdeal,
         "lowerBound" => checkLowerBound
         };
-    if checkMethod#?fun then 
+    if checkMethod#?fun then
         return checkMethod#fun(solver);
     if fun != "AllMethods" then
         error "No test implemented for this function";
@@ -959,7 +959,7 @@ checkSolveSOS(String) := o -> (solver) -> (
         (mon,Q,X,tval,sdpstatus) = readSdpResult solveSOS(f,Solver=>solver,Verbosity=>o.Verbosity);
         isGram(f,mon,Q)
         );
-    
+
     t3:= (
         R = QQ[x,y,z,w];
         f = 2*x^4 + x^2*y^2 + y^4 - 4*x^2*z - 4*x*y*z - 2*y^2*w + y^2 - 2*y*z + 8*z^2 - 2*z*w + 2*w^2;
@@ -988,12 +988,12 @@ checkSolveSOS(String) := o -> (solver) -> (
     t6:= (
         R = QQ[x,y][t];
         f = x^4*y^2 + x^2*y^4 - 3*x^2*y^2 + 1; --Motzkin
-        (mon,Q,X,tval,sdpstatus) = readSdpResult solveSOS(f,Solver=>solver,Verbosity=>o.Verbosity); 
+        (mon,Q,X,tval,sdpstatus) = readSdpResult solveSOS(f,Solver=>solver,Verbosity=>o.Verbosity);
         ( Q === null )
         );
 
     t7:= (
-        (mon,Q,X,tval,sdpstatus) = readSdpResult solveSOS(f-t,-t, Solver=>solver,Verbosity=>o.Verbosity); 
+        (mon,Q,X,tval,sdpstatus) = readSdpResult solveSOS(f-t,-t, Solver=>solver,Verbosity=>o.Verbosity);
         ( Q === null )
         );
 
@@ -1059,7 +1059,7 @@ checkSosInIdeal(String) := o -> (solver) -> (
         s = sosPoly sol;
         cmp(h,s,mult)
         );
-    
+
     t1:= ( --similar to test0
         R= RR[x];
         h= matrix {{x+1}};
@@ -1103,7 +1103,7 @@ checkSosInIdeal(String) := o -> (solver) -> (
         s = sosPoly sosInIdeal(R,2, Solver=>solver,Verbosity=>o.Verbosity);
         (s=!=null and ideal gens s == ideal(x_R,y+1))
         );
-    
+
     {t0,t1,t2,t3,t4,t5,t6}
     )
 
@@ -1186,7 +1186,7 @@ checkLowerBound(String) := o -> (solver) -> (
         (mon,Q,X,tval,sdpstatus) = readSdpResult sol;
         equal(bound,-1) and cmp(f,h,bound,mon,Q,mult)
         );
-    
+
     {t0,t1,t2,t3,t4,t5,t6}
     )
 
@@ -1205,7 +1205,7 @@ TEST /// --sosPoly and value
     pol1={-(1/2)*x^3*y-(1/2)*x*y^3+x*y*z^2, x^2*y^2-z^4, x^2*y*z-y*z^3,
       -x^3*y+x*y^3, x*y^2*z-x*z^3}
     p1=sosPoly(R,pol1,coeff1)
-    p2=x^6*y^2 + 2*x^4*y^4 + x^2*y^6 - 2*x^4*y^2*z^2 - 2*x^2*y^4*z^2 - 
+    p2=x^6*y^2 + 2*x^4*y^4 + x^2*y^6 - 2*x^4*y^2*z^2 - 2*x^2*y^4*z^2 -
     3*x^2*y^2*z^4 + x^2*z^6 + y^2*z^6 + z^8
     assert(value(p1)===p2)
 ///
@@ -1234,7 +1234,7 @@ TEST /// --cleanSOS
     t1 = clean( .001, s )
     t2 = sosPoly(R, {x^2+1}, {2})
     assert (t1 == t2)
-    
+
     R = QQ[x,y];
     s = sosPoly(R, {x+1,y}, {2,1/100000})
     t = clean( 0.001, s )
@@ -1261,7 +1261,7 @@ TEST ///--toRing
     assert instance(coefficientRing ring s2, RealField)
     s3 = toRing_R s2;
     assert (s==s3)
-    
+
     tol := HighPrecision;
     f = 0.1*x_S^2 + y^2
     g = 1/10*(symbol x)_R^2 + (symbol y)_R^2
@@ -1299,7 +1299,7 @@ TEST /// --chooseMons
     f = x^4+2*x*y-x+y^4
     lmsos = chooseMons(f-t)
     assert( lmsos=!=null and ring lmsos===R and numRows lmsos == 6 )
-    
+
     R = RR[x,y][t];
     f = x^4+2*x*y-x+y^4
     lmsos = chooseMons(f-t)
@@ -1315,14 +1315,14 @@ TEST /// --chooseMons
 TEST /// --createSOSModel
     debug needsPackage "SumsOfSquares"
     eval = (Q,v) -> (transpose v * Q * v)_(0,0)
-    
+
     R = QQ[x][t];
     f = x^4 - 2*x + t;
     mon = matrix{{1},{x},{x^2}}
     (C,Ai,p0,V,A,B,b) = createSOSModel(f,mon)
     assert( eval(C,mon) == x^4 - 2*x )
     assert( #Ai==2 and all({0,1}, j -> eval(Ai#j,mon) == V_(0,j)) )
-    
+
     equal = (f1,f2) -> norm(f1-f2) < HighPrecision;
     R = RR[x][t];
     f = x^4 - 2*x + t;
@@ -1330,7 +1330,7 @@ TEST /// --createSOSModel
     (C,Ai,p0,V,A,B,b) = createSOSModel(f,mon)
     assert( equal(eval(C,mon), x^4 - 2*x) )
     assert( #Ai==2 and all({0,1}, j -> equal(eval(Ai#j,mon), V_(0,j))) )
-    
+
     R = QQ[x,y][t]
     f = x^2+2*x + t*(y+1)
     mon = matrix{{1},{x}}
@@ -1348,7 +1348,7 @@ TEST ///--makeMultiples
     (H,m) = makeMultiples (h,3, false)
     assert (#H == 14 )
     assert( max(first\degree\H) == 3 )
-    
+
     (H,m) = makeMultiples (h,3, true)
     assert(#H == 9)
     assert( unique(first\degree\H) == {3} )
