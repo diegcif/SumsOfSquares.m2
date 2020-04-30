@@ -1309,6 +1309,16 @@ TEST /// --chooseMons
     f = y + l *(y-x^2) - t
     mon = chooseMons f
     assert(mon == matrix{{1_R},{x_R}})
+
+    R = QQ[x,y,z]
+    F = matrix{{x+1},{x*z^2-1}}
+    mon = chooseMons(F,2)
+    assert( mon - matrix(R,{{1},{x},{z}}) == 0 )
+
+    S = R/ideal(F)
+    F = matrix{{0_S}}
+    mon = chooseMons(F,2)
+    assert( mon - matrix(S,{{1},{z}}) == 0 )
 ///
 
 --7
