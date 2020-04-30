@@ -865,7 +865,7 @@ lowerBound(RingElement,Matrix,ZZ) := o -> (f,h,D) -> (
     -- call solveSOS
     o' := new OptionTable from
         {RoundTol=>o.RoundTol, Solver=>o.Solver, Verbosity=>o.Verbosity};
-    mon := if isQuotientRing R then chooseMons(F,D)
+    mon := if D>=0 then chooseMons(F,D,Verbosity=>o.Verbosity)
         else chooseMons (F,Verbosity=>o.Verbosity);
     if mon===null then return (,sdpResult(mon,,,,),);
     sol := rawSolveSOS(F,objP,mon,o');
