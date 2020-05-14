@@ -657,9 +657,7 @@ chooseMons(Matrix,ZZ) := o -> (F,D) -> (
     R := ring F;
     var := support F;
     if isQuotientRing R then(
-        zerodeg := toList(degreeLength R:0);
-        var' := for x in support ideal R list
-            (x=sub(x,R); if degree x!=zerodeg then x else continue);
+        var' := flatten for x in support ideal R list support sub(x,R);
         var = unique(var | var');
         );
     if #var==0 then return matrix(R,{{1}});
@@ -1319,6 +1317,12 @@ TEST /// --chooseMons
     F = matrix{{0_S}}
     mon = chooseMons(F,2)
     assert( mon - matrix(S,{{1},{z}}) == 0 )
+
+    R = QQ[x0,x1,x2,x3,MonomialOrder=>Lex]
+    S = R/ideal(x1-x2^2,x3-1)
+    F = matrix{{1_S}}
+    mon = chooseMons(F,4)
+    assert( mon - matrix(S,{{1},{x2},{x2^2}}) == 0 )
 ///
 
 --7
