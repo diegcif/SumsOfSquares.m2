@@ -830,15 +830,20 @@ recoverSolution(Matrix,Matrix) := (mon,X) -> (
         return {};
         );
     var := mon^I;
-    X = submatrix(X,I,I);
-    (e,V) := eigenvectors(X,Hermitian=>true);
+    Y := submatrix(X,I,I);
+    (e,V) := eigenvectors(Y,Hermitian=>true);
     if e#(-1)<=0 or e#0/e#(-1) < -HighPrecision then
         error "Moment matrix is not positive semidefinite";
-    if #I==1 then return {var_(0,0) => sqrt X_(0,0)};
-    if e#(-2) > LowPrecision then
+    if #I>=2 and e#(-2) > LowPrecision then
         print "Moment matrix is not rank one, solution might not be correct.";
     vv := sqrt(e#(-1)) * V_{#I-1};
     sol := for j to #I-1 list ( var_(j,0) => vv_(j,0) );
+    if #I < numRows X then(
+        x0 := sub(mon,sol);  X0 := x0 * transpose x0;
+        sol1 := for j to #I-1 list ( var_(j,0) => -vv_(j,0) );
+        x1 := sub(mon,sol1);  X1 := x1 * transpose x1;
+        if norm(X-X1) < norm(X-X0) then sol = sol1;
+        );
     sol
     )
 recoverSolution(SDPResult) := sol -> recoverSolution(sol#Monomials,sol#MomentMatrix)
@@ -1388,11 +1393,32 @@ TEST ///--makeMultiples
 
 --9
 TEST ///--recoverSolution
+    equal = (a,b) -> norm(a-b) < HighPrecision;
     R = RR[x,y];
     mon = matrix {{1},{x},{y}};
     X = matrix(RR, {{1,0,1},{0,0,0},{1,0,1}} );
     sol = recoverSolution(mon,X);
-    assert(sol#0#1==0 and sol#1#1==1)
+    assert(#sol==2 and equal(last\sol,{0,1}))
+
+    X = matrix(RR, {{1,0,-1},{0,0,0},{-1,0,1}} );
+    sol = recoverSolution(mon,X);
+    assert(#sol==2 and equal(last\sol,{0,-1}))
+
+    mon = matrix {{1},{x}};
+    X = matrix(RR, {{1,1},{1,1}} );
+    sol = recoverSolution(mon,X);
+    assert(#sol==1 and equal(last\sol,{1}))
+
+    mon = matrix {{1},{y}};
+    X = matrix(RR, {{1,-1},{-1,1}} );
+    sol = recoverSolution(mon,X);
+    assert(#sol==1 and equal(last\sol,{-1}))
+
+    mon = matrix {{x},{y}};
+    s = sqrt 2;
+    X = matrix(RR, {{2,-s},{-s,1}} );
+    sol = recoverSolution(mon,X);
+    assert(#sol==2 and ( equal(last\sol,{s,-1}) or equal(last\sol,{-s,1}) ))
 ///
 
 --10
