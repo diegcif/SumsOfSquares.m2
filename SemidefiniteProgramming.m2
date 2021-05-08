@@ -90,7 +90,7 @@ scan({"CSDP", "MOSEK", "SDPA"}, solver ->
         {"", toLower solver}) then programPaths#(toLower solver) =
             replace(toLower solver | "$", "",
                 SemidefiniteProgramming#Options#Configuration#(solver | "exec"))
-    )
+)
 
 findCSDP = raiseError -> (
     fin := temporaryFileName() | ".dat-s";
@@ -676,10 +676,6 @@ readCSDP = (fout,fout2,n,Verbosity) -> (
     readLine := l -> for s in separate(" ",l) list if s=="" then continue else value s;
     --READ SOLUTIONS
     local sdpstatus;
-    if not fileExists fout then(
-        verbose1("Solver did not produce an output file.",Verbosity);
-        if fileExists fout2 then verbose1(get fout2,Verbosity);
-        return (,,,StatusFailed) );
     text := get fout;
     text = replace("\\+","",text);
     L := lines text;
@@ -745,9 +741,6 @@ readSDPA = (fout,n,Verbosity) -> (
     );
     readMatrix := ll ->
         matrix(RR, for l in ll list readVec l);
-    if not fileExists fout then(
-        verbose1("Solver did not produce an output file.",Verbosity);
-        return (,,,StatusFailed) );
     text := get fout;
     L := lines text;
     --READ SOLUTIONS
@@ -847,10 +840,6 @@ writeMOSEK = (fin,C,A,b) -> (
 
 readMOSEK = (fout,fout2,n,Verbosity) -> (
     splitline := l -> separate(" ", replace(" +"," ",l));
-    if not fileExists fout then(
-        verbose1("Solver did not produce an output file.",Verbosity);
-        if fileExists fout2 then verbose1(get fout2,Verbosity);
-        return (,,,StatusFailed) );
     verbose2(get fout2, Verbosity);
     text := get fout;
     L := lines replace("\\+","",text);
