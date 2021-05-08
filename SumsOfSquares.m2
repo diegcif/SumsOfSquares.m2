@@ -824,18 +824,21 @@ sosdecTernary(RingElement) := o -> (f) -> (
 recoverSolution = method()
 recoverSolution(Matrix,Matrix) := (mon,X) -> (
     if X===null then return {};
-    e := eigenvalues(X,Hermitian=>true);
+    I := positions(flatten entries mon, y -> sum degree y==1);
+    if #I==0 then(
+        print "The monomial vector does not contain variables";
+        return {};
+        );
+    var := mon^I;
+    X = submatrix(X,I,I);
+    (e,V) := eigenvectors(X,Hermitian=>true);
     if e#(-1)<=0 or e#0/e#(-1) < -HighPrecision then
         error "Moment matrix is not positive semidefinite";
-    i0 := position(flatten entries mon, i -> i==1);
-    if i0===null then
-        error "The monomial vector must contain 1";
+    if #I==1 then return {var_(0,0) => sqrt X_(0,0)};
     if e#(-2) > LowPrecision then
         print "Moment matrix is not rank one, solution might not be correct.";
-    sol := for i to numRows mon-1 list (
-        y := mon_(i,i0);
-        if sum degree y!=1 then continue;
-        y => X_(i,i0) );
+    vv := sqrt(e#(-1)) * V_{#I-1};
+    sol := for j to #I-1 list ( var_(j,0) => vv_(j,0) );
     sol
     )
 recoverSolution(SDPResult) := sol -> recoverSolution(sol#Monomials,sol#MomentMatrix)
