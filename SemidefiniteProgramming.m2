@@ -16,10 +16,10 @@ newPackage(
       Email => "peyrl@control.ee.ethz.ch",
       HomePage => "https://scholar.google.com/citations?user=cFOV7nYAAAAJ&hl=de"}
     },
-    Headline => "Semidefinite Programming Package",
+    Headline => "semidefinite programming",
+    Keywords => {"Real Algebraic Geometry", "Interfaces"},
     Configuration => {"CSDPexec"=>"","MOSEKexec"=>"mosek","SDPAexec"=>"sdpa","DefaultSolver"=>null},
     AuxiliaryFiles => true,
-    PackageImports => {"SimpleDoc"},
     PackageExports => {"NumericalAlgebraicGeometry"}
 )
 
@@ -68,13 +68,15 @@ chooseDefaultSolver = execs -> (
     solvers := {"CSDP", "MOSEK", "SDPA"}; --sorted by preference
     found := for i to #solvers-1 list
         if execs#i=!=null then solvers#i else continue;
-    print if #found>0 then "Solvers configured: "|demark(", ",found)
-        else "Warning: No external solver was found.";
+    if notify then
+        print if #found>0 then "Solvers configured: "|demark(", ",found)
+            else "Warning: No external solver was found.";
     found = append(found,"M2");
     defaultSolver = ((options SemidefiniteProgramming).Configuration)#"DefaultSolver";
     if not member(defaultSolver,found) then
         defaultSolver = first found;
-    print("Default solver: " | defaultSolver);
+    if notify then
+        print("Default solver: " | defaultSolver);
     defaultSolver)
 
 -- Change a solver path
