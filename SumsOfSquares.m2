@@ -1393,6 +1393,7 @@ TEST ///--makeMultiples
 
 --9
 TEST ///--recoverSolution
+    debug needsPackage "SumsOfSquares"
     equal = (sol,xx,vv) ->
         all(xx, vv, (x,v) -> norm(v-sub(x,sol)) < HighPrecision);
     R = RR[x,y];
