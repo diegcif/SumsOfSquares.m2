@@ -1,7 +1,7 @@
 newPackage(
     "SumsOfSquares",
-    Version => "2.1",
-    Date => "September 2019",
+    Version => "2.2",
+    Date => "May 2021",
     Authors => {
      {Name => "Diego Cifuentes",
       Email => "diegcif@mit.edu",
